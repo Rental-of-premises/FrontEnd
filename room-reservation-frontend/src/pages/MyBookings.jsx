@@ -101,15 +101,49 @@ const MOCK_BOOKINGS = [
   }
 ]
 
+// Функция для преобразования брони в почасовые слоты
+const expandBookingToHourlySlots = (booking) => {
+  const slots = []
+  const startHour = parseInt(booking.startTime.split(':')[0])
+  const endHour = parseInt(booking.endTime.split(':')[0])
+  
+  for (let hour = startHour; hour < endHour; hour++) {
+    slots.push({
+      id: `${booking.id}-${hour}`,
+      bookingId: booking.id,
+      workspace: booking.workspace,
+      apartment_id: booking.apartment_id,
+      date: booking.date,
+      startTime: `${hour}:00`,
+      endTime: `${hour + 1}:00`,
+      capacity: booking.capacity,
+      price_per_hour: booking.price_per_hour,
+      status: booking.status,
+      created_at: booking.created_at,
+      originalBooking: booking
+    })
+  }
+  return slots
+}
+
 export default function MyBookings() {
   const { user } = useAuth()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [bookings] = useState(MOCK_BOOKINGS)
-  const [statusFilter, setStatusFilter] = useState('active') // active, history, all
+  const [statusFilter, setStatusFilter] = useState('active')
 
-  // Фильтрация броней по статусу
+  // Преобразуем брони в почасовые слоты для активных броней
+  const hourlySlots = useMemo(() => {
+    const activeBookings = bookings.filter(b => b.status === 'confirmed')
+    const slots = []
+    activeBookings.forEach(booking => {
+      slots.push(...expandBookingToHourlySlots(booking))
+    })
+    return slots
+  }, [bookings])
+
   const filteredBookings = useMemo(() => {
     if (statusFilter === 'active') {
       return bookings.filter(b => b.status === 'confirmed')
@@ -120,12 +154,10 @@ export default function MyBookings() {
     return bookings
   }, [bookings, statusFilter])
 
-  // Активные брони (для календаря)
   const activeBookings = useMemo(() => {
     return bookings.filter(b => b.status === 'confirmed')
   }, [bookings])
 
-  // Статистика
   const stats = useMemo(() => {
     return {
       active: bookings.filter(b => b.status === 'confirmed').length,
@@ -135,7 +167,6 @@ export default function MyBookings() {
     }
   }, [bookings])
 
-  // Получаем дни недели для календаря
   const weekDays = useMemo(() => {
     const startDate = new Date(currentDate)
     const day = currentDate.getDay()
@@ -150,30 +181,22 @@ export default function MyBookings() {
     return days
   }, [currentDate])
 
-  // Часы с 8 до 22
   const hours = useMemo(() => {
     const h = []
     for (let i = 8; i <= 22; i++) h.push(i)
     return h
   }, [])
 
-  // Проверка, забронирован ли час (только для активных броней)
+  // Проверка, забронирован ли час (используем почасовые слоты)
   const isHourBooked = (date, hour) => {
     const dateStr = date.toISOString().split('T')[0]
-    const hourStr = `${hour}:00`
-    return activeBookings.some(booking => {
-      if (booking.date !== dateStr) return false
-      return hourStr >= booking.startTime && hourStr < booking.endTime
-    })
+    return hourlySlots.some(slot => slot.date === dateStr && parseInt(slot.startTime.split(':')[0]) === hour)
   }
 
-  const getBookingForHour = (date, hour) => {
+  // Получение слота для конкретного часа
+  const getSlotForHour = (date, hour) => {
     const dateStr = date.toISOString().split('T')[0]
-    const hourStr = `${hour}:00`
-    return activeBookings.find(booking => {
-      if (booking.date !== dateStr) return false
-      return hourStr >= booking.startTime && hourStr < booking.endTime
-    })
+    return hourlySlots.find(slot => slot.date === dateStr && parseInt(slot.startTime.split(':')[0]) === hour)
   }
 
   const goToPrevWeek = () => {
@@ -213,24 +236,17 @@ export default function MyBookings() {
     return date.toDateString() === today.toDateString()
   }
 
-  const handleBookingClick = (booking) => {
-    setSelectedBooking(booking)
-    setModalOpen(true)
+  const handleSlotClick = (slot) => {
+    if (slot && slot.originalBooking) {
+      setSelectedBooking(slot.originalBooking)
+      setModalOpen(true)
+    }
   }
 
   const handleCancelBooking = (bookingId) => {
     if (window.confirm('Отменить бронирование?')) {
       alert(`Бронирование #${bookingId} отменено`)
       setModalOpen(false)
-    }
-  }
-
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case 'confirmed': return '🟢'
-      case 'completed': return '✅'
-      case 'cancelled': return '❌'
-      default: return '📋'
     }
   }
 
@@ -247,7 +263,6 @@ export default function MyBookings() {
     <>
       <Navbar />
       <div className="mybookings-page">
-        {/* Заголовок */}
         <div className="mybookings-header">
           <div>
             <h1 className="mybookings-title">Мои бронирования</h1>
@@ -263,29 +278,27 @@ export default function MyBookings() {
           </div>
         </div>
 
-        {/* Фильтр */}
         <div className="filter-buttons">
           <button 
             className={`filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
             onClick={() => setStatusFilter('active')}
           >
-            🟢 Активные ({stats.active})
+            Активные ({stats.active})
           </button>
           <button 
             className={`filter-btn ${statusFilter === 'history' ? 'active' : ''}`}
             onClick={() => setStatusFilter('history')}
           >
-            📜 История ({stats.completed + stats.cancelled})
+            История ({stats.completed + stats.cancelled})
           </button>
           <button 
             className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            📋 Все ({stats.total})
+            Все ({stats.total})
           </button>
         </div>
 
-        {/* Активные брони - показываем календарь */}
         {statusFilter === 'active' && (
           <>
             <div className="nav-buttons">
@@ -306,22 +319,22 @@ export default function MyBookings() {
                   ))}
                 </div>
 
-                {hours.map((hour, hourIdx) => (
-                  <div key={hourIdx} className="calendar-row">
+                {hours.map((hour) => (
+                  <div key={hour} className="calendar-row">
                     <div className="time-cell">{hour}:00</div>
                     {weekDays.map((day, dayIdx) => {
-                      const booked = isHourBooked(day, hour)
-                      const booking = getBookingForHour(day, hour)
+                      const slot = getSlotForHour(day, hour)
+                      const booked = !!slot
                       return (
                         <div
                           key={dayIdx}
                           className={`calendar-cell ${booked ? 'calendar-cell-booked' : 'calendar-cell-free'}`}
-                          onClick={() => booked && booking && handleBookingClick(booking)}
+                          onClick={() => booked && slot && handleSlotClick(slot)}
                         >
-                          {booked && booking && (
+                          {booked && slot && (
                             <div className="booking-card">
-                              <div className="booking-title">{booking.workspace}</div>
-                              <div className="booking-time">{booking.startTime} - {booking.endTime}</div>
+                              <div className="booking-title">{slot.workspace}</div>
+                              <div className="booking-time">{slot.startTime} - {slot.endTime}</div>
                             </div>
                           )}
                         </div>
@@ -333,24 +346,17 @@ export default function MyBookings() {
             </div>
 
             <div className="legend">
-              <div className="legend-item">
-                <div className="legend-free"></div>
-                <span className="legend-text">Свободно</span>
-              </div>
-              <div className="legend-item">
-                <div className="legend-booked"></div>
-                <span className="legend-text">Забронировано</span>
-              </div>
+              <div className="legend-item"><div className="legend-free"></div><span className="legend-text">Свободно</span></div>
+              <div className="legend-item"><div className="legend-booked"></div><span className="legend-text">Забронировано</span></div>
             </div>
           </>
         )}
 
-        {/* История бронирований - показываем список */}
         {(statusFilter === 'history' || statusFilter === 'all') && (
           <div className="history-list">
             {filteredBookings.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">📜</div>
+                <div className="empty-icon"></div>
                 <h3 className="empty-title">Нет бронирований в истории</h3>
                 <p className="empty-text">После завершения или отмены бронирований они появятся здесь</p>
               </div>
@@ -359,43 +365,31 @@ export default function MyBookings() {
                 <div 
                   key={booking.id} 
                   className={`history-card ${booking.status}`}
-                  onClick={() => handleBookingClick(booking)}
+                  onClick={() => setSelectedBooking(booking)}
                 >
                   <div className="history-card-header">
                     <div className="history-status">
                       <span className={`status-badge ${booking.status}`}>
-                        {getStatusIcon(booking.status)} {getStatusText(booking.status)}
+                        {getStatusText(booking.status)}
                       </span>
                       <span className="history-date">{formatFullDate(booking.date)}</span>
                     </div>
                     <div className="history-price">${booking.total_price}</div>
                   </div>
-                  
                   <div className="history-card-body">
                     <h3 className="history-workspace">{booking.workspace}</h3>
                     <div className="history-time">
-                      🕐 {booking.startTime} - {booking.endTime}
+                      {booking.startTime} - {booking.endTime}
                     </div>
                     <div className="history-details">
-                      <span>👥 {booking.capacity} чел.</span>
-                      <span>💰 ${booking.price_per_hour}/час</span>
+                      <span>{booking.capacity} чел.</span>
+                      <span>${booking.price_per_hour}/час</span>
                     </div>
                   </div>
-                  
                   <div className="history-card-footer">
-                    <span className="history-created">
-                      Забронировано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}
-                    </span>
+                    <span className="history-created">Забронировано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
                     {booking.status === 'confirmed' && (
-                      <button 
-                        className="cancel-small-btn"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleCancelBooking(booking.id)
-                        }}
-                      >
-                        Отменить
-                      </button>
+                      <button className="cancel-small-btn" onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking.id); }}>Отменить</button>
                     )}
                   </div>
                 </div>
@@ -404,20 +398,15 @@ export default function MyBookings() {
           </div>
         )}
 
-        {/* Пустое состояние для активных */}
         {statusFilter === 'active' && activeBookings.length === 0 && (
           <div className="empty-state">
-            <div className="empty-icon">📅</div>
+            <div className="empty-icon"></div>
             <h3 className="empty-title">Нет активных бронирований</h3>
-            <p className="empty-text">Перейдите в каталог, чтобы забронировать помещение</p>
-            <button onClick={() => window.location.href = '/catalog'} className="go-catalog-btn">
-              Перейти в каталог
-            </button>
+            <button onClick={() => window.location.href = '/catalog'} className="go-catalog-btn">Перейти в каталог</button>
           </div>
         )}
       </div>
 
-      {/* Модальное окно с деталями */}
       {modalOpen && selectedBooking && (
         <div className="modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -426,54 +415,14 @@ export default function MyBookings() {
               <button className="modal-close" onClick={() => setModalOpen(false)}>×</button>
             </div>
             <div className="modal-body">
-              <div className="modal-field">
-                <div className="modal-label">Помещение</div>
-                <div className="modal-value">{selectedBooking.workspace}</div>
-              </div>
-              <div className="modal-field">
-                <div className="modal-label">Дата</div>
-                <div className="modal-value">{formatFullDate(selectedBooking.date)}</div>
-              </div>
-              <div className="modal-field">
-                <div className="modal-label">Время</div>
-                <div className="modal-value">{selectedBooking.startTime} - {selectedBooking.endTime}</div>
-              </div>
-              <div className="modal-field">
-                <div className="modal-label">Продолжительность</div>
-                <div className="modal-value">
-                  {parseInt(selectedBooking.endTime.split(':')[0]) - parseInt(selectedBooking.startTime.split(':')[0])} часа(ов)
-                </div>
-              </div>
-              <div className="modal-field">
-                <div className="modal-label">Стоимость</div>
-                <div className="modal-value">
-                  ${selectedBooking.price_per_hour} × {parseInt(selectedBooking.endTime.split(':')[0]) - parseInt(selectedBooking.startTime.split(':')[0])}ч = ${selectedBooking.total_price}
-                </div>
-              </div>
-              <div className="modal-field">
-                <div className="modal-label">Статус</div>
-                <div className="modal-value">
-                  <span className={`status-badge ${selectedBooking.status}`}>
-                    {getStatusIcon(selectedBooking.status)} {getStatusText(selectedBooking.status)}
-                  </span>
-                </div>
-              </div>
-              <div className="modal-field">
-                <div className="modal-label">Забронировано</div>
-                <div className="modal-value">
-                  {new Date(selectedBooking.created_at).toLocaleString('ru-RU')}
-                </div>
-              </div>
+              <div className="modal-field"><div className="modal-label">Помещение</div><div className="modal-value">{selectedBooking.workspace}</div></div>
+              <div className="modal-field"><div className="modal-label">Дата</div><div className="modal-value">{formatFullDate(selectedBooking.date)}</div></div>
+              <div className="modal-field"><div className="modal-label">Время</div><div className="modal-value">{selectedBooking.startTime} - {selectedBooking.endTime}</div></div>
+              <div className="modal-field"><div className="modal-label">Статус</div><div className="modal-value"><span className={`status-badge ${selectedBooking.status}`}>{getStatusText(selectedBooking.status)}</span></div></div>
             </div>
             <div className="modal-footer">
-              {selectedBooking.status === 'confirmed' && (
-                <button className="cancel-btn" onClick={() => handleCancelBooking(selectedBooking.id)}>
-                  Отменить бронирование
-                </button>
-              )}
-              <button className="close-btn" onClick={() => setModalOpen(false)}>
-                Закрыть
-              </button>
+              {selectedBooking.status === 'confirmed' && <button className="cancel-btn" onClick={() => handleCancelBooking(selectedBooking.id)}>Отменить бронирование</button>}
+              <button className="close-btn" onClick={() => setModalOpen(false)}>Закрыть</button>
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ import CreateRoom from './pages/CreateRoom';
 import MyBookings from './pages/MyBookings';
 import RoomDetails from './pages/RoomDetails';
 import BookingForm from './pages/BookingForm';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/create-room" element={<CreateRoom />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/booking/:id" element={<BookingForm />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </BrowserRouter>
   );
