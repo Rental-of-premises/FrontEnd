@@ -98,10 +98,14 @@ export const api = createApi({
     }),
         
     getApartmentById: builder.query({
-      query: (id) => `/apartments/${id}`,
-      transformResponse: (response, meta, id) => {
-        if (response && response.id) return response;
-        return MOCK_ROOMS.find(a => a.id === parseInt(id)) || null;
+      async queryFn(id) {
+        console.log(`Используем моковые данные для помещения ID: ${id}`);
+        const room = MOCK_ROOMS.find(r => r.id === parseInt(id));
+        if (room) {
+          return { data: room };
+        } else {
+          return { error: { status: 404, message: 'Помещение не найдено' } };
+        }
       },
       providesTags: (result, error, id) => [{ type: 'Apartments', id }]
     }),
@@ -156,7 +160,7 @@ export const api = createApi({
       invalidatesTags: ['Apartments']
     }),
     
-    // ========== БРОНИРОВАНИЯ (МОКОВЫЕ) ==========
+    // ========== БРОНИРОВАНИЯ (МОКОВЫЕ ДАННЫЕ) ==========
     getBookingById: builder.query({
       async queryFn(id) {
         const today = new Date();
@@ -179,8 +183,6 @@ export const api = createApi({
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const dayAfter = new Date(today);
-        dayAfter.setDate(dayAfter.getDate() + 2);
         
         const mockBookings = [
           {

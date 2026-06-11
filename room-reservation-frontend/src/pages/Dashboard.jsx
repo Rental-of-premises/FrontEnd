@@ -1,35 +1,10 @@
 // src/pages/Dashboard.jsx
 import { useAuth } from '../hooks/useAuth'
-import { useGetMyBookingsQuery, useGetMyApartmentsQuery, useCancelBookingMutation, useDeleteApartmentMutation } from '../store/api'
-import Navbar from '../components/Navbar'
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import Navbar from '../components/Navbar'
 
 export default function Dashboard() {
   const { user, logout } = useAuth()
-  const { data: bookings = [], refetch: refetchBookings } = useGetMyBookingsQuery()
-  const { data: apartments = [], refetch: refetchApartments } = useGetMyApartmentsQuery(user?.id)
-  const [cancelBooking] = useCancelBookingMutation()
-  const [deleteApartment] = useDeleteApartmentMutation()
-
-  const stats = {
-    postedRooms: apartments?.length || 0,
-    bookings: bookings?.length || 0
-  }
-
-  const handleCancelBooking = async (bookingId) => {
-    if (window.confirm('Отменить бронирование?')) {
-      await cancelBooking(bookingId)
-      refetchBookings()
-    }
-  }
-
-  const handleDeleteApartment = async (apartmentId) => {
-    if (window.confirm('Удалить помещение?')) {
-      await deleteApartment(apartmentId)
-      refetchApartments()
-    }
-  }
 
   const handleLogout = async () => {
     if (window.confirm('Вы уверены, что хотите выйти?')) {
@@ -40,85 +15,127 @@ export default function Dashboard() {
   return (
     <>
       <Navbar />
-      <div className="dashboard-container">
-        <h1 className="page-title">Личный кабинет</h1>
-        <p className="page-subtitle">
-          Добро пожаловать, {user?.name || 'Пользователь'}!
-        </p>
-        
-        <div className="dashboard-stats">
-          <div className="stat-card">
-            <div className="stat-value">{stats.postedRooms}</div>
-            <div className="stat-label">Мои помещения</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{stats.bookings}</div>
-            <div className="stat-label">Бронирований</div>
-          </div>
+      <div className="dashboard-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+        {/* Приветствие */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #0f1a2e, #1a2a3e)', 
+          padding: '30px', 
+          borderRadius: '16px', 
+          marginBottom: '30px',
+          color: 'white'
+        }}>
+          <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Добро пожаловать, {user?.name || 'Пользователь'}!</h1>
+          <p style={{ color: '#8899bb' }}>Управляйте своими бронированиями и помещениями</p>
         </div>
-        
-        <div className="dashboard-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 className="section-title">Мои помещения</h2>
-            <Link to="/create-room">
-              <button className="add-btn">+ Добавить помещение</button>
-            </Link>
-          </div>
-          {apartments?.length === 0 ? (
-            <div className="empty-state">У вас пока нет помещений для сдачи</div>
-          ) : (
-            apartments?.map(apt => (
-              <div key={apt.id} className="space-item">
-                <div className="space-info">
-                  <h4>{apt.name || apt.title}</h4>
-                  <div className="space-price">${apt.price_per_hour}/час</div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button 
-                    className="delete-btn" 
-                    onClick={() => handleDeleteApartment(apt.id)}
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        
-        <div className="dashboard-section">
-          <h2 className="section-title">Мои бронирования</h2>
-          {bookings?.length === 0 ? (
-            <div className="empty-state">У вас пока нет бронирований</div>
-          ) : (
-            bookings?.map(booking => (
-              <div key={booking.id} className="booking-item">
-                <div className="booking-info">
-                  <h4>{booking.room_title || booking.apartment_title || `Бронирование #${booking.id}`}</h4>
-                  <div className="booking-date">
-                    {booking.time_from && new Date(booking.time_from).toLocaleString()} - {booking.time_to && new Date(booking.time_to).toLocaleString()}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <span className={`status-${booking.status}`}>
-                    {booking.status === 'confirmed' ? 'подтверждено' : booking.status}
-                  </span>
-                  <button 
-                    className="cancel-btn" 
-                    onClick={() => handleCancelBooking(booking.id)}
-                  >
-                    Отменить
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+
+        {/* Карточки-ссылки */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+          
+          {/* Карточка "Мои бронирования" - ведет на календарь */}
+          <Link to="/my-bookings" style={{ textDecoration: 'none' }}>
+            <div style={{ 
+              background: '#0f1a2e', 
+              borderRadius: '16px', 
+              padding: '24px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              cursor: 'pointer',
+              height: '100%'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)'
+              e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📅</div>
+              <h2 style={{ color: 'white', marginBottom: '8px' }}>Мои бронирования</h2>
+              <p style={{ color: '#8899bb' }}>Посмотреть все ваши бронирования в календаре</p>
+              <div style={{ marginTop: '16px', color: '#2ecc71' }}>Перейти →</div>
+            </div>
+          </Link>
+
+          {/* Карточка "Мои помещения" */}
+          <Link to="/my-rooms" style={{ textDecoration: 'none' }}>
+            <div style={{ 
+              background: '#0f1a2e', 
+              borderRadius: '16px', 
+              padding: '24px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              cursor: 'pointer',
+              height: '100%'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)'
+              e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
+              <h2 style={{ color: 'white', marginBottom: '8px' }}>Мои помещения</h2>
+              <p style={{ color: '#8899bb' }}>Управляйте своими помещениями</p>
+              <div style={{ marginTop: '16px', color: '#2ecc71' }}>Скоро →</div>
+            </div>
+          </Link>
+
+          {/* Карточка "Новое бронирование" */}
+          <Link to="/catalog" style={{ textDecoration: 'none' }}>
+            <div style={{ 
+              background: '#0f1a2e', 
+              borderRadius: '16px', 
+              padding: '24px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              cursor: 'pointer',
+              height: '100%'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)'
+              e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>➕</div>
+              <h2 style={{ color: 'white', marginBottom: '8px' }}>Новое бронирование</h2>
+              <p style={{ color: '#8899bb' }}>Найти и забронировать помещение</p>
+              <div style={{ marginTop: '16px', color: '#2ecc71' }}>Перейти →</div>
+            </div>
+          </Link>
         </div>
 
         {/* Кнопка выхода внизу страницы */}
-        <div className="logout-section">
-          <button onClick={handleLogout} className="dashboard-logout-btn">
-          Выйти из аккаунта
+        <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <button 
+            onClick={handleLogout}
+            style={{
+              background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '14px 32px',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            Выйти из аккаунта
           </button>
         </div>
       </div>
