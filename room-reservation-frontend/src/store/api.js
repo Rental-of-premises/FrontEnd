@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const BASE_URL = 'http://localhost:3000';
 
-// Моковые данные для нереализованных эндпоинтов
+// Моковые данные для каталога
 const MOCK_ROOMS = [
   {
     id: 1,
@@ -33,18 +33,6 @@ const MOCK_ROOMS = [
     price_per_hour: 25,
     seller_id: 2,
     is_active: true,
-    created_at: new Date().toISOString()
-  }
-];
-
-const MOCK_BOOKINGS = [
-  {
-    id: 1,
-    user_id: 1,
-    apartment_id: 1,
-    status: "confirmed",
-    time_from: new Date(Date.now() + 86400000).toISOString(),
-    time_to: new Date(Date.now() + 172800000).toISOString(),
     created_at: new Date().toISOString()
   }
 ];
@@ -168,52 +156,98 @@ export const api = createApi({
       invalidatesTags: ['Apartments']
     }),
     
-    // ========== БРОНИРОВАНИЯ ==========
+    // ========== БРОНИРОВАНИЯ (МОКОВЫЕ) ==========
     getBookingById: builder.query({
-      query: (id) => `/booking/${id}`,
-      transformResponse: (response) => {
-        if (response && response.id) return response;
-        return MOCK_BOOKINGS.find(b => b.id === parseInt(id)) || null;
+      async queryFn(id) {
+        const today = new Date();
+        const mockBooking = {
+          id: parseInt(id),
+          apartment_title: "Test Workspace",
+          room_title: "Test Workspace",
+          time_from: new Date(today.setHours(10, 0, 0, 0)).toISOString(),
+          time_to: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
+          status: "confirmed",
+          created_at: new Date().toISOString()
+        };
+        return { data: mockBooking };
       },
       providesTags: (result, error, id) => [{ type: 'Bookings', id }]
     }),
     
     getAllBookings: builder.query({
-      query: (filters = {}) => ({
-        url: '/bookings',
-        method: 'POST',
-        body: {
-          status: filters.status,
-          seller_id: filters.sellerId,
-          min_price: filters.minPrice,
-          max_price: filters.maxPrice,
-          limit: filters.limit || 100,
-          offset: filters.offset || 0
-        }
-      }),
-      transformResponse: (response) => {
-        if (Array.isArray(response) && response.length > 0) {
-          return response;
-        }
-        return MOCK_BOOKINGS;
+      async queryFn() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dayAfter = new Date(today);
+        dayAfter.setDate(dayAfter.getDate() + 2);
+        
+        const mockBookings = [
+          {
+            id: 1,
+            apartment_title: "Modern Coworking Space",
+            room_title: "Modern Coworking Space",
+            time_from: new Date(today.setHours(10, 0, 0, 0)).toISOString(),
+            time_to: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
+            status: "confirmed",
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            apartment_title: "Executive Conference Room",
+            room_title: "Executive Conference Room",
+            time_from: new Date(tomorrow.setHours(14, 0, 0, 0)).toISOString(),
+            time_to: new Date(tomorrow.setHours(16, 0, 0, 0)).toISOString(),
+            status: "confirmed",
+            created_at: new Date().toISOString()
+          }
+        ];
+        return { data: mockBookings };
       },
       providesTags: ['Bookings']
     }),
     
     getMyBookings: builder.query({
-      query: () => ({
-        url: '/bookings',
-        method: 'POST',
-        body: {
-          limit: 100,
-          offset: 0
-        }
-      }),
-      transformResponse: (response, meta, userId) => {
-        if (Array.isArray(response) && response.length > 0) {
-          return response;
-        }
-        return MOCK_BOOKINGS;
+      async queryFn() {
+        console.log('Используем моковые данные для бронирований');
+        
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dayAfter = new Date(today);
+        dayAfter.setDate(dayAfter.getDate() + 2);
+        
+        const MOCK_BOOKINGS = [
+          {
+            id: 1,
+            apartment_title: "Modern Coworking Space",
+            room_title: "Modern Coworking Space",
+            time_from: new Date(today.setHours(10, 0, 0, 0)).toISOString(),
+            time_to: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
+            status: "confirmed",
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            apartment_title: "Executive Conference Room",
+            room_title: "Executive Conference Room",
+            time_from: new Date(tomorrow.setHours(14, 0, 0, 0)).toISOString(),
+            time_to: new Date(tomorrow.setHours(16, 0, 0, 0)).toISOString(),
+            status: "confirmed",
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 3,
+            apartment_title: "Private Office",
+            room_title: "Private Office",
+            time_from: new Date(dayAfter.setHours(9, 0, 0, 0)).toISOString(),
+            time_to: new Date(dayAfter.setHours(11, 0, 0, 0)).toISOString(),
+            status: "confirmed",
+            created_at: new Date().toISOString()
+          }
+        ];
+        
+        return { data: MOCK_BOOKINGS };
       },
       providesTags: ['Bookings']
     }),
@@ -238,13 +272,10 @@ export const api = createApi({
     }),
     
     cancelBooking: builder.mutation({
-      query: (id) => ({
-        url: `/booking/${id}`,
-        method: 'DELETE'
-      }),
       async queryFn(id) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return { data: { success: true } };
+        console.log(`Моковая отмена бронирования #${id}`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return { data: { success: true, id } };
       },
       invalidatesTags: ['Bookings']
     }),

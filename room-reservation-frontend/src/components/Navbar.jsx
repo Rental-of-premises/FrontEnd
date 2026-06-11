@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Navbar() {
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuth();
+
   if (loading) {
     return (
       <nav className="navbar">
@@ -14,7 +15,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-    )
+    );
   }
 
   return (
@@ -23,9 +24,11 @@ export default function Navbar() {
         <Link to="/" className="logo">Office Space</Link>
         
         <div className="nav-links">
+          <Link to="/catalog">Каталог</Link>
           
           {user ? (
             <>
+              <Link to="/my-bookings">Мои бронирования</Link>  {/* ← ДОБАВИТЬ ЭТУ СТРОКУ */}
               <Link to="/dashboard" className="user-name">
                 {user.name}
               </Link>
@@ -36,5 +39,5 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
-  )
+  );
 }
