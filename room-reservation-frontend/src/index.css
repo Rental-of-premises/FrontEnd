@@ -266,6 +266,258 @@ logout-section {
   text-decoration: none;
 }
 
+/* ========== ROOM DETAILS PAGE ========== */
+.room-details-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.room-details-back {
+  margin-bottom: 24px;
+}
+
+.room-details-back a {
+  color: #2850a7;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.room-details-back a:hover {
+  text-decoration: underline;
+}
+
+.room-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 48px;
+}
+
+@media (max-width: 768px) {
+  .room-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.room-details-image {
+  width: 100%;
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.room-details-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1a1a2e;
+}
+
+.room-details-description {
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.room-details-specs {
+  background: #f7fafc;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.spec-item:last-child {
+  border-bottom: none;
+}
+
+.spec-icon {
+  font-size: 20px;
+}
+
+.spec-label {
+  width: 100px;
+  color: #718096;
+}
+
+.spec-value {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.room-details-amenities h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #1a1a2e;
+}
+
+.amenities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.amenity-tag {
+  background: #edf2f7;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.room-details-booking {
+  position: sticky;
+  top: 100px;
+  align-self: start;
+}
+
+.booking-card-sticky {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.booking-card-sticky h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #1a1a2e;
+}
+
+.booking-price-preview {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.price-label {
+  color: #718096;
+}
+
+.price-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2850a7;
+}
+
+.booking-primary-btn {
+  width: 100%;
+  background: #2850a7;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.booking-primary-btn:hover {
+  background: #1e3d7c;
+}
+
+.booking-form .form-group {
+  margin-bottom: 16px;
+}
+
+.booking-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.booking-form select,
+.booking-form input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.booking-form select:focus,
+.booking-form input:focus {
+  outline: none;
+  border-color: #2850a7;
+}
+
+.booking-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.booking-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  background: #f7fafc;
+  border-radius: 12px;
+  margin: 20px 0;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.booking-form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.booking-submit-btn {
+  flex: 2;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.booking-submit-btn:hover {
+  background: #27ae60;
+}
+
+.booking-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.booking-cancel-btn {
+  flex: 1;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.booking-cancel-btn:hover {
+  background: #c0392b;
+}
+
+.success-message {
+  background: #c6f6d5;
+  color: #22543d;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
 /* ========== MORE FILTERS BUTTON ========== */
 .more-filters-btn {
   background: transparent;

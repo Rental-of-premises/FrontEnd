@@ -28,7 +28,6 @@ export default function Navbar() {
           
           {user ? (
             <>
-              <Link to="/my-bookings">Мои бронирования</Link>  {/* ← ДОБАВИТЬ ЭТУ СТРОКУ */}
               <Link to="/dashboard" className="user-name">
                 {user.name}
               </Link>

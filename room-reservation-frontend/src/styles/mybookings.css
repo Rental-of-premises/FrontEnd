@@ -30,6 +30,8 @@
 }
 
 .bookings-stats {
+  display: flex;
+  gap: 16px;
   background: #1a2a3e;
   border-radius: 12px;
   padding: 12px 24px;
@@ -38,14 +40,56 @@
 .stats-number {
   font-size: 24px;
   font-weight: bold;
+}
+
+.stats-number.active {
   color: #2ecc71;
+}
+
+.stats-number.completed {
+  color: #3498db;
+}
+
+.stats-number.cancelled {
+  color: #e74c3c;
 }
 
 .stats-label {
   color: #8899bb;
-  margin-left: 8px;
+  margin-left: 4px;
+  margin-right: 8px;
 }
 
+/* Фильтры */
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  color: #8899bb;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.filter-btn.active {
+  background: #2c7da0;
+  color: white;
+}
+
+/* Навигация календаря */
 .nav-buttons {
   display: flex;
   gap: 12px;
@@ -67,6 +111,7 @@
   background: #2ecc71;
 }
 
+/* Календарь */
 .calendar-wrapper {
   background: #0f1a2e;
   border-radius: 16px;
@@ -95,6 +140,11 @@
 .day-header {
   padding: 16px;
   text-align: center;
+}
+
+.day-header-today {
+  background: rgba(46, 204, 113, 0.1);
+  border-radius: 8px;
 }
 
 .weekday {
@@ -165,6 +215,173 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Легенда */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 24px;
+  padding: 16px;
+  background: #0f1a2e;
+  border-radius: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-free {
+  width: 20px;
+  height: 20px;
+  background: #0f1a2e;
+  border: 1px solid #2c7da0;
+  border-radius: 4px;
+}
+
+.legend-booked {
+  width: 20px;
+  height: 20px;
+  background: rgba(46, 204, 113, 0.3);
+  border: 1px solid #2ecc71;
+  border-radius: 4px;
+}
+
+.legend-text {
+  color: #8899bb;
+  font-size: 12px;
+}
+
+/* История бронирований */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.history-card {
+  background: #0f1a2e;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid;
+}
+
+.history-card:hover {
+  transform: translateX(5px);
+  background: #14213d;
+}
+
+.history-card.confirmed {
+  border-left-color: #2ecc71;
+}
+
+.history-card.completed {
+  border-left-color: #3498db;
+}
+
+.history-card.cancelled {
+  border-left-color: #e74c3c;
+  opacity: 0.7;
+}
+
+.history-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.history-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.confirmed {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+}
+
+.status-badge.completed {
+  background: rgba(52, 152, 219, 0.2);
+  color: #3498db;
+}
+
+.status-badge.cancelled {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
+.history-date {
+  color: #8899bb;
+  font-size: 14px;
+}
+
+.history-price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2ecc71;
+}
+
+.history-workspace {
+  font-size: 18px;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.history-time {
+  color: #8899bb;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.history-details {
+  display: flex;
+  gap: 16px;
+  color: #8899bb;
+  font-size: 13px;
+}
+
+.history-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-created {
+  color: #666;
+  font-size: 12px;
+}
+
+/* Кнопка отмены */
+.cancel-small-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.cancel-small-btn:hover {
+  background: #c0392b;
+}
+
+/* Пустое состояние */
 .empty-state {
   text-align: center;
   padding: 60px;
@@ -229,7 +446,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.modal-header h2 {
+.modal-title {
   color: white;
   margin: 0;
 }
@@ -250,7 +467,7 @@
   margin-bottom: 20px;
 }
 
-.modal-field label {
+.modal-label {
   color: #8899bb;
   font-size: 12px;
   display: block;
@@ -262,29 +479,6 @@
   font-size: 16px;
 }
 
-.modal-status {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.modal-status-confirmed {
-  background: rgba(46, 204, 113, 0.2);
-  color: #2ecc71;
-}
-
-.modal-status-cancelled {
-  background: rgba(231, 76, 60, 0.2);
-  color: #e74c3c;
-}
-
-.modal-status-completed {
-  background: rgba(44, 125, 160, 0.2);
-  color: #2c7da0;
-}
-
 .modal-footer {
   display: flex;
   gap: 12px;
@@ -292,7 +486,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.modal-cancel-btn {
+.cancel-btn {
   flex: 1;
   background: #e74c3c;
   color: white;
@@ -302,7 +496,7 @@
   cursor: pointer;
 }
 
-.modal-close-btn {
+.close-btn {
   flex: 1;
   background: rgba(255, 255, 255, 0.1);
   color: white;
@@ -310,4 +504,8 @@
   padding: 12px;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
 }

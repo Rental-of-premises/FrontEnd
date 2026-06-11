@@ -176,11 +176,10 @@ export default function Catalog() {
                 <div className="posted-by">
                   Posted by Владелец #{room.seller_id} on {room.created_at ? new Date(room.created_at).toLocaleDateString() : 'Unknown'}
                 </div>
-                
                 <div className="book-btn-wrapper">
-                  <Link to={`/catalog/${room.id}`}>
+                   <Link to={`/catalog/${room.id}`}>
                     <button className="book-btn">
-                      Learn more
+                      Подробнее
                     </button>
                   </Link>
                 </div>
