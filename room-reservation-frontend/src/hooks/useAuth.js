@@ -5,6 +5,7 @@ import {
   useSignInMutation, 
   useSignUpMutation,
   useLogoutMutation,
+  useDeleteAccountMutation,
 } from '../store/api';
 
 export function useAuth() {
@@ -15,6 +16,7 @@ export function useAuth() {
   const [signIn, { isLoading: signInLoading }] = useSignInMutation();
   const [signUp, { isLoading: signUpLoading }] = useSignUpMutation();
   const [logoutMutation, { isLoading: logoutLoading }] = useLogoutMutation();
+  const [deleteAccountMutation, { isLoading: deleteLoading }] = useDeleteAccountMutation();
 
   useEffect(() => {
     const loadUser = () => {
@@ -100,23 +102,34 @@ export function useAuth() {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
-      // Перенаправляем на страницу входа
       navigate('/login');
     }
   };
 
   const deleteAccount = async () => {
-    console.warn('Delete account endpoint is not implemented in API specification');
-    
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    navigate('/login');
-    
-    return { 
-      success: false, 
-      error: 'Функция удаления аккаунта пока не реализована на сервере' 
-    };
+    try {
+      await deleteAccountMutation().unwrap();
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      navigate('/');
+      return { success: true };
+    } catch (error) {
+      console.error('Delete account error:', error);
+      let errorMessage = 'Ошибка при удалении аккаунта';
+      
+      if (error.status === 401) {
+        errorMessage = 'Сессия истекла, войдите снова';
+      } else if (error.status === 404) {
+        errorMessage = 'Эндпоинт удаления аккаунта не найден';
+      } else if (error.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error.data?.error) {
+        errorMessage = error.data.error;
+      }
+      
+      return { success: false, error: errorMessage };
+    }
   };
 
   const refreshUser = async () => {
@@ -139,7 +152,7 @@ export function useAuth() {
 
   return { 
     user, 
-    loading: loading || signInLoading || signUpLoading || logoutLoading,
+    loading: loading || signInLoading || signUpLoading || logoutLoading || deleteLoading,
     login, 
     register, 
     logout, 

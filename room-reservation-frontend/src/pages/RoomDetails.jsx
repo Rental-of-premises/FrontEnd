@@ -126,17 +126,17 @@ export default function RoomDetails() {
             
             <div className="room-details-specs">
               <div className="spec-item">
-                <span className="spec-icon">👥</span>
+                <span className="spec-icon"></span>
                 <span className="spec-label">Вместимость:</span>
                 <span className="spec-value">{room.capacity || 0} человек</span>
               </div>
               <div className="spec-item">
-                <span className="spec-icon">🏷️</span>
+                <span className="spec-icon"></span>
                 <span className="spec-label">Тип:</span>
                 <span className="spec-value">Помещение</span>
               </div>
               <div className="spec-item">
-                <span className="spec-icon">💰</span>
+                <span className="spec-icon"></span>
                 <span className="spec-label">Цена:</span>
                 <span className="spec-value">${room.price_per_hour || 0}/час</span>
               </div>

@@ -4,7 +4,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  background: #0a1628;
+  background: #f5f7fa;
   min-height: calc(100vh - 60px);
 }
 
@@ -19,22 +19,22 @@
 
 .mybookings-title {
   font-size: 28px;
-  font-weight: 700;
-  color: #ffffff;
+  color: #1a1a2e;
   margin-bottom: 8px;
 }
 
 .mybookings-subtitle {
-  color: #8899bb;
+  color: #718096;
   font-size: 14px;
 }
 
 .bookings-stats {
   display: flex;
   gap: 16px;
-  background: #1a2a3e;
+  background: white;
   border-radius: 12px;
   padding: 12px 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .stats-number {
@@ -43,24 +43,23 @@
 }
 
 .stats-number.active {
-  color: #2ecc71;
+  color: #2850a7;
 }
 
 .stats-number.completed {
-  color: #3498db;
+  color: #10b981;
 }
 
 .stats-number.cancelled {
-  color: #e74c3c;
+  color: #ef4444;
 }
 
 .stats-label {
-  color: #8899bb;
+  color: #64748b;
   margin-left: 4px;
   margin-right: 8px;
 }
 
-/* Фильтры */
 .filter-buttons {
   display: flex;
   gap: 12px;
@@ -69,27 +68,27 @@
 }
 
 .filter-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  background: white;
+  border: 1px solid #e2e8f0;
   padding: 8px 20px;
   border-radius: 20px;
-  color: #8899bb;
+  color: #64748b;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
 }
 
 .filter-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  border-color: #2850a7;
+  color: #2850a7;
 }
 
 .filter-btn.active {
-  background: #2c7da0;
+  background: #2850a7;
   color: white;
+  border-color: #2850a7;
 }
 
-/* Навигация календаря */
 .nav-buttons {
   display: flex;
   gap: 12px;
@@ -98,113 +97,152 @@
 }
 
 .nav-btn {
-  background: #2c7da0;
-  border: none;
-  padding: 10px 20px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
   border-radius: 8px;
-  color: white;
+  color: #4a5568;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  border-color: #2850a7;
+  color: #2850a7;
 }
 
 .today-btn {
-  background: #2ecc71;
+  background: #2850a7;
+  color: white;
+  border: none;
 }
 
-/* Календарь */
+.today-btn:hover {
+  background: #1e3d7c;
+  border: none;
+}
+
 .calendar-wrapper {
-  background: #0f1a2e;
+  background: white;
   border-radius: 16px;
   overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .calendar-table {
   min-width: 800px;
+  width: 100%;
+  table-layout: fixed;
 }
 
 .calendar-header-row {
   display: grid;
   grid-template-columns: 80px repeat(7, 1fr);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: #0f1a2e;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .time-header {
-  padding: 16px;
-  color: #8899bb;
+  padding: 12px 8px;
+  color: #64748b;
   text-align: center;
-  font-weight: bold;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  font-size: 14px;
+  border-right: 1px solid #e2e8f0;
 }
 
 .day-header {
-  padding: 16px;
+  padding: 12px 8px;
   text-align: center;
+  border-right: 1px solid #e2e8f0;
+}
+
+.day-header:last-child {
+  border-right: none;
 }
 
 .day-header-today {
-  background: rgba(46, 204, 113, 0.1);
-  border-radius: 8px;
+  background: #eef2ff;
 }
 
 .weekday {
-  color: #8899bb;
+  color: #64748b;
   font-size: 12px;
 }
 
 .day-number {
-  color: white;
-  font-size: 20px;
+  color: #1e293b;
+  font-size: 18px;
   font-weight: bold;
 }
 
 .calendar-row {
   display: grid;
   grid-template-columns: 80px repeat(7, 1fr);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.calendar-row:last-child {
+  border-bottom: none;
 }
 
 .time-cell {
-  padding: 12px;
-  color: #8899bb;
+  padding: 12px 8px;
+  color: #64748b;
   text-align: center;
   font-size: 12px;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 500;
+  border-right: 1px solid #f1f5f9;
+  background: white;
 }
 
 .calendar-cell {
   min-height: 70px;
-  padding: 6px;
+  padding: 4px;
+  border-right: 1px solid #f1f5f9;
   transition: all 0.2s;
+  overflow: hidden;
+}
+
+.calendar-cell:last-child {
+  border-right: none;
 }
 
 .calendar-cell-free {
-  background: #0f1a2e;
+  background: #f8fafc;
+}
+
+.calendar-cell-free:hover {
+  background: #f1f5f9;
 }
 
 .calendar-cell-booked {
-  background: rgba(46, 204, 113, 0.15);
-  border: 1px solid rgba(46, 204, 113, 0.3);
+  background: #e0e7ff;
   cursor: pointer;
 }
 
 .calendar-cell-booked:hover {
-  background: rgba(46, 204, 113, 0.25);
-  transform: scale(1.02);
+  background: #c7d2fe;
 }
 
 .booking-card {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  background: #2850a7;
   border-radius: 8px;
-  padding: 8px;
+  padding: 6px;
+  width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .booking-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
   color: white;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -212,48 +250,51 @@
 
 .booking-time {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Легенда */
 .legend {
   display: flex;
   justify-content: center;
-  gap: 30px;
-  margin-top: 24px;
+  gap: 32px;
+  margin: 24px 0;
   padding: 16px;
-  background: #0f1a2e;
+  background: white;
   border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
+  color: #64748b;
+  font-size: 12px;
 }
 
 .legend-free {
   width: 20px;
   height: 20px;
-  background: #0f1a2e;
-  border: 1px solid #2c7da0;
-  border-radius: 4px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
 }
 
 .legend-booked {
   width: 20px;
   height: 20px;
-  background: rgba(46, 204, 113, 0.3);
-  border: 1px solid #2ecc71;
-  border-radius: 4px;
+  background: #2850a7;
+  border-radius: 6px;
 }
 
 .legend-text {
-  color: #8899bb;
+  color: #64748b;
   font-size: 12px;
 }
 
-/* История бронирований */
 .history-list {
   display: flex;
   flex-direction: column;
@@ -261,29 +302,30 @@
 }
 
 .history-card {
-  background: #0f1a2e;
+  background: white;
   border-radius: 16px;
   padding: 20px;
   cursor: pointer;
   transition: all 0.2s;
   border-left: 4px solid;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .history-card:hover {
   transform: translateX(5px);
-  background: #14213d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .history-card.confirmed {
-  border-left-color: #2ecc71;
+  border-left-color: #2850a7;
 }
 
 .history-card.completed {
-  border-left-color: #3498db;
+  border-left-color: #10b981;
 }
 
 .history-card.cancelled {
-  border-left-color: #e74c3c;
+  border-left-color: #ef4444;
   opacity: 0.7;
 }
 
@@ -308,48 +350,48 @@
 }
 
 .status-badge.confirmed {
-  background: rgba(46, 204, 113, 0.2);
-  color: #2ecc71;
+  background: #e0e7ff;
+  color: #2850a7;
 }
 
 .status-badge.completed {
-  background: rgba(52, 152, 219, 0.2);
-  color: #3498db;
+  background: #dcfce7;
+  color: #10b981;
 }
 
 .status-badge.cancelled {
-  background: rgba(231, 76, 60, 0.2);
-  color: #e74c3c;
+  background: #fee2e2;
+  color: #ef4444;
 }
 
 .history-date {
-  color: #8899bb;
+  color: #64748b;
   font-size: 14px;
 }
 
 .history-price {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
-  color: #2ecc71;
+  color: #2850a7;
 }
 
 .history-workspace {
   font-size: 18px;
-  color: white;
+  color: #1e293b;
   margin-bottom: 8px;
 }
 
 .history-time {
-  color: #8899bb;
+  color: #64748b;
   font-size: 14px;
-  margin-bottom: 8px;
 }
 
 .history-details {
   display: flex;
   gap: 16px;
-  color: #8899bb;
+  color: #64748b;
   font-size: 13px;
+  margin-top: 8px;
 }
 
 .history-card-footer {
@@ -358,34 +400,33 @@
   align-items: center;
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #e2e8f0;
 }
 
 .history-created {
-  color: #666;
+  color: #94a3b8;
   font-size: 12px;
 }
 
-/* Кнопка отмены */
 .cancel-small-btn {
-  background: #e74c3c;
+  background: #ef4444;
   color: white;
   border: none;
   padding: 6px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
+  transition: all 0.2s;
 }
 
 .cancel-small-btn:hover {
-  background: #c0392b;
+  background: #dc2626;
 }
 
-/* Пустое состояние */
 .empty-state {
   text-align: center;
   padding: 60px;
-  background: #0f1a2e;
+  background: white;
   border-radius: 16px;
   margin-top: 30px;
 }
@@ -396,32 +437,36 @@
 }
 
 .empty-title {
-  color: white;
+  color: #1e293b;
   margin-bottom: 12px;
 }
 
 .empty-text {
-  color: #8899bb;
+  color: #64748b;
   margin-bottom: 24px;
 }
 
 .go-catalog-btn {
-  background: #2c7da0;
+  background: #2850a7;
   color: white;
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
-/* Модальное окно */
+.go-catalog-btn:hover {
+  background: #1e3d7c;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -430,7 +475,7 @@
 }
 
 .modal-content {
-  background: #0f1a2e;
+  background: white;
   border-radius: 20px;
   width: 90%;
   max-width: 500px;
@@ -443,12 +488,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .modal-title {
-  color: white;
+  color: #1e293b;
   margin: 0;
+  font-size: 20px;
 }
 
 .modal-close {
@@ -456,7 +502,12 @@
   border: none;
   font-size: 28px;
   cursor: pointer;
-  color: #8899bb;
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #ef4444;
 }
 
 .modal-body {
@@ -468,44 +519,73 @@
 }
 
 .modal-label {
-  color: #8899bb;
+  color: #64748b;
   font-size: 12px;
   display: block;
   margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .modal-value {
-  color: white;
+  color: #1e293b;
   font-size: 16px;
+  font-weight: 500;
 }
 
 .modal-footer {
   display: flex;
   gap: 12px;
   padding: 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #e2e8f0;
 }
 
 .cancel-btn {
   flex: 1;
-  background: #e74c3c;
+  background: #ef4444;
   color: white;
   border: none;
   padding: 12px;
   border-radius: 10px;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #dc2626;
 }
 
 .close-btn {
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: #e2e8f0;
+  color: #1e293b;
   border: none;
   padding: 12px;
   border-radius: 10px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #cbd5e1;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2850a7;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

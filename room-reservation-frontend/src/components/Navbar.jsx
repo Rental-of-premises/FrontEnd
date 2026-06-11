@@ -1,5 +1,7 @@
+// src/components/Navbar.jsx
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import UserMenu from './UserMenu';
 
 export default function Navbar() {
   const { user, loading } = useAuth();
@@ -10,7 +12,6 @@ export default function Navbar() {
         <div className="navbar-container">
           <Link to="/" className="logo">Office Space</Link>
           <div className="nav-links">
-            <Link to="/catalog">Каталог</Link>
             <div className="skeleton-text">Загрузка...</div>
           </div>
         </div>
@@ -24,14 +25,9 @@ export default function Navbar() {
         <Link to="/" className="logo">Office Space</Link>
         
         <div className="nav-links">
-          <Link to="/catalog">Каталог</Link>
           
           {user ? (
-            <>
-              <Link to="/dashboard" className="user-name">
-                {user.name}
-              </Link>
-            </>
+            <UserMenu />
           ) : (
             <Link to="/login" className="login-btn">Войти</Link>
           )}

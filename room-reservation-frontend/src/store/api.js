@@ -41,6 +41,7 @@ export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ 
     baseUrl: BASE_URL,
+    credentials: 'include',
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
@@ -85,6 +86,14 @@ export const api = createApi({
       query: () => ({
         url: '/auth/logout',
         method: 'POST',
+      }),
+    }),
+    
+    // ========== УДАЛЕНИЕ АККАУНТА ==========
+    deleteAccount: builder.mutation({
+      query: () => ({
+        url: '/auth/delete',
+        method: 'DELETE',
       }),
     }),
     
@@ -290,6 +299,7 @@ export const {
   useSignUpMutation,
   useSignInMutation,
   useLogoutMutation,
+  useDeleteAccountMutation,
   // Apartments
   useGetCatalogQuery,
   useGetApartmentByIdQuery,
