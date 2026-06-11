@@ -1,0 +1,313 @@
+/* src/styles/mybookings.css */
+
+.mybookings-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #0a1628;
+  min-height: calc(100vh - 60px);
+}
+
+.mybookings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.mybookings-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.mybookings-subtitle {
+  color: #8899bb;
+  font-size: 14px;
+}
+
+.bookings-stats {
+  background: #1a2a3e;
+  border-radius: 12px;
+  padding: 12px 24px;
+}
+
+.stats-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2ecc71;
+}
+
+.stats-label {
+  color: #8899bb;
+  margin-left: 8px;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  background: #2c7da0;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.today-btn {
+  background: #2ecc71;
+}
+
+.calendar-wrapper {
+  background: #0f1a2e;
+  border-radius: 16px;
+  overflow-x: auto;
+}
+
+.calendar-table {
+  min-width: 800px;
+}
+
+.calendar-header-row {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0f1a2e;
+}
+
+.time-header {
+  padding: 16px;
+  color: #8899bb;
+  text-align: center;
+  font-weight: bold;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.day-header {
+  padding: 16px;
+  text-align: center;
+}
+
+.weekday {
+  color: #8899bb;
+  font-size: 12px;
+}
+
+.day-number {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.calendar-row {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.time-cell {
+  padding: 12px;
+  color: #8899bb;
+  text-align: center;
+  font-size: 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.calendar-cell {
+  min-height: 70px;
+  padding: 6px;
+  transition: all 0.2s;
+}
+
+.calendar-cell-free {
+  background: #0f1a2e;
+}
+
+.calendar-cell-booked {
+  background: rgba(46, 204, 113, 0.15);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  cursor: pointer;
+}
+
+.calendar-cell-booked:hover {
+  background: rgba(46, 204, 113, 0.25);
+  transform: scale(1.02);
+}
+
+.booking-card {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  border-radius: 8px;
+  padding: 8px;
+  height: 100%;
+}
+
+.booking-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.booking-time {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  background: #0f1a2e;
+  border-radius: 16px;
+  margin-top: 30px;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.empty-title {
+  color: white;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  color: #8899bb;
+  margin-bottom: 24px;
+}
+
+.go-catalog-btn {
+  background: #2c7da0;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Модальное окно */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #0f1a2e;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+  color: white;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #8899bb;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-field {
+  margin-bottom: 20px;
+}
+
+.modal-field label {
+  color: #8899bb;
+  font-size: 12px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.modal-value {
+  color: white;
+  font-size: 16px;
+}
+
+.modal-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modal-status-confirmed {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+}
+
+.modal-status-cancelled {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
+.modal-status-completed {
+  background: rgba(44, 125, 160, 0.2);
+  color: #2c7da0;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-cancel-btn {
+  flex: 1;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.modal-close-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
