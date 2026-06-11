@@ -17,7 +17,6 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-  
     
     if (password !== confirmPassword) {
       setError('Пароли не совпадают')

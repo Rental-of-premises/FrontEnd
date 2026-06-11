@@ -59,13 +59,214 @@ body {
   margin-left: 16px;
 }
 
-/* ========== MORE FILTERS BUTTON ========== */
-.more-filters-btn-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
+/* ========== КНОПКИ НАВИГАЦИИ ========== */
+.login-btn {
+  background: #2850a7;
+  color: white !important;
+  padding: 8px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s;
+  display: inline-block;
 }
 
+.login-btn:hover {
+  background: #1e3d7c;
+  color: white !important;
+  transform: translateY(-2px);
+}
+
+.logout-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* ========== DASHBOARD ========== */
+.dashboard-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #1a1a2e;
+}
+
+.page-subtitle {
+  color: #718096;
+  margin-bottom: 32px;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.stat-card {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+  font-size: 48px;
+  font-weight: 800;
+  color: #2850a7;
+}
+
+.stat-label {
+  color: #718096;
+  margin-top: 8px;
+}
+
+.dashboard-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #1a1a2e;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #a0aec0;
+}
+
+.booking-item, .space-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.booking-info h4, .space-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.booking-date, .space-price {
+  font-size: 14px;
+  color: #718096;
+}
+
+.status-confirmed {
+  background: #c6f6d5;
+  color: #22543d;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cancel-btn, .delete-btn {
+  background: #fed7d7;
+  color: #c53030;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.edit-btn {
+  background: #e2e8f0;
+  color: #4a5568;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.add-btn {
+  background: #2850a7;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+logout-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.dashboard-logout-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-logout-btn:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.dashboard-logout-btn:active {
+  transform: translateY(0);
+}
+
+/* Стиль для имени пользователя в навигации (без кнопки выхода) */
+.user-name {
+  color: #2850a7;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.user-name:hover {
+  background-color: #eef2ff;
+  color: #1e3d7c;
+  text-decoration: none;
+}
+
+/* ========== MORE FILTERS BUTTON ========== */
 .more-filters-btn {
   background: transparent;
   border: 1px solid #2850a7;
@@ -180,22 +381,6 @@ body {
   font-size: 18px;
 }
 
-/* ========== КНОПКА ВОЙТИ ========== */
-.login-btn {
-  background: #2850a7;
-  color: white;
-  padding: 8px 20px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: transform 0.2s, background 0.2s;
-}
-
-.login-btn:hover {
-  background: #1e3d7c;
-  transform: translateY(-2px);
-}
-
 /* ========== MAIN CONTAINER ========== */
 .container {
   max-width: 1280px;
@@ -254,12 +439,21 @@ body {
   color: #a0aec0;
 }
 
-/* ========== FILTERS ========== */
+/* ========== FILTERS ROW ========== */
+.filters-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 .filters {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 32px;
+  flex: 1;
 }
 
 .filter-btn {
@@ -296,9 +490,7 @@ body {
   gap: 32px;
 }
 
-/* ========== ROOM CARD - ЗАЩИТА ОТ ПЛЫВУЩЕГО ТЕКСТА ========== */
-
-/* Карточка — flex-контейнер */
+/* ========== ROOM CARD ========== */
 .room-card {
   background: white;
   border-radius: 16px;
@@ -320,7 +512,6 @@ body {
   object-fit: cover;
 }
 
-/* Контент карточки */
 .room-content {
   padding: 20px;
   display: flex;
@@ -328,59 +519,38 @@ body {
   flex: 1;
 }
 
-/* Заголовок — фиксированная высота */
-.room-title-wrapper {
-  min-height: 56px;
-  display: flex;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
 .room-title {
   font-size: 20px;
   font-weight: 700;
   color: #1a1a2e;
-  margin: 0;
+  margin: 0 0 4px 0;
   line-height: 1.3;
+  min-height: 52px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* Тип помещения — фиксированная высота */
-.room-type-wrapper {
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
 .room-type {
   font-size: 14px;
   color: #718096;
-  margin: 0;
+  margin: 0 0 12px 0;
   line-height: 1.4;
-}
-
-/* Описание — фиксированная высота */
-.room-description-wrapper {
-  min-height: 80px;
-  margin-bottom: 16px;
 }
 
 .room-description {
   font-size: 14px;
   color: #4a5568;
   line-height: 1.5;
-  margin: 0;
+  margin: 0 0 16px 0;
+  min-height: 63px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* Информация о цене и вместимости */
 .room-info {
   display: flex;
   justify-content: space-between;
@@ -408,15 +578,12 @@ body {
   color: #a0aec0;
 }
 
-/* Удобства — фиксированная минимальная высота */
 .amenities {
-    display: flex;
+  display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 0;
-  min-height: 60px;
-  height: auto;
-  align-items: flex-start;
+  margin-bottom: 16px;
+  min-height: 44px;
 }
 
 .amenity {
@@ -426,12 +593,8 @@ body {
   font-size: 12px;
   color: #4a5568;
   white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* Кто опубликовал */
 .posted-by {
   font-size: 12px;
   color: #a0aec0;
@@ -439,12 +602,10 @@ body {
   min-height: 32px;
 }
 
-/* Обёртка для кнопки — прижимает кнопку к низу */
 .book-btn-wrapper {
   margin-top: auto;
 }
 
-/* Кнопка ЗАБРОНИРОВАТЬ */
 .book-btn {
   width: 100%;
   background: #2850a7;
@@ -462,7 +623,7 @@ body {
   transform: translateY(-2px);
 }
 
-/* ========== AUTH PAGES (Login/Register) ========== */
+/* ========== AUTH PAGES ========== */
 .auth-container {
   min-height: calc(100vh - 80px);
   display: flex;
@@ -609,6 +770,134 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* ========== CREATE ROOM PAGE ========== */
+.create-room-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.create-room-form {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.create-room-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.create-room-form select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: white;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.amenities-input-group {
+  display: flex;
+  gap: 12px;
+}
+
+.amenities-input-group input {
+  flex: 1;
+}
+
+.add-amenity-btn {
+  background: #e9ecef;
+  border: none;
+  padding: 0 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-amenity-btn:hover {
+  background: #dee2e6;
+}
+
+.amenities-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.amenity-tag-remove {
+  background: #e9ecef;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.amenity-tag-remove button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #dc2626;
+  padding: 0;
+  line-height: 1;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+.cancel-btn-form {
+  flex: 1;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-btn-form:hover {
+  background: #e9ecef;
+}
+
+.submit-btn {
+  flex: 2;
+  background: #2850a7;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover {
+  background: #1e3d7c;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .navbar-container {
@@ -624,6 +913,10 @@ body {
     grid-template-columns: 1fr;
   }
   
+  .filters-row {
+    flex-direction: column;
+  }
+  
   .filters {
     justify-content: center;
   }
@@ -632,11 +925,7 @@ body {
     padding: 32px 24px;
   }
   
-  .room-title-wrapper {
-    min-height: 48px;
-  }
-  
-  .room-description-wrapper {
-    min-height: 70px;
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }
