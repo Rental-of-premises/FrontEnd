@@ -2,91 +2,131 @@
 import { useState, useMemo } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { Link } from 'react-router-dom'
+import { useGetMyBookingsQuery, useCancelBookingMutation, useGetCatalogQuery } from '../store/api'
 import Navbar from '../components/Navbar'
 import '../styles/mybookings.css'
-
-// Мок-данные с разными статусами
-const MOCK_BOOKINGS = [
-  // Раскомментируй для теста с бронями
-  // {
-  //   id: 1,
-  //   workspace: "Modern Coworking Space",
-  //   apartment_id: 5,
-  //   date: new Date().toISOString().split('T')[0],
-  //   startTime: "10:00",
-  //   endTime: "12:00",
-  //   capacity: 20,
-  //   price_per_hour: 15,
-  //   total_price: 30,
-  //   status: "confirmed",
-  //   created_at: "2026-06-01T10:00:00Z"
-  // },
-]
-
-const expandBookingToHourlySlots = (booking) => {
-  const slots = []
-  const startHour = parseInt(booking.startTime.split(':')[0])
-  const endHour = parseInt(booking.endTime.split(':')[0])
-  
-  for (let hour = startHour; hour < endHour; hour++) {
-    slots.push({
-      id: `${booking.id}-${hour}`,
-      bookingId: booking.id,
-      workspace: booking.workspace,
-      apartment_id: booking.apartment_id,
-      date: booking.date,
-      startTime: `${hour}:00`,
-      endTime: `${hour + 1}:00`,
-      capacity: booking.capacity,
-      price_per_hour: booking.price_per_hour,
-      status: booking.status,
-      created_at: booking.created_at,
-      originalBooking: booking
-    })
-  }
-  return slots
-}
 
 export default function MyBookings() {
   const { user } = useAuth()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
-  const [bookings] = useState(MOCK_BOOKINGS)
   const [statusFilter, setStatusFilter] = useState('active')
+  
+  // ===== РЕАЛЬНЫЙ API =====
+  const { data: allBookings = [], isLoading: bookingsLoading, error, refetch } = useGetMyBookingsQuery()
+  const { data: allRooms = [], isLoading: roomsLoading } = useGetCatalogQuery({ limit: 1000, offset: 0 })
+  const [cancelBooking] = useCancelBookingMutation()
 
-  const hourlySlots = useMemo(() => {
-    const activeBookings = bookings.filter(b => b.status === 'confirmed')
-    const slots = []
-    activeBookings.forEach(booking => {
-      slots.push(...expandBookingToHourlySlots(booking))
+  // Создаём карту помещений с преобразованием ID в число
+  const roomsMap = useMemo(() => {
+    const map = {}
+    allRooms.forEach(room => {
+      map[Number(room.id)] = room
     })
-    return slots
-  }, [bookings])
+    return map
+  }, [allRooms])
 
+  // Обогащаем бронирования данными о помещениях
+  const enrichedBookings = useMemo(() => {
+    const now = new Date()
+    
+    return allBookings.map(booking => {
+      const room = roomsMap[Number(booking.apartment_id)]
+      const timeTo = new Date(booking.time_to)
+      
+      let displayStatus = booking.status
+      if (booking.status === 'confirmed' && timeTo < now) {
+        displayStatus = 'completed'
+      }
+      
+      // Форматируем дату и время для совместимости с мок-структурой
+      const startDate = new Date(booking.time_from)
+      const endDate = new Date(booking.time_to)
+      const dateStr = startDate.toISOString().split('T')[0]
+      const startTime = startDate.toTimeString().slice(0, 5)
+      const endTime = endDate.toTimeString().slice(0, 5)
+      const hoursDiff = (endDate - startDate) / 3600000
+      const totalPrice = hoursDiff * (room?.price_per_hour || booking.price_per_hour || 0)
+      
+      return {
+        ...booking,
+        apartment_title: room?.name || `Помещение #${booking.apartment_id}`,
+        price_per_hour: room?.price_per_hour || 0,
+        capacity: room?.capacity || 0,
+        displayStatus: displayStatus,
+        room_id: room?.id || booking.apartment_id,
+        // Для совместимости с мок-структурой
+        workspace: room?.name || `Помещение #${booking.apartment_id}`,
+        date: dateStr,
+        startTime: startTime,
+        endTime: endTime,
+        total_price: Math.round(totalPrice)
+      }
+    })
+  }, [allBookings, roomsMap])
+
+  // ===== СТАТИСТИКА =====
+  const stats = useMemo(() => {
+    const all = enrichedBookings || []
+    return {
+      active: all.filter(b => b.displayStatus === 'confirmed').length,
+      waiting: all.filter(b => b.displayStatus === 'waiting').length,
+      completed: all.filter(b => b.displayStatus === 'completed').length,
+      cancelled: all.filter(b => b.displayStatus === 'cancelled' || b.displayStatus === 'rejected').length,
+      total: all.length
+    }
+  }, [enrichedBookings])
+
+  // ===== ФИЛЬТРАЦИЯ =====
   const filteredBookings = useMemo(() => {
+    const all = enrichedBookings || []
     if (statusFilter === 'active') {
-      return bookings.filter(b => b.status === 'confirmed')
+      return all.filter(b => b.displayStatus === 'confirmed')
     }
     if (statusFilter === 'waiting') {
-      return bookings.filter(b => b.status === 'waiting')
+      return all.filter(b => b.displayStatus === 'waiting')
     }
     if (statusFilter === 'history') {
-      return bookings.filter(b => b.status === 'completed' || b.status === 'cancelled' || b.status === 'rejected')
+      return all.filter(b => b.displayStatus === 'completed' || b.displayStatus === 'cancelled' || b.displayStatus === 'rejected')
     }
-    return bookings
-  }, [bookings, statusFilter])
+    return all
+  }, [enrichedBookings, statusFilter])
 
-  const stats = useMemo(() => {
-    return {
-      active: bookings.filter(b => b.status === 'confirmed').length,
-      waiting: bookings.filter(b => b.status === 'waiting').length,
-      completed: bookings.filter(b => b.status === 'completed').length,
-      cancelled: bookings.filter(b => b.status === 'cancelled' || b.status === 'rejected').length,
-      total: bookings.length
-    }
-  }, [bookings])
+  // ===== ПРЕОБРАЗОВАНИЕ В ПОЧАСОВЫЕ СЛОТЫ =====
+  const hourlySlots = useMemo(() => {
+    const all = enrichedBookings || []
+    const activeBookings = all.filter(b => b.displayStatus === 'confirmed')
+    const slots = []
+    activeBookings.forEach(booking => {
+      const startDate = new Date(booking.time_from)
+      const endDate = new Date(booking.time_to)
+      const startHour = startDate.getHours()
+      const endHour = endDate.getHours()
+      const dateStr = startDate.toISOString().split('T')[0]
+      
+      for (let hour = startHour; hour < endHour; hour++) {
+        slots.push({
+          id: `${booking.id}-${hour}`,
+          bookingId: booking.id,
+          workspace: booking.workspace,
+          apartment_id: booking.apartment_id,
+          date: dateStr,
+          startTime: `${hour}:00`,
+          endTime: `${hour + 1}:00`,
+          capacity: booking.capacity || 0,
+          price_per_hour: booking.price_per_hour || 0,
+          status: booking.status,
+          displayStatus: booking.displayStatus,
+          created_at: booking.created_at,
+          originalBooking: booking
+        })
+      }
+    })
+    return slots
+  }, [enrichedBookings])
 
+  // ===== КАЛЕНДАРЬ =====
   const weekDays = useMemo(() => {
     const startDate = new Date(currentDate)
     const day = currentDate.getDay()
@@ -106,11 +146,6 @@ export default function MyBookings() {
     for (let i = 8; i <= 22; i++) h.push(i)
     return h
   }, [])
-
-  const isHourBooked = (date, hour) => {
-    const dateStr = date.toISOString().split('T')[0]
-    return hourlySlots.some(slot => slot.date === dateStr && parseInt(slot.startTime.split(':')[0]) === hour)
-  }
 
   const getSlotForHour = (date, hour) => {
     const dateStr = date.toISOString().split('T')[0]
@@ -161,10 +196,15 @@ export default function MyBookings() {
     }
   }
 
-  const handleCancelBooking = (bookingId) => {
-    if (window.confirm('Отменить бронирование?')) {
-      alert(`Бронирование #${bookingId} отменено`)
-      setModalOpen(false)
+  const handleCancelBooking = async (bookingId) => {
+    if (window.confirm('Вы уверены, что хотите отменить это бронирование?')) {
+      try {
+        await cancelBooking(bookingId).unwrap()
+        refetch()
+        setModalOpen(false)
+      } catch (err) {
+        alert('Ошибка при отмене бронирования: ' + (err.data?.error || 'Неизвестная ошибка'))
+      }
     }
   }
 
@@ -209,7 +249,36 @@ export default function MyBookings() {
     return { ...base, background: '#ffeeee', color: '#bc2222' }
   }
 
-  const hasAnyBookings = bookings.length > 0
+  // ===== ЗАГРУЗКА =====
+  if (bookingsLoading || roomsLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="loader">
+          <div className="spinner"></div>
+        </div>
+      </>
+    )
+  }
+
+  if (error) {
+    return (
+      <>
+        <Navbar />
+        <div className="mybookings-page">
+          <div className="error-message">
+            <h3>Ошибка загрузки бронирований</h3>
+            <p>{error?.data?.error || error?.message || 'Попробуйте позже'}</p>
+            <button onClick={() => refetch()} className="auth-btn" style={{ marginTop: '16px' }}>
+              Повторить попытку
+            </button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  const hasAnyBookings = enrichedBookings.length > 0
 
   return (
     <>
@@ -257,7 +326,6 @@ export default function MyBookings() {
             position: 'relative',
             overflow: 'hidden'
           }}>
-            {/* Смайлик :( синий, повёрнутый на 90° */}
             <div style={{
               fontSize: '72px',
               fontWeight: '700',
@@ -319,7 +387,6 @@ export default function MyBookings() {
               </button>
             </Link>
 
-            {/* Декоративные круги */}
             <div style={{
               position: 'absolute',
               bottom: '-40px',
@@ -437,44 +504,49 @@ export default function MyBookings() {
                     <p className="empty-text">Когда вы создадите новое бронирование, оно появится здесь</p>
                   </div>
                 ) : (
-                  filteredBookings.map(booking => (
-                    <div 
-                      key={booking.id} 
-                      className={`history-card ${getHistoryCardClass(booking.status)}`}
-                      onClick={() => { setSelectedBooking(booking); setModalOpen(true); }}
-                      style={{ borderRadius: '20px', padding: '30px' }}
-                    >
-                      <div className="history-card-header">
-                        <div className="history-status">
-                          <span className={getStatusBadgeClass(booking.status)}>
-                            {getStatusText(booking.status)}
-                          </span>
-                          <span className="history-date">{formatFullDate(booking.date)}</span>
+                  filteredBookings.map(booking => {
+                    const hoursDiff = (new Date(booking.time_to) - new Date(booking.time_from)) / 3600000
+                    const totalPrice = hoursDiff * (booking.price_per_hour || 0)
+                    
+                    return (
+                      <div 
+                        key={booking.id} 
+                        className={`history-card ${getHistoryCardClass(booking.displayStatus)}`}
+                        onClick={() => { setSelectedBooking(booking); setModalOpen(true); }}
+                        style={{ borderRadius: '20px', padding: '30px' }}
+                      >
+                        <div className="history-card-header">
+                          <div className="history-status">
+                            <span className={getStatusBadgeClass(booking.displayStatus)}>
+                              {getStatusText(booking.displayStatus)}
+                            </span>
+                            <span className="history-date">{formatFullDate(booking.time_from)}</span>
+                          </div>
+                          <div className="history-price" style={{ fontSize: '22px', fontWeight: '700' }}>{Math.round(totalPrice)} ₽</div>
                         </div>
-                        <div className="history-price" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.total_price} ₽</div>
-                      </div>
-                      <div className="history-card-body">
-                        <h3 className="history-workspace" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.workspace}</h3>
-                        <div className="history-time">
-                          Время: {booking.startTime} - {booking.endTime}
+                        <div className="history-card-body">
+                          <h3 className="history-workspace" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.workspace}</h3>
+                          <div className="history-time">
+                            Время: {booking.startTime} - {booking.endTime}
+                          </div>
+                          <div className="history-details">
+                            <span>Вместимость: {booking.capacity || 0} чел.</span>
+                            <span>Тариф: {booking.price_per_hour || 0} ₽/час</span>
+                          </div>
                         </div>
-                        <div className="history-details">
-                          <span>Вместимость: {booking.capacity} чел.</span>
-                          <span>Тариф: {booking.price_per_hour} ₽/час</span>
+                        <div className="history-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                          <span className="history-created">Создано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
+                          <button 
+                            className="cancel-small-btn" 
+                            onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking.id); }}
+                            style={{ padding: '10px 20px', background: '#fef2f2', color: '#ef4444', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}
+                          >
+                            Отменить
+                          </button>
                         </div>
                       </div>
-                      <div className="history-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                        <span className="history-created">Создано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
-                        <button 
-                          className="cancel-small-btn" 
-                          onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking.id); }}
-                          style={{ padding: '10px 20px', background: '#fef2f2', color: '#ef4444', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}
-                        >
-                          Отменить
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    )
+                  })
                 )}
               </div>
             )}
@@ -488,46 +560,51 @@ export default function MyBookings() {
                     <p className="empty-text">После завершения или отмены бронирований они появятся здесь</p>
                   </div>
                 ) : (
-                  filteredBookings.map(booking => (
-                    <div 
-                      key={booking.id} 
-                      className={`history-card ${getHistoryCardClass(booking.status)}`}
-                      onClick={() => { setSelectedBooking(booking); setModalOpen(true); }}
-                      style={{ borderRadius: '20px', padding: '30px' }}
-                    >
-                      <div className="history-card-header">
-                        <div className="history-status">
-                          <span className={getStatusBadgeClass(booking.status)}>
-                            {getStatusText(booking.status)}
-                          </span>
-                          <span className="history-date">{formatFullDate(booking.date)}</span>
+                  filteredBookings.map(booking => {
+                    const hoursDiff = (new Date(booking.time_to) - new Date(booking.time_from)) / 3600000
+                    const totalPrice = hoursDiff * (booking.price_per_hour || 0)
+                    
+                    return (
+                      <div 
+                        key={booking.id} 
+                        className={`history-card ${getHistoryCardClass(booking.displayStatus)}`}
+                        onClick={() => { setSelectedBooking(booking); setModalOpen(true); }}
+                        style={{ borderRadius: '20px', padding: '30px' }}
+                      >
+                        <div className="history-card-header">
+                          <div className="history-status">
+                            <span className={getStatusBadgeClass(booking.displayStatus)}>
+                              {getStatusText(booking.displayStatus)}
+                            </span>
+                            <span className="history-date">{formatFullDate(booking.time_from)}</span>
+                          </div>
+                          <div className="history-price" style={{ fontSize: '22px', fontWeight: '700' }}>{Math.round(totalPrice)} ₽</div>
                         </div>
-                        <div className="history-price" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.total_price} ₽</div>
+                        <div className="history-card-body">
+                          <h3 className="history-workspace" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.workspace}</h3>
+                          <div className="history-time">
+                            Время: {booking.startTime} - {booking.endTime}
+                          </div>
+                          <div className="history-details">
+                            <span>Вместимость: {booking.capacity || 0} чел.</span>
+                            <span>Тариф: {booking.price_per_hour || 0} ₽/час</span>
+                          </div>
+                        </div>
+                        <div className="history-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                          <span className="history-created">Забронировано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
+                          <div className="history-actions">
+                            {booking.displayStatus === 'completed' && (
+                              <Link to={`/catalog/${booking.apartment_id}?showReviews=true`} onClick={(e) => e.stopPropagation()} style={{ textDecoration: 'none' }}>
+                                <button style={{ padding: '10px 20px', background: '#2850a7', color: '#ffffff', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}>
+                                  Оставить отзыв
+                                </button>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="history-card-body">
-                        <h3 className="history-workspace" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.workspace}</h3>
-                        <div className="history-time">
-                          Время: {booking.startTime} - {booking.endTime}
-                        </div>
-                        <div className="history-details">
-                          <span>Вместимость: {booking.capacity} чел.</span>
-                          <span>Тариф: {booking.price_per_hour} ₽/час</span>
-                        </div>
-                      </div>
-                      <div className="history-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                        <span className="history-created">Забронировано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
-                        <div className="history-actions">
-                          {booking.status === 'completed' && (
-                            <Link to={`/catalog/${booking.apartment_id}?showReviews=true`} onClick={(e) => e.stopPropagation()} style={{ textDecoration: 'none' }}>
-                              <button style={{ padding: '10px 20px', background: '#2850a7', color: '#ffffff', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}>
-                                Оставить отзыв
-                              </button>
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                    )
+                  })
                 )}
               </div>
             )}
@@ -535,7 +612,7 @@ export default function MyBookings() {
         )}
       </div>
 
-      {/* ========== МОДАЛЬНОЕ ОКНО ДЕТАЛЕЙ ========== */}
+      {/* ========== МОДАЛЬНОЕ ОКНО ========== */}
       {modalOpen && selectedBooking && (
         <div onClick={() => setModalOpen(false)} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', boxSizing: 'border-box' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff', width: '100%', maxWidth: '520px', borderRadius: '24px', padding: '36px', boxShadow: '0 24px 48px rgba(0,0,0,0.15)', boxSizing: 'border-box' }}>
@@ -546,9 +623,9 @@ export default function MyBookings() {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
               <div><div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Помещение</div><div style={{ fontSize: '16px', color: '#1e293b', fontWeight: '600' }}>{selectedBooking.workspace}</div></div>
-              <div><div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Дата</div><div style={{ fontSize: '16px', color: '#1e293b', fontWeight: '500' }}>{formatFullDate(selectedBooking.date)}</div></div>
+              <div><div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Дата</div><div style={{ fontSize: '16px', color: '#1e293b', fontWeight: '500' }}>{formatFullDate(selectedBooking.time_from)}</div></div>
               <div><div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Время аренды</div><div style={{ fontSize: '16px', color: '#1e293b', fontWeight: '500' }}>{selectedBooking.startTime} - {selectedBooking.endTime}</div></div>
-              <div><div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Статус</div><div style={{ marginTop: '4px' }}><span style={getBadgeStyles(selectedBooking.status)}>{getStatusText(selectedBooking.status)}</span></div></div>
+              <div><div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Статус</div><div style={{ marginTop: '4px' }}><span style={getBadgeStyles(selectedBooking.displayStatus || selectedBooking.status)}>{getStatusText(selectedBooking.displayStatus || selectedBooking.status)}</span></div></div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>

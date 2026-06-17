@@ -1,7 +1,16 @@
 // src/store/api.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-const BASE_URL = 'http://localhost:8080';
+// ===== НАСТРОЙКА BASE_URL ДЛЯ РАЗНЫХ ОКРУЖЕНИЙ =====
+const isProduction = () => {
+  const hostname = window.location.hostname;
+  return hostname !== 'localhost' && hostname !== '127.0.0.1';
+};
+
+const BASE_URL = isProduction() ? '' : 'http://localhost:8080';
+
+console.log('🔗 Режим:', isProduction() ? 'PRODUCTION' : 'DEVELOPMENT');
+console.log('🔗 BASE_URL:', BASE_URL || '(относительный)');
 
 export const api = createApi({
   reducerPath: 'api',
@@ -15,7 +24,7 @@ export const api = createApi({
   }),
   tagTypes: ['Apartments', 'Bookings', 'User', 'Reviews'],
   endpoints: (builder) => ({
-    // ========== ПОЛЬЗОВАТЕЛИ ==========
+    // ========== ПОЛЬЗОВАТЕЛИ (публичные — БЕЗ /api) ==========
     getUserById: builder.query({
       query: (id) => `/users/${id}`,
       providesTags: ['User']
@@ -44,48 +53,55 @@ export const api = createApi({
       }),
     }),
     
+    // ========== ПОЛЬЗОВАТЕЛИ (защищённые — С /api) ==========
     logout: builder.mutation({
       query: () => ({
-        url: '/api/auth/logout',  // ← ДОБАВЛЕН /api
+        url: '/api/auth/logout',
         method: 'POST',
       }),
     }),
     
     deleteAccount: builder.mutation({
       query: () => ({
-        url: '/api/auth/delete',  // ← ДОБАВЛЕН /api
+        url: '/api/auth/delete',
         method: 'DELETE',
       }),
     }),
     
-    // ========== ПОМЕЩЕНИЯ ==========
+    // ========== ПОМЕЩЕНИЯ (публичные — БЕЗ /api) ==========
     getCatalog: builder.query({
       query: (filters = {}) => ({
-        url: '/api/apartments',
+        url: '/apartments',  // ← БЕЗ /api
         method: 'POST',
         body: {
           is_active: true,
           limit: 100,
           offset: 0,
-          ...filters
+          ...(filters.min_price !== undefined && { min_price: filters.min_price }),
+          ...(filters.max_price !== undefined && { max_price: filters.max_price }),
+          ...(filters.seller_id !== undefined && { seller_id: filters.seller_id }),
+          ...(filters.is_active !== undefined && { is_active: filters.is_active }),
+          ...(filters.limit !== undefined && { limit: filters.limit }),
+          ...(filters.offset !== undefined && { offset: filters.offset })
         },
       }),
       providesTags: ['Apartments']
     }),
     
     getApartmentById: builder.query({
-      query: (id) => `/api/apartments/${id}`,
+      query: (id) => `/apartments/${id}`,  // ← БЕЗ /api
       providesTags: (result, error, id) => [{ type: 'Apartments', id }]
     }),
     
+    // ========== ПОМЕЩЕНИЯ (защищённые — С /api) ==========
     getMyApartments: builder.query({
-      query: () => '/api/account/my-apartments',  // ← ДОБАВЛЕН /api
+      query: () => '/api/account/my-apartments',
       providesTags: ['Apartments']
     }),
     
     addApartment: builder.mutation({
       query: (apartmentData) => ({
-        url: '/api/account/new-apartment',  // ← ДОБАВЛЕН /api
+        url: '/api/account/new-apartment',
         method: 'POST',
         body: {
           name: apartmentData.title,
@@ -104,7 +120,7 @@ export const api = createApi({
     
     updateApartment: builder.mutation({
       query: ({ id, ...updates }) => ({
-        url: `/api/account/apartments/${id}/edit`,  // ← ДОБАВЛЕН /api
+        url: `/api/account/apartments/${id}/edit`,
         method: 'PATCH',
         body: updates,
       }),
@@ -113,7 +129,7 @@ export const api = createApi({
     
     deleteApartment: builder.mutation({
       query: (id) => ({
-        url: `/api/account/apartments/${id}/delete`,  // ← ДОБАВЛЕН /api
+        url: `/api/account/apartments/${id}/delete`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Apartments']
@@ -121,18 +137,18 @@ export const api = createApi({
     
     // ========== БРОНИРОВАНИЯ ==========
     getBookingById: builder.query({
-      query: (id) => `/bookings/${id}`,
+      query: (id) => `/bookings/${id}`,  // ← публичный, БЕЗ /api
       providesTags: (result, error, id) => [{ type: 'Bookings', id }]
     }),
     
     getMyBookings: builder.query({
-      query: () => '/api/account/my-bookings',  // ← ДОБАВЛЕН /api
+      query: () => '/api/account/my-bookings?statusFilter=all',  // ← защищённый, С /api
       providesTags: ['Bookings']
     }),
     
     createBooking: builder.mutation({
       query: (bookingData) => ({
-        url: '/api/account/new-booking',  // ← ДОБАВЛЕН /api
+        url: '/api/account/new-booking',
         method: 'POST',
         body: {
           apartment_id: bookingData.apartment_id,
@@ -145,7 +161,7 @@ export const api = createApi({
     
     cancelBooking: builder.mutation({
       query: (id) => ({
-        url: `/api/account/my-bookings/${id}/cancel`,  // ← ДОБАВЛЕН /api
+        url: `/api/account/my-bookings/${id}/cancel`,
         method: 'PATCH',
       }),
       invalidatesTags: ['Bookings']
@@ -153,7 +169,7 @@ export const api = createApi({
     
     confirmBooking: builder.mutation({
       query: (id) => ({
-        url: `/api/account/bookings/${id}/confirm`,  // ← ДОБАВЛЕН /api
+        url: `/api/account/bookings/${id}/confirm`,
         method: 'PATCH',
       }),
       invalidatesTags: ['Bookings']
@@ -161,15 +177,47 @@ export const api = createApi({
     
     rejectBooking: builder.mutation({
       query: (id) => ({
-        url: `/api/account/bookings/${id}/reject`,  // ← ДОБАВЛЕН /api
+        url: `/api/account/bookings/${id}/reject`,
         method: 'PATCH',
       }),
       invalidatesTags: ['Bookings']
     }),
     
     getSellerBookings: builder.query({
-      query: () => '/api/account/bookings',  // ← ДОБАВЛЕН /api
+      query: () => '/api/account/bookings?statusFilter=all',
       providesTags: ['Bookings']
+    }),
+    
+    // ========== ОТЗЫВЫ ==========
+    getReviewsByApartment: builder.query({
+      query: (apartmentId) => `/reviews/apartment/${apartmentId}`,  // ← публичный, БЕЗ /api
+      providesTags: ['Reviews']
+    }),
+    
+    getReviewById: builder.query({
+      query: (reviewId) => `/reviews/${reviewId}`,  // ← публичный, БЕЗ /api
+      providesTags: (result, error, id) => [{ type: 'Reviews', id }]
+    }),
+    
+    createReview: builder.mutation({
+      query: (data) => ({
+        url: '/api/account/reviews',  // ← защищённый, С /api
+        method: 'POST',
+        body: {
+          apartment_id: data.apartment_id,
+          comment: data.comment,
+          stars: data.stars
+        },
+      }),
+      invalidatesTags: ['Reviews']
+    }),
+    
+    deleteReview: builder.mutation({
+      query: (id) => ({
+        url: `/api/account/reviews/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Reviews']
     }),
   }),
 });
@@ -196,4 +244,9 @@ export const {
   useConfirmBookingMutation,
   useRejectBookingMutation,
   useGetSellerBookingsQuery,
+  // Reviews
+  useGetReviewsByApartmentQuery,
+  useGetReviewByIdQuery,
+  useCreateReviewMutation,
+  useDeleteReviewMutation,
 } = api;
