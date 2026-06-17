@@ -1,15 +1,20 @@
 // src/store/api.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-// ===== НАСТРОЙКА BASE_URL ДЛЯ РАЗНЫХ ОКРУЖЕНИЙ =====
-const isProduction = () => {
-  const hostname = window.location.hostname;
-  return hostname !== 'localhost' && hostname !== '127.0.0.1';
+// ===== УНИВЕРСАЛЬНАЯ НАСТРОЙКА BASE_URL =====
+// Работает и локально, и на сервере
+const getBaseUrl = () => {
+  // Если мы на деплое (не localhost)
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return '';  // ← относительный путь, запросы на тот же домен
+  }
+  // Локальная разработка
+  return 'http://localhost:8080';
 };
 
-const BASE_URL = isProduction() ? '' : 'http://localhost:8080';
+const BASE_URL = getBaseUrl();
 
-console.log('🔗 Режим:', isProduction() ? 'PRODUCTION' : 'DEVELOPMENT');
+console.log('🌍 Окружение:', window.location.hostname);
 console.log('🔗 BASE_URL:', BASE_URL || '(относительный)');
 
 export const api = createApi({
@@ -71,7 +76,7 @@ export const api = createApi({
     // ========== ПОМЕЩЕНИЯ (публичные — БЕЗ /api) ==========
     getCatalog: builder.query({
       query: (filters = {}) => ({
-        url: '/apartments',  // ← БЕЗ /api
+        url: '/apartments',
         method: 'POST',
         body: {
           is_active: true,
@@ -89,7 +94,7 @@ export const api = createApi({
     }),
     
     getApartmentById: builder.query({
-      query: (id) => `/apartments/${id}`,  // ← БЕЗ /api
+      query: (id) => `/apartments/${id}`,
       providesTags: (result, error, id) => [{ type: 'Apartments', id }]
     }),
     
@@ -137,12 +142,12 @@ export const api = createApi({
     
     // ========== БРОНИРОВАНИЯ ==========
     getBookingById: builder.query({
-      query: (id) => `/bookings/${id}`,  // ← публичный, БЕЗ /api
+      query: (id) => `/bookings/${id}`,
       providesTags: (result, error, id) => [{ type: 'Bookings', id }]
     }),
     
     getMyBookings: builder.query({
-      query: () => '/api/account/my-bookings?statusFilter=all',  // ← защищённый, С /api
+      query: () => '/api/account/my-bookings?statusFilter=all',
       providesTags: ['Bookings']
     }),
     
@@ -190,18 +195,18 @@ export const api = createApi({
     
     // ========== ОТЗЫВЫ ==========
     getReviewsByApartment: builder.query({
-      query: (apartmentId) => `/reviews/apartment/${apartmentId}`,  // ← публичный, БЕЗ /api
+      query: (apartmentId) => `/reviews/apartment/${apartmentId}`,
       providesTags: ['Reviews']
     }),
     
     getReviewById: builder.query({
-      query: (reviewId) => `/reviews/${reviewId}`,  // ← публичный, БЕЗ /api
+      query: (reviewId) => `/reviews/${reviewId}`,
       providesTags: (result, error, id) => [{ type: 'Reviews', id }]
     }),
     
     createReview: builder.mutation({
       query: (data) => ({
-        url: '/api/account/reviews',  // ← защищённый, С /api
+        url: '/api/account/reviews',
         method: 'POST',
         body: {
           apartment_id: data.apartment_id,
