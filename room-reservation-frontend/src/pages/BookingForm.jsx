@@ -1,6 +1,8 @@
+// src/pages/BookingForm.jsx
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useGetApartmentByIdQuery, useCreateBookingMutation } from '../store/api';
 import Navbar from '../components/Navbar';
 import '../styles/bookingform.css';
 
@@ -9,19 +11,74 @@ export default function BookingForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  const { data: room, isLoading, error: roomError } = useGetApartmentByIdQuery(id);
+  const [createBooking, { isLoading: bookingLoading }] = useCreateBookingMutation();
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedSlots, setSelectedSlots] = useState([]);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [bookingError, setBookingError] = useState('');
+  const [bookingSuccess, setBookingSuccess] = useState('');
+  const [existingBookings, setExistingBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
 
-  // Мок-данные
-  const room = { id: parseInt(id), name: "Modern Coworking Space", price_per_hour: 15, capacity: 20 };
-  const existingBookings = [];
+  // Загружаем существующие бронирования для этого помещения
+  const loadExistingBookings = async () => {
+    if (!id) return;
+    
+    setLoadingBookings(true);
+    try {
+      const response = await fetch(`http://localhost:8080/bookings/apartment/${id}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const bookings = data.map(b => {
+          const startDate = new Date(b.time_from);
+          const endDate = new Date(b.time_to);
+          const dateStr = startDate.toISOString().split('T')[0];
+          const startHour = startDate.getHours();
+          const endHour = endDate.getHours();
+          
+          const slots = [];
+          for (let hour = startHour; hour < endHour; hour++) {
+            slots.push({
+              date: dateStr,
+              hour: hour,
+              bookingId: b.id,
+              status: b.status
+            });
+          }
+          return slots;
+        }).flat();
+        
+        setExistingBookings(bookings);
+      } else {
+        setExistingBookings([]);
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки бронирований:', err);
+      setExistingBookings([]);
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
 
-  // ВАЖНО: пересчитываем дни при изменении currentDate
+  useEffect(() => {
+    loadExistingBookings();
+  }, [id]);
+
+  useEffect(() => {
+    if (bookingSuccess) {
+      loadExistingBookings();
+    }
+  }, [bookingSuccess]);
+
   const weekDays = useMemo(() => {
     const startDate = new Date(currentDate);
-    // Находим понедельник недели
     const day = currentDate.getDay();
     const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1);
     startDate.setDate(diff);
@@ -49,23 +106,27 @@ export default function BookingForm() {
 
   const handleSlotClick = (date, hour) => {
     const dateStr = date.toISOString().split('T')[0];
-    const isPast = date < new Date() || (date.toDateString() === new Date().toDateString() && hour < new Date().getHours());
+    const now = new Date();
     
-    if (isHourBooked(date, hour)) {
-      setError('Это время уже забронировано');
-      setTimeout(() => setError(''), 2000);
+    const selectedDate = new Date(date);
+    selectedDate.setHours(hour, 0, 0, 0);
+    
+    if (selectedDate < now) {
+      setBookingError('Нельзя забронировать прошедшее время');
+      setTimeout(() => setBookingError(''), 2000);
       return;
     }
-    if (isPast) {
-      setError('Нельзя забронировать прошедшее время');
-      setTimeout(() => setError(''), 2000);
+    
+    if (isHourBooked(date, hour)) {
+      setBookingError('Это время уже забронировано');
+      setTimeout(() => setBookingError(''), 2000);
       return;
     }
     
     if (isHourSelected(date, hour)) {
       setSelectedSlots(selectedSlots.filter(s => !(s.date === dateStr && s.hour === hour)));
     } else {
-      setSelectedSlots([...selectedSlots, { date: dateStr, hour, time: `${hour}:00` }]);
+      setSelectedSlots([...selectedSlots, { date: dateStr, hour, time: `₽{hour}:00` }]);
     }
   };
 
@@ -85,12 +146,21 @@ export default function BookingForm() {
         if (i < hoursList.length && hoursList[i] === end + 1) {
           end = hoursList[i];
         } else {
+          const dateObj = new Date(date);
+          const year = dateObj.getFullYear();
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const day = String(dateObj.getDate()).padStart(2, '0');
+          const formattedDate = `${year}-${month}-${day}`;
+          
+          const startHourStr = String(start).padStart(2, '0');
+          const endHourStr = String(end + 1).padStart(2, '0');
+          
           intervals.push({
-            date,
+            date: formattedDate,
             startHour: start,
             endHour: end + 1,
-            startTime: `${start}:00`,
-            endTime: `${end + 1}:00`
+            startTime: `${startHourStr}:00`,
+            endTime: `${endHourStr}:00`
           });
           if (i < hoursList.length) {
             start = hoursList[i];
@@ -103,6 +173,7 @@ export default function BookingForm() {
   };
 
   const calculateTotalPrice = () => {
+    if (!room) return 0;
     let totalHours = 0;
     getBookingIntervals().forEach(interval => {
       totalHours += interval.endHour - interval.startHour;
@@ -110,17 +181,64 @@ export default function BookingForm() {
     return totalHours * room.price_per_hour;
   };
 
-  const handleSubmitBooking = () => {
+  const handleSubmitBooking = async () => {
     if (selectedSlots.length === 0) {
-      setError('Выберите хотя бы один час');
+      setBookingError('Выберите хотя бы один час');
       return;
     }
-    setSuccess(`Бронирование создано! ${selectedSlots.length} час(ов).`);
-    setSelectedSlots([]);
-    setTimeout(() => navigate('/my-bookings'), 2000);
+
+    if (!user) {
+      setBookingError('Пожалуйста, войдите в аккаунт');
+      return;
+    }
+
+    setBookingError('');
+    setBookingSuccess('');
+
+    try {
+      const intervals = getBookingIntervals();
+      const now = new Date();
+      
+      for (const interval of intervals) {
+        const startDateTime = new Date(`${interval.date}T${interval.startTime}:00`);
+        const endDateTime = new Date(`${interval.date}T${interval.endTime}:00`);
+        
+        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+          setBookingError('Ошибка: неверный формат даты');
+          return;
+        }
+        
+        if (startDateTime < now) {
+          setBookingError(`Время ${interval.startTime} уже прошло. Выберите будущее время.`);
+          return;
+        }
+        
+        await createBooking({
+          apartment_id: parseInt(id),
+          time_from: startDateTime.toISOString(),
+          time_to: endDateTime.toISOString()
+        }).unwrap();
+      }
+      
+      setBookingSuccess(`✅ Бронирование создано! ${selectedSlots.length} час(ов). Ожидает подтверждения владельца.`);
+      setSelectedSlots([]);
+      
+      setTimeout(() => navigate('/my-bookings'), 3000);
+    } catch (err) {
+      let errorMessage = 'Ошибка при создании бронирования';
+      
+      if (err?.data?.error) {
+        errorMessage = err.data.error;
+      } else if (err?.data?.message) {
+        errorMessage = err.data.message;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setBookingError(errorMessage);
+    }
   };
 
-  // Функции навигации - вызывают setCurrentDate, что триггерит useMemo
   const goToPrevWeek = () => {
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() - 7);
@@ -150,8 +268,35 @@ export default function BookingForm() {
     return date.toDateString() === today.toDateString();
   };
 
-  // Для отладки - можно посмотреть в консоли
-  console.log('Текущая неделя:', weekDays.map(d => d.toLocaleDateString()));
+  if (isLoading || loadingBookings) {
+    return (
+      <>
+        <Navbar />
+        <div className="loader">
+          <div className="spinner"></div>
+        </div>
+      </>
+    );
+  }
+
+  if (roomError || !room) {
+    return (
+      <>
+        <Navbar />
+        <div className="container">
+          <div className="error-message">
+            <h2>Помещение не найдено</h2>
+            <p>Помещение с ID {id} не существует или было удалено.</p>
+            <Link to="/catalog">
+              <button className="auth-btn" style={{ marginTop: '20px' }}>
+                Вернуться к каталогу
+              </button>
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -159,7 +304,7 @@ export default function BookingForm() {
       <div className="bookingform-page">
         <Link to={`/catalog/${id}`} className="bookingform-back">← Назад к помещению</Link>
         <h1 className="bookingform-title">Бронирование: {room.name}</h1>
-        <p className="bookingform-subtitle">{room.price_per_hour} ₽/час |{room.capacity} человек</p>
+        <p className="bookingform-subtitle">{room.price_per_hour} ₽/час | {room.capacity} человек</p>
 
         <div className="calendar-nav">
           <button onClick={goToPrevWeek} className="nav-btn">← Предыдущая</button>
@@ -185,7 +330,10 @@ export default function BookingForm() {
                 {weekDays.map((day, dayIdx) => {
                   const booked = isHourBooked(day, hour);
                   const selected = isHourSelected(day, hour);
-                  const isPast = day < new Date() || (day.toDateString() === new Date().toDateString() && hour < new Date().getHours());
+                  const now = new Date();
+                  const selectedDate = new Date(day);
+                  selectedDate.setHours(hour, 0, 0, 0);
+                  const isPast = selectedDate < now;
                   
                   let cellClass = 'calendar-cell';
                   if (booked || isPast) cellClass += ' booked';
@@ -221,16 +369,25 @@ export default function BookingForm() {
               {getBookingIntervals().map((interval, idx) => (
                 <div key={idx} className="selected-interval">
                   <span>{new Date(interval.date).toLocaleDateString('ru-RU')}</span>
-                  <span>{interval.startTime.slice(0,5)} - {interval.endTime.slice(0,5)}</span>
+                  <span>{interval.startTime} - {interval.endTime}</span>
                   <span>{room.price_per_hour * (interval.endHour - interval.startHour)} ₽</span>
                 </div>
               ))}
             </div>
           )}
-          <div className="selected-total"><span>Итого:</span><span>{calculateTotalPrice()} ₽</span></div>
-          <button className="submit-booking-btn" onClick={handleSubmitBooking}>Забронировать ({selectedSlots.length} час)</button>
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
+          <div className="selected-total">
+            <span>Итого:</span>
+            <span>{calculateTotalPrice()} ₽</span>
+          </div>
+          <button 
+            className="submit-booking-btn" 
+            onClick={handleSubmitBooking}
+            disabled={bookingLoading || selectedSlots.length === 0}
+          >
+            {bookingLoading ? 'Бронирование...' : `Забронировать (${selectedSlots.length} час)`}
+          </button>
+          {bookingError && <div className="error-message">{bookingError}</div>}
+          {bookingSuccess && <div className="success-message">{bookingSuccess}</div>}
         </div>
       </div>
     </>
