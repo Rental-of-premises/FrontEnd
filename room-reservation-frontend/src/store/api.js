@@ -61,7 +61,7 @@ export const api = createApi({
     // ========== ПОМЕЩЕНИЯ ==========
     getCatalog: builder.query({
       query: (filters = {}) => ({
-        url: '/apartments',
+        url: '/api/apartments',
         method: 'POST',
         body: {
           is_active: true,
@@ -74,7 +74,7 @@ export const api = createApi({
     }),
     
     getApartmentById: builder.query({
-      query: (id) => `/apartments/${id}`,
+      query: (id) => `/api/apartments/${id}`,
       providesTags: (result, error, id) => [{ type: 'Apartments', id }]
     }),
     
