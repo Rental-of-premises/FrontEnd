@@ -1,0 +1,295 @@
+/* src/styles/myrooms.css */
+
+.myrooms-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f8f9fa;
+  min-height: calc(100vh - 60px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+}
+
+.myrooms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.myrooms-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.myrooms-subtitle {
+  color: #718096;
+  font-size: 14px;
+}
+
+.myrooms-add-btn {
+  background: #2850a7;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(40, 80, 167, 0.2);
+  font-family: inherit;
+  display: inline-block;
+}
+
+.myrooms-add-btn:hover {
+  background: #1e3d7c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 80, 167, 0.3);
+}
+
+/* ===== КАРТОЧКА КАК В КАТАЛОГЕ ===== */
+.myrooms-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 32px;
+}
+
+.room-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.room-card-image {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.room-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.room-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.room-status.active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.room-status.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.room-card-content {
+  padding: 18px 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.room-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.room-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.room-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2850a7;
+  white-space: nowrap;
+}
+
+.room-price span {
+  font-size: 13px;
+  font-weight: normal;
+  color: #64748b;
+}
+
+.room-description {
+  color: #4a5568;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.room-specs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.spec-item {
+  font-size: 13px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ===== КНОПКИ СПРАВА ===== */
+.room-card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.room-card-actions a,
+.room-card-actions button {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.btn-edit {
+  background: #2850a7;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #1e3d7c;
+}
+
+.btn-toggle {
+  background: #2850a7;
+  color: white;
+}
+
+.btn-toggle:hover {
+  background: #1e3d7c;
+}
+
+.btn-delete {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #dc2626;
+}
+
+.btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== ПУСТОЕ СОСТОЯНИЕ ===== */
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  background: white;
+  border-radius: 16px;
+  grid-column: 1 / -1;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  color: #1e293b;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.empty-state p {
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.empty-add-btn {
+  background: #2850a7;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(40, 80, 167, 0.2);
+  font-family: inherit;
+}
+
+.empty-add-btn:hover {
+  background: #1e3d7c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 80, 167, 0.3);
+}
+
+/* ===== АДАПТИВ ===== */
+@media (max-width: 768px) {
+  .myrooms-list {
+    grid-template-columns: 1fr;
+  }
+
+  .room-card-actions {
+    justify-content: center;
+  }
+
+  .room-card-actions a,
+  .room-card-actions button {
+    flex: 1;
+    text-align: center;
+  }
+}

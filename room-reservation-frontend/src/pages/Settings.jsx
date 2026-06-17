@@ -36,64 +36,108 @@ export default function Settings() {
   return (
     <>
       <Navbar />
-      <div className="settings-container">
-        <div className="settings-card">
-          <Link to="/dashboard" className="settings-back">← Вернуться в личный кабинет</Link>
+      <div style={{
+        minHeight: '100vh',
+        background: '#f8fafc'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '50px 24px',
+          fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
+        }}>
           
-          <h1 className="settings-title">Настройки профиля</h1>
-          <p className="settings-subtitle">Управление аккаунтом</p>
-          
-          <div className="settings-section">
-            <h2>Информация об аккаунте</h2>
-            <div className="settings-field">
-              <label>Имя</label>
-              <div className="settings-value">{user?.name || '—'}</div>
+          <div style={{
+            background: 'linear-gradient(135deg, #2850a7 0%, #3b82f6 100%)',
+            padding: '44px 48px',
+            borderRadius: '28px',
+            marginBottom: '36px',
+            color: '#ffffff',
+            boxShadow: '0 25px 50px rgba(40,80,167,.25)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '24px'
+          }}>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '38px', fontWeight: '700', letterSpacing: '-0.03em' }}>Настройки профиля</h1>
+              <p style={{ marginTop: '10px', marginBottom: 0, color: '#e0e7ff', fontSize: '16px' }}>Управление аккаунтом</p>
             </div>
-            <div className="settings-field">
-              <label>Email</label>
-              <div className="settings-value">{user?.email || '—'}</div>
+            <div style={{ background: 'rgba(255,255,255,.12)', backdropFilter: 'blur(12px)', padding: '16px 22px', borderRadius: '16px' }}>
+              <div style={{ fontSize: '13px', opacity: '.85' }}>Авторизован как</div>
+              <div style={{ fontSize: '20px', fontWeight: '700', marginTop: '4px' }}>{user?.name || 'Пользователь'}</div>
             </div>
           </div>
 
-          <div className="settings-section">
-            <h2>Аккаунт</h2>
-            <button className="logout-btn-settings" onClick={handleLogout}>
+          <Link to="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none', color: '#2850a7', fontWeight: '600', marginBottom: '28px' }}>
+            ← Вернуться в личный кабинет
+          </Link>
+
+          <div style={{ background: '#ffffff', borderRadius: '28px', padding: '32px', boxShadow: '0 12px 30px rgba(15,23,42,.06)', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+              <div style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #2850a7 0%, #3b82f6 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontSize: '30px',
+                fontWeight: '700',
+                flexShrink: 0
+              }}>
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+              <div>
+                <h2 style={{ margin: 0, color: '#0f172a', fontSize: '28px', fontWeight: '700' }}>{user?.name || 'Пользователь'}</h2>
+                <p style={{ marginTop: '6px', marginBottom: 0, color: '#64748b', fontSize: '15px' }}>{user?.email || '—'}</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: '#ffffff', borderRadius: '28px', padding: '32px', boxShadow: '0 12px 30px rgba(15,23,42,.06)', marginBottom: '24px' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '24px', color: '#0f172a', fontSize: '24px' }}>Информация об аккаунте</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ paddingBottom: '20px', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '8px' }}>Имя</div>
+                <div style={{ color: '#0f172a', fontSize: '18px', fontWeight: '600' }}>{user?.name || '—'}</div>
+              </div>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '8px' }}>Email</div>
+                <div style={{ color: '#0f172a', fontSize: '18px', fontWeight: '600', wordBreak: 'break-word' }}>{user?.email || '—'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: '#ffffff', borderRadius: '28px', padding: '32px', boxShadow: '0 12px 30px rgba(15,23,42,.06)', marginBottom: '24px' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '12px', color: '#0f172a', fontSize: '24px' }}>Безопасность</h2>
+            <p style={{ color: '#64748b', lineHeight: '1.6', marginBottom: '28px' }}>Завершите текущую сессию и выйдите из аккаунта на этом устройстве.</p>
+            <button onClick={handleLogout} style={{ border: 'none', background: 'linear-gradient(135deg, #2850a7 0%, #3b82f6 100%)', color: '#ffffff', padding: '16px 28px', borderRadius: '14px', fontWeight: '600', fontSize: '16px', cursor: 'pointer', transition: 'all .2s ease' }}>
               Выйти из аккаунта
             </button>
           </div>
 
-          <div className="settings-section danger-zone">
-            <p className="danger-description">
-              Удаление аккаунта приведёт к безвозвратной потере всех данных:
-              ваших помещений, бронирований и истории.
-            </p>
+          <div style={{ background: '#ffffff', borderRadius: '28px', padding: '32px', boxShadow: '0 12px 30px rgba(15,23,42,.06)', border: '1px solid #fee2e2' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '12px', color: '#dc2626', fontSize: '24px' }}>Удаление аккаунта</h2>
+            <p style={{ color: '#64748b', lineHeight: '1.6', marginBottom: '28px' }}>Удаление аккаунта приведёт к безвозвратной потере всех данных: ваших помещений, бронирований и истории.</p>
             
-            {error && <div className="error-message">{error}</div>}
+            {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>{error}</div>}
             
             {!showConfirm ? (
-              <button 
-                className="delete-account-btn"
-                onClick={() => setShowConfirm(true)}
-              >
+              <button onClick={() => setShowConfirm(true)} style={{ border: 'none', background: '#dc2626', color: '#ffffff', padding: '14px 28px', borderRadius: '12px', fontWeight: '600', fontSize: '15px', cursor: 'pointer', transition: 'all .2s ease' }}>
                 Удалить аккаунт
               </button>
             ) : (
-              <div className="confirm-delete">
-                <p className="confirm-text">
-                  Вы уверены? Это действие необратимо.
-                </p>
-                <div className="confirm-buttons">
-                  <button 
-                    className="confirm-yes"
-                    onClick={handleDeleteAccount}
-                    disabled={isDeleting}
-                  >
+              <div style={{ background: '#fef2f2', padding: '20px', borderRadius: '16px', border: '1px solid #fecaca' }}>
+                <p style={{ color: '#dc2626', fontWeight: '600', marginTop: 0, marginBottom: '16px' }}>Вы уверены? Это действие необратимо.</p>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <button onClick={handleDeleteAccount} disabled={isDeleting} style={{ border: 'none', background: '#dc2626', color: '#ffffff', padding: '12px 24px', borderRadius: '10px', fontWeight: '600', fontSize: '14px', cursor: isDeleting ? 'not-allowed' : 'pointer', opacity: isDeleting ? 0.6 : 1 }}>
                     {isDeleting ? 'Удаление...' : 'Да, удалить'}
                   </button>
-                  <button 
-                    className="confirm-no"
-                    onClick={() => setShowConfirm(false)}
-                  >
+                  <button onClick={() => setShowConfirm(false)} style={{ border: '1px solid #e2e8f0', background: '#ffffff', color: '#64748b', padding: '12px 24px', borderRadius: '10px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
                     Отмена
                   </button>
                 </div>

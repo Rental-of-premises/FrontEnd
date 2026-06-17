@@ -1,12 +1,15 @@
 // src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import bcrypt from 'bcryptjs';
 import { 
   useSignInMutation, 
   useSignUpMutation,
   useLogoutMutation,
   useDeleteAccountMutation,
 } from '../store/api';
+
+const FIXED_SALT = '$2a$10$fixedSaltForTestingPurposeOnly12';
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -20,15 +23,13 @@ export function useAuth() {
 
   useEffect(() => {
     const loadUser = () => {
-      const token = localStorage.getItem('token');
       const savedUser = localStorage.getItem('user');
-      if (token && savedUser) {
+      if (savedUser) {
         try {
           setUser(JSON.parse(savedUser));
         } catch (e) {
           console.error('Failed to parse user from localStorage:', e);
           localStorage.removeItem('user');
-          localStorage.removeItem('token');
         }
       }
       setLoading(false);
@@ -37,10 +38,25 @@ export function useAuth() {
     loadUser();
   }, []);
 
+  const hashPassword = async (password) => {
+    try {
+      const hashedPassword = await bcrypt.hash(password, FIXED_SALT);
+      return hashedPassword;
+    } catch (error) {
+      console.error('Ошибка хеширования пароля:', error);
+      throw new Error('Ошибка при хешировании пароля');
+    }
+  };
+
   const login = async (email, password) => {
     try {
-      const data = await signIn({ email, password }).unwrap();
-      localStorage.setItem('token', data.token);
+      const hashedPassword = await hashPassword(password);
+      
+      const data = await signIn({ 
+        email, 
+        password: hashedPassword
+      }).unwrap();
+      
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
       return { success: true };
@@ -49,7 +65,12 @@ export function useAuth() {
       let errorMessage = 'Ошибка входа';
       
       if (error.status === 401) {
-        errorMessage = 'Неверный email или пароль';
+        // Показываем точное сообщение от бэкенда
+        if (error.data?.error) {
+          errorMessage = error.data.error;
+        } else {
+          errorMessage = 'Неверный email или пароль';
+        }
       } else if (error.status === 400) {
         errorMessage = 'Неверный JSON или валидация не пройдена';
       } else if (error.data?.error) {
@@ -62,20 +83,15 @@ export function useAuth() {
 
   const register = async (email, password, name) => {
     try {
-      const userData = await signUp({ email, password, name }).unwrap();
+      const hashedPassword = await hashPassword(password);
       
-      const loginResult = await login(email, password);
+      await signUp({ 
+        email, 
+        password: hashedPassword,
+        name 
+      }).unwrap();
       
-      if (loginResult.success) {
-        return { success: true };
-      }
-      
-      console.warn('User registered but auto-login failed:', loginResult.error);
-      return { 
-        success: false, 
-        error: 'Аккаунт создан, но не удалось войти автоматически. Пожалуйста, войдите вручную.',
-        userCreated: true 
-      };
+      return { success: true };
     } catch (error) {
       console.error('Register error:', error);
       let errorMessage = 'Ошибка регистрации';
@@ -99,7 +115,6 @@ export function useAuth() {
     } catch (error) {
       console.warn('Server logout failed, but clearing local data:', error);
     } finally {
-      localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
       navigate('/login');
@@ -109,7 +124,6 @@ export function useAuth() {
   const deleteAccount = async () => {
     try {
       await deleteAccountMutation().unwrap();
-      localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
       navigate('/');
@@ -133,10 +147,9 @@ export function useAuth() {
   };
 
   const refreshUser = async () => {
-    const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     
-    if (token && savedUser) {
+    if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
         setUser(parsedUser);

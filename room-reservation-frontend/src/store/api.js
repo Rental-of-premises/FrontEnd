@@ -1,41 +1,7 @@
 // src/store/api.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-const BASE_URL = 'http://localhost:3000';
-
-// Моковые данные для каталога
-const MOCK_ROOMS = [
-  {
-    id: 1,
-    name: "Modern Coworking Space",
-    description: "Open collaborative workspace with high-speed internet, comfortable seating, and natural lighting.",
-    capacity: 20,
-    price_per_hour: 15,
-    seller_id: 1,
-    is_active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 2,
-    name: "Executive Conference Room",
-    description: "Professional conference room with video conferencing technology.",
-    capacity: 12,
-    price_per_hour: 50,
-    seller_id: 1,
-    is_active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 3,
-    name: "Private Office",
-    description: "Quiet private office space ideal for focused work.",
-    capacity: 2,
-    price_per_hour: 25,
-    seller_id: 2,
-    is_active: true,
-    created_at: new Date().toISOString()
-  }
-];
+const BASE_URL = 'http://localhost:8080';
 
 export const api = createApi({
   reducerPath: 'api',
@@ -43,15 +9,11 @@ export const api = createApi({
     baseUrl: BASE_URL,
     credentials: 'include',
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
       headers.set('Content-Type', 'application/json');
       return headers;
     },
   }),
-  tagTypes: ['Apartments', 'Bookings', 'User'],
+  tagTypes: ['Apartments', 'Bookings', 'User', 'Reviews'],
   endpoints: (builder) => ({
     // ========== ПОЛЬЗОВАТЕЛИ ==========
     getUserById: builder.query({
@@ -84,211 +46,167 @@ export const api = createApi({
     
     logout: builder.mutation({
       query: () => ({
-        url: '/auth/logout',
+        url: '/api/auth/logout',
         method: 'POST',
       }),
     }),
     
-    // ========== УДАЛЕНИЕ АККАУНТА ==========
     deleteAccount: builder.mutation({
       query: () => ({
-        url: '/auth/delete',
+        url: '/api/auth/delete',
         method: 'DELETE',
       }),
     }),
     
     // ========== ПОМЕЩЕНИЯ ==========
     getCatalog: builder.query({
-      async queryFn() {
-        console.log('Используем моковые данные для каталога');
-        return { data: MOCK_ROOMS };
-      },
+      query: (filters = {}) => ({
+        url: '/apartments',
+        method: 'POST',
+        body: {
+          is_active: true,
+          limit: 100,
+          offset: 0,
+          ...(filters.min_price !== undefined && { min_price: filters.min_price }),
+          ...(filters.max_price !== undefined && { max_price: filters.max_price }),
+          ...(filters.seller_id !== undefined && { seller_id: filters.seller_id }),
+          ...(filters.is_active !== undefined && { is_active: filters.is_active }),
+          ...(filters.limit !== undefined && { limit: filters.limit }),
+          ...(filters.offset !== undefined && { offset: filters.offset })
+        },
+      }),
       providesTags: ['Apartments']
     }),
-        
+    
     getApartmentById: builder.query({
-      async queryFn(id) {
-        console.log(`Используем моковые данные для помещения ID: ${id}`);
-        const room = MOCK_ROOMS.find(r => r.id === parseInt(id));
-        if (room) {
-          return { data: room };
-        } else {
-          return { error: { status: 404, message: 'Помещение не найдено' } };
-        }
-      },
+      query: (id) => `/apartments/${id}`,
       providesTags: (result, error, id) => [{ type: 'Apartments', id }]
     }),
     
     getMyApartments: builder.query({
-      query: (sellerId) => ({
-        url: '/apartments',
-        method: 'POST',
-        body: {
-          seller_id: sellerId,
-          limit: 100,
-          offset: 0
-        }
-      }),
-      transformResponse: (response, meta, sellerId) => {
-        if (Array.isArray(response) && response.length > 0) {
-          return response;
-        }
-        return MOCK_ROOMS.filter(a => a.seller_id === sellerId);
-      },
+      query: () => '/api/account/my-apartments',
       providesTags: ['Apartments']
     }),
     
     addApartment: builder.mutation({
       query: (apartmentData) => ({
-        url: '/apartments',
+        url: '/api/account/new-apartment',
         method: 'POST',
-        body: apartmentData
-      }),
-      async queryFn(apartmentData) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const newApartment = {
-          id: Date.now(),
-          ...apartmentData,
-          created_at: new Date().toISOString(),
+        body: {
+          name: apartmentData.title,
+          description: apartmentData.description,
+          capacity: apartmentData.capacity,
+          price_per_hour: apartmentData.price_per_hour,
+          image_url: apartmentData.image_url,
+          metro: apartmentData.metro,
+          address: apartmentData.address,
+          amenities: apartmentData.amenities,
           is_active: true
-        };
-        return { data: newApartment };
-      },
+        },
+      }),
+      invalidatesTags: ['Apartments']
+    }),
+    
+    updateApartment: builder.mutation({
+      query: ({ id, ...updates }) => ({
+        url: `/api/account/apartments/${id}/edit`,
+        method: 'PATCH',
+        body: updates,
+      }),
       invalidatesTags: ['Apartments']
     }),
     
     deleteApartment: builder.mutation({
       query: (id) => ({
-        url: `/apartments/${id}`,
-        method: 'DELETE'
+        url: `/api/account/apartments/${id}/delete`,
+        method: 'DELETE',
       }),
-      async queryFn(id) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return { data: { success: true } };
-      },
       invalidatesTags: ['Apartments']
     }),
     
-    // ========== БРОНИРОВАНИЯ (МОКОВЫЕ ДАННЫЕ) ==========
+    // ========== БРОНИРОВАНИЯ ==========
     getBookingById: builder.query({
-      async queryFn(id) {
-        const today = new Date();
-        const mockBooking = {
-          id: parseInt(id),
-          apartment_title: "Test Workspace",
-          room_title: "Test Workspace",
-          time_from: new Date(today.setHours(10, 0, 0, 0)).toISOString(),
-          time_to: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
-          status: "confirmed",
-          created_at: new Date().toISOString()
-        };
-        return { data: mockBooking };
-      },
+      query: (id) => `/bookings/${id}`,
       providesTags: (result, error, id) => [{ type: 'Bookings', id }]
     }),
     
-    getAllBookings: builder.query({
-      async queryFn() {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        const mockBookings = [
-          {
-            id: 1,
-            apartment_title: "Modern Coworking Space",
-            room_title: "Modern Coworking Space",
-            time_from: new Date(today.setHours(10, 0, 0, 0)).toISOString(),
-            time_to: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
-            status: "confirmed",
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 2,
-            apartment_title: "Executive Conference Room",
-            room_title: "Executive Conference Room",
-            time_from: new Date(tomorrow.setHours(14, 0, 0, 0)).toISOString(),
-            time_to: new Date(tomorrow.setHours(16, 0, 0, 0)).toISOString(),
-            status: "confirmed",
-            created_at: new Date().toISOString()
-          }
-        ];
-        return { data: mockBookings };
-      },
-      providesTags: ['Bookings']
-    }),
-    
     getMyBookings: builder.query({
-      async queryFn() {
-        console.log('Используем моковые данные для бронирований');
-        
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dayAfter = new Date(today);
-        dayAfter.setDate(dayAfter.getDate() + 2);
-        
-        const MOCK_BOOKINGS = [
-          {
-            id: 1,
-            apartment_title: "Modern Coworking Space",
-            room_title: "Modern Coworking Space",
-            time_from: new Date(today.setHours(10, 0, 0, 0)).toISOString(),
-            time_to: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
-            status: "confirmed",
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 2,
-            apartment_title: "Executive Conference Room",
-            room_title: "Executive Conference Room",
-            time_from: new Date(tomorrow.setHours(14, 0, 0, 0)).toISOString(),
-            time_to: new Date(tomorrow.setHours(16, 0, 0, 0)).toISOString(),
-            status: "confirmed",
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 3,
-            apartment_title: "Private Office",
-            room_title: "Private Office",
-            time_from: new Date(dayAfter.setHours(9, 0, 0, 0)).toISOString(),
-            time_to: new Date(dayAfter.setHours(11, 0, 0, 0)).toISOString(),
-            status: "confirmed",
-            created_at: new Date().toISOString()
-          }
-        ];
-        
-        return { data: MOCK_BOOKINGS };
-      },
+      query: () => '/api/account/my-bookings?statusFilter=all',
       providesTags: ['Bookings']
     }),
     
     createBooking: builder.mutation({
       query: (bookingData) => ({
-        url: '/bookings',
+        url: '/api/account/new-booking',
         method: 'POST',
-        body: bookingData
+        body: {
+          apartment_id: bookingData.apartment_id,
+          time_from: bookingData.time_from,
+          time_to: bookingData.time_to
+        },
       }),
-      async queryFn(bookingData) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const newBooking = {
-          id: Date.now(),
-          ...bookingData,
-          status: 'confirmed',
-          created_at: new Date().toISOString()
-        };
-        return { data: newBooking };
-      },
       invalidatesTags: ['Bookings', 'Apartments']
     }),
     
     cancelBooking: builder.mutation({
-      async queryFn(id) {
-        console.log(`Моковая отмена бронирования #${id}`);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return { data: { success: true, id } };
-      },
+      query: (id) => ({
+        url: `/api/account/my-bookings/${id}/cancel`,
+        method: 'PATCH',
+      }),
       invalidatesTags: ['Bookings']
+    }),
+    
+    confirmBooking: builder.mutation({
+      query: (id) => ({
+        url: `/api/account/bookings/${id}/confirm`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Bookings']
+    }),
+    
+    rejectBooking: builder.mutation({
+      query: (id) => ({
+        url: `/api/account/bookings/${id}/reject`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Bookings']
+    }),
+    
+    getSellerBookings: builder.query({
+      query: () => '/api/account/bookings?statusFilter=all',
+      providesTags: ['Bookings']
+    }),
+    
+    // ========== ОТЗЫВЫ ==========
+    getReviewsByApartment: builder.query({
+      query: (apartmentId) => `/reviews/apartment/${apartmentId}`,
+      providesTags: ['Reviews']
+    }),
+    
+    getReviewById: builder.query({
+      query: (reviewId) => `/reviews/${reviewId}`,
+      providesTags: (result, error, id) => [{ type: 'Reviews', id }]
+    }),
+    
+    createReview: builder.mutation({
+      query: (data) => ({
+        url: '/api/account/reviews',
+        method: 'POST',
+        body: {
+          apartment_id: data.apartment_id,
+          comment: data.comment,
+          stars: data.stars
+        },
+      }),
+      invalidatesTags: ['Reviews']
+    }),
+    
+    deleteReview: builder.mutation({
+      query: (id) => ({
+        url: `/api/account/reviews/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Reviews']
     }),
   }),
 });
@@ -305,11 +223,19 @@ export const {
   useGetApartmentByIdQuery,
   useGetMyApartmentsQuery,
   useAddApartmentMutation,
+  useUpdateApartmentMutation,
   useDeleteApartmentMutation,
   // Bookings
   useGetBookingByIdQuery,
-  useGetAllBookingsQuery,
   useGetMyBookingsQuery,
   useCreateBookingMutation,
   useCancelBookingMutation,
+  useConfirmBookingMutation,
+  useRejectBookingMutation,
+  useGetSellerBookingsQuery,
+  // Reviews
+  useGetReviewsByApartmentQuery,
+  useGetReviewByIdQuery,
+  useCreateReviewMutation,
+  useDeleteReviewMutation,
 } = api;

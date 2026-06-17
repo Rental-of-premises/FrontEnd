@@ -1,3 +1,4 @@
+// src/pages/CreateRoom.jsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAddApartmentMutation } from '../store/api'
@@ -12,22 +13,46 @@ export default function CreateRoom() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    room_type: 'Coworking',
     capacity: 1,
-    price_per_hour: 10,
-    image_url: '',
+    price_per_hour: 500,
+    image_file: null,
+    metro: '',
+    address: '',
     amenities: []
   })
   
+  const [imagePreview, setImagePreview] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const [amenityInput, setAmenityInput] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const roomTypes = ['Coworking', 'Conference', 'Private', 'Studio', 'Meeting', 'Event']
-
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setError('Пожалуйста, выберите изображение')
+        return
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Изображение не должно превышать 5MB')
+        return
+      }
+      
+      setFormData(prev => ({ ...prev, image_file: file }))
+      
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+      setError('')
+    }
   }
 
   const handleAddAmenity = () => {
@@ -47,6 +72,18 @@ export default function CreateRoom() {
     }))
   }
 
+  // Сохраняем изображение как Data URL
+  const saveImageAsDataUrl = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        resolve(e.target.result)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -58,23 +95,44 @@ export default function CreateRoom() {
       return
     }
 
-    if (!formData.image_url) {
-      setError('URL изображения обязателен')
+    if (!formData.image_file) {
+      setError('Пожалуйста, выберите изображение')
+      setLoading(false)
+      return
+    }
+
+    if (!formData.metro) {
+      setError('Укажите станцию метро')
+      setLoading(false)
+      return
+    }
+
+    if (!formData.address) {
+      setError('Укажите адрес')
       setLoading(false)
       return
     }
 
     try {
-      const newRoom = {
-        ...formData,
-        posted_by: user?.name || 'Пользователь',
-        posted_date: new Date().toLocaleDateString()
+      setUploading(true)
+      const imageDataUrl = await saveImageAsDataUrl(formData.image_file)
+      setUploading(false)
+      
+      const payload = {
+        title: formData.title,
+        description: formData.description || '',
+        capacity: Number(formData.capacity),
+        price_per_hour: Number(formData.price_per_hour),
+        image_url: imageDataUrl,
+        metro: formData.metro,
+        address: formData.address,
+        amenities: formData.amenities
       }
       
-      await addApartment(newRoom).unwrap()
-      navigate('/dashboard')
+      await addApartment(payload).unwrap()
+      navigate('/my-rooms')
     } catch (err) {
-      setError('Ошибка при добавлении помещения')
+      setError(err.data?.error || err.message || 'Ошибка при добавлении помещения')
     } finally {
       setLoading(false)
     }
@@ -115,15 +173,6 @@ export default function CreateRoom() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Тип помещения</label>
-                <select name="room_type" value={formData.room_type} onChange={handleChange}>
-                  {roomTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
                 <label>Вместимость (человек)</label>
                 <input
                   type="number"
@@ -136,27 +185,75 @@ export default function CreateRoom() {
               </div>
 
               <div className="form-group">
-                <label>Цена за час ($)</label>
+                <label>Цена за час (₽)</label>
                 <input
                   type="number"
                   name="price_per_hour"
                   value={formData.price_per_hour}
                   onChange={handleChange}
-                  min="1"
-                  step="5"
+                  min="100"
+                  step="100"
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Метро *</label>
+                <input
+                  type="text"
+                  name="metro"
+                  value={formData.metro}
+                  onChange={handleChange}
+                  placeholder="Например: Маяковская"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Адрес *</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="Например: ул. Тверская, д. 15"
+                  required
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label>URL изображения</label>
-              <input
-                type="url"
-                name="image_url"
-                value={formData.image_url}
-                onChange={handleChange}
-                placeholder="https://example.com/image.jpg"
-              />
+              <label>Изображение помещения *</label>
+              <div className="image-upload-area">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="file-input"
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload" className="file-input-label">
+                  {imagePreview ? 'Изменить изображение' : 'Выберите изображение'}
+                </label>
+                
+                {imagePreview && (
+                  <div className="image-preview">
+                    <img src={imagePreview} alt="Preview" />
+                    <button 
+                      type="button" 
+                      className="remove-image-btn"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, image_file: null }))
+                        setImagePreview(null)
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+              </div>
+              <small className="form-hint">Поддерживаются JPG, PNG, GIF. Максимум 5MB</small>
             </div>
 
             <div className="form-group">
@@ -166,7 +263,7 @@ export default function CreateRoom() {
                   type="text"
                   value={amenityInput}
                   onChange={(e) => setAmenityInput(e.target.value)}
-                  placeholder="Добавить удобство (WiFi, Coffee, ...)"
+                  placeholder="Добавить удобство (WiFi, Кофе, ...)"
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAmenity())}
                 />
                 <button type="button" onClick={handleAddAmenity} className="add-amenity-btn">
@@ -190,8 +287,12 @@ export default function CreateRoom() {
               <button type="button" onClick={() => navigate('/dashboard')} className="cancel-btn-form">
                 Отмена
               </button>
-              <button type="submit" className="submit-btn" disabled={loading}>
-                {loading ? 'Публикация...' : 'Опубликовать'}
+              <button 
+                type="submit" 
+                className="submit-btn" 
+                disabled={loading || uploading}
+              >
+                {uploading ? 'Сохранение изображения...' : loading ? 'Публикация...' : 'Опубликовать'}
               </button>
             </div>
           </form>
