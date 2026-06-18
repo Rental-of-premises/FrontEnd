@@ -18,8 +18,8 @@ export default function Catalog() {
     offset: 0
   });
   
-  const { data: rooms = [], isLoading, isError, error, refetch } = useGetCatalogQuery(filters);
-
+  const { data, isLoading, isError, error, refetch } = useGetCatalogQuery(filters);
+  const rooms = data?.apartments || [];
   useEffect(() => {
     const newFilters = {
       is_active: true,
