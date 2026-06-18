@@ -6,8 +6,7 @@ import {
   useCreateBookingMutation,
   useGetReviewsByApartmentQuery,
   useCreateReviewMutation,
-  useDeleteReviewMutation,
-  useGetUserByIdQuery  // ← ДОБАВЛЯЕМ
+  useDeleteReviewMutation
 } from '../store/api';
 import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
@@ -42,6 +41,10 @@ export default function RoomDetails() {
   
   // ===== СОСТОЯНИЕ ДЛЯ ИМЕН ПОЛЬЗОВАТЕЛЕЙ =====
   const [userNames, setUserNames] = useState({});
+  
+  // ===== СОСТОЯНИЕ ДЛЯ ВЛАДЕЛЬЦА =====
+  const [sellerData, setSellerData] = useState(null);
+  const [loadingSeller, setLoadingSeller] = useState(false);
 
   // Проверяем параметр showReviews в URL
   useEffect(() => {
@@ -51,33 +54,62 @@ export default function RoomDetails() {
     }
   }, []);
 
+  // ===== ЗАГРУЖАЕМ ДАННЫЕ ВЛАДЕЛЬЦА =====
+  useEffect(() => {
+    if (room && room.seller_id) {
+      const fetchSeller = async () => {
+        setLoadingSeller(true);
+        try {
+          const response = await fetch(`https://team3.verstack.ru/api/users/${room.seller_id}`, {
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setSellerData(data);
+          } else {
+            console.error('Ошибка загрузки владельца:', response.status);
+          }
+        } catch (err) {
+          console.error('Ошибка загрузки владельца:', err);
+        } finally {
+          setLoadingSeller(false);
+        }
+      };
+      fetchSeller();
+    }
+  }, [room]);
+
   // ===== ЗАГРУЖАЕМ ИМЕНА ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ВСЕХ ОТЗЫВОВ =====
   useEffect(() => {
     if (reviewsData && reviewsData.length > 0) {
       const fetchUserNames = async () => {
         const names = {};
-        for (const review of reviewsData) {
-          if (review.user_id && !names[review.user_id]) {
-            try {
-              // Получаем пользователя по ID
-              const response = await fetch(`https://team3.verstack.ru/api/users/${review.user_id}`, {
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              });
-              if (response.ok) {
-                const userData = await response.json();
-                names[review.user_id] = userData.name || `Пользователь #${review.user_id}`;
-              } else {
-                names[review.user_id] = `Пользователь #${review.user_id}`;
+        const uniqueUserIds = [...new Set(reviewsData.map(r => r.user_id).filter(Boolean))];
+        
+        const promises = uniqueUserIds.map(async (userId) => {
+          try {
+            const response = await fetch(`https://team3.verstack.ru/api/users/${userId}`, {
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json'
               }
-            } catch (err) {
-              console.error('Ошибка загрузки пользователя:', err);
-              names[review.user_id] = `Пользователь #${review.user_id}`;
+            });
+            if (response.ok) {
+              const userData = await response.json();
+              names[userId] = userData.name || `Пользователь #${userId}`;
+            } else {
+              names[userId] = `Пользователь #${userId}`;
             }
+          } catch (err) {
+            console.error('Ошибка загрузки пользователя:', err);
+            names[userId] = `Пользователь #${userId}`;
           }
-        }
+        });
+        
+        await Promise.all(promises);
         setUserNames(names);
       };
       fetchUserNames();
@@ -176,7 +208,6 @@ export default function RoomDetails() {
     return user && review.user_id && review.user_id === user.id;
   };
 
-  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИМЕНИ ПОЛЬЗОВАТЕЛЯ =====
   const getUserDisplayName = (review) => {
     if (!review || !review.user_id) return 'Неизвестный пользователь';
     return userNames[review.user_id] || `Пользователь #${review.user_id}`;
@@ -245,6 +276,31 @@ export default function RoomDetails() {
                 <span className="spec-icon"></span>
                 <span className="spec-label">Цена:</span>
                 <span className="spec-value">{room.price_per_hour || 0} ₽/час</span>
+              </div>
+              
+              {/* ===== ИНФОРМАЦИЯ О ВЛАДЕЛЬЦЕ ===== */}
+              <div className="spec-item">
+                <span className="spec-icon"></span>
+                <span className="spec-label">Владелец:</span>
+                <span className="spec-value">
+                  {loadingSeller ? (
+                    'Загрузка...'
+                  ) : sellerData ? (
+                    <>
+                      {sellerData.name || `Пользователь #${room.seller_id}`}
+                      <span style={{ 
+                        display: 'block', 
+                        fontSize: '12px', 
+                        color: '#94a3b8',
+                        fontWeight: '400'
+                      }}>
+                        📧 {sellerData.email || 'Email не указан'}
+                      </span>
+                    </>
+                  ) : (
+                    `Владелец #${room.seller_id}`
+                  )}
+                </span>
               </div>
             </div>
 
@@ -387,6 +443,28 @@ export default function RoomDetails() {
           <div className="room-details-booking">
             <div className="booking-card-sticky">
               <h2>Забронировать</h2>
+              
+              {/* ===== ИНФОРМАЦИЯ О ВЛАДЕЛЬЦЕ В БЛОКЕ БРОНИРОВАНИЯ ===== */}
+              {sellerData && (
+                <div style={{
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '20px',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>
+                    📞 Контакт владельца
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>
+                    {sellerData.name || `Владелец #${room.seller_id}`}
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#2850a7', wordBreak: 'break-all' }}>
+                    ✉️ {sellerData.email || 'Email не указан'}
+                  </div>
+                </div>
+              )}
+
               <div className="booking-price-preview">
                 <span className="price-label">Стоимость:</span>
                 <span className="price-value">{room.price_per_hour} ₽/час</span>

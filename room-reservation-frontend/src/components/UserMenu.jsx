@@ -24,6 +24,7 @@ export default function UserMenu() {
       <button 
         className="user-menu-trigger"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Меню пользователя"
       >
         <span className="user-avatar"></span>
         <span className="user-name">{user?.name || 'Пользователь'}</span>

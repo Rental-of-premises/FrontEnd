@@ -25,7 +25,6 @@ export default function Navbar() {
         <Link to="/" className="logo">Office Space</Link>
         
         <div className="nav-links">
-          
           {user ? (
             <UserMenu />
           ) : (
