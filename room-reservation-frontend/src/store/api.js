@@ -17,13 +17,13 @@ export const api = createApi({
   endpoints: (builder) => ({
     // ========== ПОЛЬЗОВАТЕЛИ ==========
     getUserById: builder.query({
-      query: (id) => `/users/${id}`,
+      query: (id) => `/api/users/${id}`,
       providesTags: ['User']
     }),
     
     signUp: builder.mutation({
       query: (userData) => ({
-        url: '/auth/sign-up',
+        url: '/api/auth/sign-up',
         method: 'POST',
         body: {
           email: userData.email,
@@ -35,7 +35,7 @@ export const api = createApi({
     
     signIn: builder.mutation({
       query: (credentials) => ({
-        url: '/auth/sign-in',
+        url: '/api/auth/sign-in',
         method: 'POST',
         body: {
           email: credentials.email,
@@ -46,7 +46,7 @@ export const api = createApi({
     
     logout: builder.mutation({
       query: () => ({
-        url: '/auth/logout',
+        url: '/api/auth/logout',
         method: 'POST',
       }),
     }),
@@ -62,8 +62,8 @@ export const api = createApi({
     getCatalog: builder.query({
       query: (filters = {}) => ({
         url: '/api/apartments',
-        method: 'POST',
-        body: {
+        method: 'GET',
+        params: {
           is_active: true,
           limit: 100,
           offset: 0,
@@ -79,7 +79,7 @@ export const api = createApi({
     }),
     
     getApartmentById: builder.query({
-      query: (id) => `/apartments/${id}`,
+      query: (id) => `/api/apartments/${id}`,
       providesTags: (result, error, id) => [{ type: 'Apartments', id }]
     }),
     
@@ -100,7 +100,6 @@ export const api = createApi({
           image_url: apartmentData.image_url,
           metro: apartmentData.metro,
           address: apartmentData.address,
-          amenities: apartmentData.amenities,
           is_active: true
         },
       }),
@@ -126,7 +125,7 @@ export const api = createApi({
     
     // ========== БРОНИРОВАНИЯ ==========
     getBookingById: builder.query({
-      query: (id) => `/bookings/${id}`,
+      query: (id) => `/api/bookings/${id}`,
       providesTags: (result, error, id) => [{ type: 'Bookings', id }]
     }),
     
@@ -177,36 +176,36 @@ export const api = createApi({
       providesTags: ['Bookings']
     }),
     
-    // ========== ОТЗЫВЫ ==========
+    // ========== ОТЗЫВЫ (ИСПРАВЛЕННЫЕ) ==========
+    
+    // GET отзывы — БЕЗ /api (публичный эндпоинт)
     getReviewsByApartment: builder.query({
-      query: (apartmentId) => `/reviews/apartment/${apartmentId}`,
-      providesTags: ['Reviews']
+      query: (apartmentId) => `/apartments/${apartmentId}/reviews?limit=100&offset=0`,
+      providesTags: (result, error, apartmentId) => [
+        { type: 'Reviews', id: `apartment-${apartmentId}` }
+      ],
     }),
     
-    getReviewById: builder.query({
-      query: (reviewId) => `/reviews/${reviewId}`,
-      providesTags: (result, error, id) => [{ type: 'Reviews', id }]
-    }),
-    
+    // POST отзыв — С /api (защищенный эндпоинт)
     createReview: builder.mutation({
-      query: (data) => ({
-        url: '/api/account/reviews',
+      query: ({ apartment_id, comment, stars }) => ({
+        url: `/api/apartments/${apartment_id}/new-review`,
         method: 'POST',
-        body: {
-          apartment_id: data.apartment_id,
-          comment: data.comment,
-          stars: data.stars
-        },
+        body: { comment, stars },
       }),
-      invalidatesTags: ['Reviews']
+      invalidatesTags: (result, error, { apartment_id }) => [
+        { type: 'Reviews', id: `apartment-${apartment_id}` },
+        { type: 'Apartments' }
+      ],
     }),
     
+    // DELETE отзыв — С /api (защищенный эндпоинт)
     deleteReview: builder.mutation({
-      query: (id) => ({
-        url: `/api/account/reviews/${id}`,
+      query: (reviewId) => ({
+        url: `/api/account/delete-review/${reviewId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Reviews']
+      invalidatesTags: ['Reviews', 'Apartments'],
     }),
   }),
 });
@@ -235,7 +234,6 @@ export const {
   useGetSellerBookingsQuery,
   // Reviews
   useGetReviewsByApartmentQuery,
-  useGetReviewByIdQuery,
   useCreateReviewMutation,
   useDeleteReviewMutation,
 } = api;

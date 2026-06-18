@@ -1,61 +1,41 @@
 // src/pages/Reviews.jsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useGetApartmentByIdQuery } from '../store/api';
+import { 
+  useGetApartmentByIdQuery,
+  useGetReviewsByApartmentQuery,
+  useCreateReviewMutation,
+  useDeleteReviewMutation
+} from '../store/api';
 import Navbar from '../components/Navbar';
 import '../styles/reviews.css';
 
 export default function Reviews() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { data: room, isLoading, error } = useGetApartmentByIdQuery(id);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [canReview, setCanReview] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   
-  const [reviewData, setReviewData] = useState({
-    rating: 5,
-    comment: ''
+  const { data: room, isLoading: roomLoading, error: roomError } = useGetApartmentByIdQuery(id);
+  
+  const { 
+    data: reviews = [], 
+    isLoading: reviewsLoading,
+    refetch: refetchReviews
+  } = useGetReviewsByApartmentQuery(id, {
+    skip: !id,
   });
-  const [submitting, setSubmitting] = useState(false);
+
+  const [createReview, { isLoading: creatingReview }] = useCreateReviewMutation();
+  const [deleteReview] = useDeleteReviewMutation();
+
+  // ===== СОСТОЯНИЯ =====
+  const [showForm, setShowForm] = useState(false);
+  const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
 
-  useEffect(() => {
-    if (!room) return;
-    
-    // TODO: Заменить на реальный API запрос
-    setTimeout(() => {
-      setReviews([
-        {
-          id: 1,
-          user_name: "Анна С.",
-          rating: 5,
-          comment: "Отличное место! Очень комфортно работать, быстрый интернет, удобные кресла. Обязательно приду ещё!",
-          created_at: "2026-06-10T14:30:00Z"
-        },
-        {
-          id: 2,
-          user_name: "Михаил К.",
-          rating: 4,
-          comment: "Хороший коворкинг, но иногда шумновато. В остальном всё супер!",
-          created_at: "2026-06-08T11:20:00Z"
-        },
-        {
-          id: 3,
-          user_name: "Елена В.",
-          rating: 5,
-          comment: "Идеальное место для проведения встреч. Рекомендую!",
-          created_at: "2026-06-05T09:15:00Z"
-        }
-      ]);
-      setCanReview(true);
-      setLoading(false);
-    }, 500);
-  }, [room]);
-
+  // ===== ОБРАБОТЧИКИ =====
   const handleRatingClick = (rating) => {
     setReviewData(prev => ({ ...prev, rating }));
   };
@@ -64,36 +44,46 @@ export default function Reviews() {
     e.preventDefault();
     setReviewError('');
     setReviewSuccess('');
-    setSubmitting(true);
+    setShowForm(false);
 
     if (!reviewData.comment.trim()) {
       setReviewError('Напишите текст отзыва');
-      setSubmitting(false);
+      setShowForm(true);
       return;
     }
 
     try {
-      // TODO: Заменить на реальный API запрос
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newReview = {
-        id: reviews.length + 1,
-        user_name: user?.name || 'Пользователь',
-        rating: reviewData.rating,
+      await createReview({
+        apartment_id: parseInt(id),
         comment: reviewData.comment,
-        created_at: new Date().toISOString()
-      };
+        stars: reviewData.rating
+      }).unwrap();
       
-      setReviews([newReview, ...reviews]);
       setReviewSuccess('Отзыв успешно опубликован! Спасибо!');
       setReviewData({ rating: 5, comment: '' });
-      setShowForm(false);
+      refetchReviews();
       
       setTimeout(() => setReviewSuccess(''), 3000);
     } catch (err) {
-      setReviewError('Ошибка при отправке отзыва');
+      setReviewError(err.data?.error || 'Ошибка при отправке отзыва');
+      setShowForm(true);
+    }
+  };
+
+  const handleDeleteReview = async (review) => {
+    const reviewId = typeof review === 'object' ? review.id : review;
+    
+    if (!window.confirm('Вы уверены, что хотите удалить этот отзыв?')) return;
+    
+    setDeletingId(reviewId);
+    try {
+      await deleteReview(reviewId).unwrap();
+      refetchReviews();
+    } catch (err) {
+      console.error('Ошибка удаления:', err);
+      alert(err.data?.error || 'Ошибка при удалении отзыва');
     } finally {
-      setSubmitting(false);
+      setDeletingId(null);
     }
   };
 
@@ -114,6 +104,7 @@ export default function Reviews() {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('ru-RU', {
       day: 'numeric',
       month: 'long',
@@ -121,13 +112,35 @@ export default function Reviews() {
     });
   };
 
+  const isAuthor = (review) => {
+    return user && review.user_id && review.user_id === user.id;
+  };
+
+  const getUserDisplayName = (review) => {
+    if (review.user_name) {
+      return review.user_name;
+    }
+    if (review.user && review.user.name) {
+      return review.user.name;
+    }
+    return `Пользователь #${review.user_id}`;
+  };
+
+  const getAvatarLetter = (review) => {
+    const name = getUserDisplayName(review);
+    if (name && name !== `Пользователь #${review.user_id}`) {
+      return name.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
   const getAverageRating = () => {
-    if (reviews.length === 0) return 0;
-    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    if (!reviews || reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + (r.stars || 0), 0);
     return (sum / reviews.length).toFixed(1);
   };
 
-  if (isLoading || loading) {
+  if (roomLoading || reviewsLoading) {
     return (
       <>
         <Navbar />
@@ -136,7 +149,7 @@ export default function Reviews() {
     );
   }
 
-  if (error || !room) {
+  if (roomError || !room) {
     return (
       <>
         <Navbar />
@@ -159,6 +172,7 @@ export default function Reviews() {
     <>
       <Navbar />
       <div className="reviews-page" style={{ maxWidth: '900px', margin: '0 auto', padding: '50px 24px', fontFamily: '-apple-system, sans-serif' }}>
+        
         <div className="reviews-header" style={{ marginBottom: '40px' }}>
           <Link to={`/catalog/${id}`} className="reviews-back" style={{ color: '#2850a7', textDecoration: 'none', fontWeight: '600' }}>
             ← Назад к помещению
@@ -168,6 +182,7 @@ export default function Reviews() {
           </h1>
         </div>
 
+        {/* Информация о помещении */}
         <div className="reviews-room-info" style={{ display: 'flex', gap: '40px', background: '#f8fafc', padding: '24px', borderRadius: '20px', marginBottom: '32px' }}>
           <div>
             <div style={{ color: '#94a3b8', fontSize: '12px' }}>⭐ Рейтинг</div>
@@ -186,12 +201,18 @@ export default function Reviews() {
           </div>
         </div>
 
-        {canReview && !showForm && (
-          <button className="write-review-btn" onClick={() => setShowForm(true)} style={{ background: '#2850a7', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', marginBottom: '30px' }}>
+        {/* Кнопка "Оставить отзыв" */}
+        {user && !showForm && (
+          <button 
+            className="write-review-btn" 
+            onClick={() => setShowForm(true)} 
+            style={{ background: '#2850a7', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', marginBottom: '30px' }}
+          >
             Оставить отзыв
           </button>
         )}
 
+        {/* Форма отзыва */}
         {showForm && (
           <div className="review-form-container" style={{ background: '#fff', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', marginBottom: '30px' }}>
             <h3 style={{ marginTop: 0, color: '#1e293b' }}>Ваш отзыв</h3>
@@ -220,15 +241,18 @@ export default function Reviews() {
                 <button 
                   type="submit" 
                   className="submit-review-btn"
-                  disabled={submitting}
-                  style={{ flex: 1, background: '#2850a7', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '600', fontSize: '16px', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1 }}
+                  disabled={creatingReview}
+                  style={{ flex: 1, background: '#2850a7', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '600', fontSize: '16px', cursor: creatingReview ? 'not-allowed' : 'pointer', opacity: creatingReview ? 0.6 : 1 }}
                 >
-                  {submitting ? 'Отправка...' : 'Опубликовать отзыв'}
+                  {creatingReview ? 'Отправка...' : 'Опубликовать отзыв'}
                 </button>
                 <button 
                   type="button" 
                   className="cancel-review-btn"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setReviewError('');
+                  }}
                   style={{ flex: 1, background: '#f1f5f9', color: '#475569', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '600', fontSize: '16px', cursor: 'pointer' }}
                 >
                   Отмена
@@ -238,6 +262,7 @@ export default function Reviews() {
           </div>
         )}
 
+        {/* Список отзывов */}
         <div className="reviews-list" style={{ marginTop: '20px' }}>
           <h2 className="reviews-section-title" style={{ fontSize: '20px', color: '#1e293b', marginBottom: '20px', paddingBottom: '12px', borderBottom: '2px solid #e2e8f0' }}>
             Отзывы ({reviews.length})
@@ -245,7 +270,7 @@ export default function Reviews() {
           
           {reviews.length === 0 ? (
             <div className="empty-state" style={{ textAlign: 'center', padding: '60px', background: 'white', borderRadius: '16px' }}>
-              <div className="empty-icon" style={{ fontSize: '64px', marginBottom: '20px' }}></div>
+              <div className="empty-icon" style={{ fontSize: '64px', marginBottom: '20px' }}>💬</div>
               <h3 style={{ color: '#1e293b', marginBottom: '8px' }}>Пока нет отзывов</h3>
               <p style={{ color: '#64748b', marginBottom: '24px' }}>Будьте первым, кто оставит отзыв об этом помещении!</p>
             </div>
@@ -255,12 +280,36 @@ export default function Reviews() {
                 <div className="review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                   <div className="review-user" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span className="user-avatar" style={{ width: '36px', height: '36px', background: '#2850a7', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
-                      {review.user_name.charAt(0).toUpperCase()}
+                      {getAvatarLetter(review)}
                     </span>
-                    <span className="user-name" style={{ fontWeight: '600', color: '#1e293b' }}>{review.user_name}</span>
+                    <span className="user-name" style={{ fontWeight: '600', color: '#1e293b' }}>
+                      {getUserDisplayName(review)}
+                    </span>
                   </div>
-                  <div className="review-rating">
-                    {renderStars(review.rating)}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="review-rating">
+                      {renderStars(review.stars || 0)}
+                    </div>
+                    {isAuthor(review) && (
+                      <button
+                        onClick={() => handleDeleteReview(review)}
+                        disabled={deletingId === review.id}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      >
+                        {deletingId === review.id ? '...' : '✕ Удалить'}
+                      </button>
+                    )}
                   </div>
                 </div>
                 <p className="review-comment" style={{ color: '#334155', lineHeight: '1.6', marginBottom: '12px', fontSize: '15px' }}>{review.comment}</p>
