@@ -1,8 +1,8 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
+COPY room-reservation-frontend/package*.json ./
 RUN npm install
-COPY . .
+COPY room-reservation-frontend/ .
 RUN npm run build
 
 FROM nginx:alpine
