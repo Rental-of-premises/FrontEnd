@@ -44,7 +44,10 @@ export default function Catalog() {
     refetch();
   };
 
-  const filteredRooms = (rooms || []).filter(room => {
+  // ===== ИСПРАВЛЕННАЯ ФИЛЬТРАЦИЯ =====
+  const safeRooms = Array.isArray(rooms) ? rooms : [];
+
+  const filteredRooms = safeRooms.filter(room => {
     const matchesSearch = searchTerm === '' ||
       room.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,7 +100,7 @@ export default function Catalog() {
 
         <div className="search-section">
           <div className="search-bar">
-            <span className="search-icon"></span>
+            <span className="search-icon">🔍</span>
             <input
               type="text"
               placeholder="Поиск по названию, адресу или метро..."
@@ -157,7 +160,6 @@ export default function Catalog() {
                 />
               </div>
 
-              {/* ===== ИСПРАВЛЕННЫЙ ПОЛЗУНОК ЦЕНЫ (шаг 1) ===== */}
               <div className="filter-group">
                 <label>Макс. цена: {priceValue} ₽/час</label>
                 <input
