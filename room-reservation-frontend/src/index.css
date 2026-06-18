@@ -1,4 +1,4 @@
-/* src/index.css — глобальные стили (без дублей) */
+/* src/index.css — глобальные стили */
 
 /* ========== GLOBAL STYLES ========== */
 * {
@@ -20,6 +20,7 @@ body {
     z-index: 100;
     background: white;
     box-shadow: 0 1px 0 #e9ecef;
+    padding: 0 12px;
 }
 
 .navbar-container {
@@ -28,20 +29,25 @@ body {
     align-items: center;
     max-width: 1280px;
     margin: 0 auto;
-    padding: 16px 24px;
+    padding: 12px 16px;
+    min-height: 60px;
+    gap: 12px;
 }
 
 .logo {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
     color: #1a1a2e;
     text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .nav-links {
     display: flex;
-    gap: 32px;
+    gap: 16px;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .nav-links a {
@@ -55,21 +61,32 @@ body {
     color: #2850a7;
 }
 
+.nav-links a:active {
+    opacity: 0.7;
+}
+
 /* ========== AUTH BUTTONS ========== */
 .login-btn {
     display: inline-block;
-    padding: 8px 20px;
+    padding: 6px 16px;
     font-weight: 500;
+    font-size: 14px;
     color: white !important;
     background: #2850a7;
     border-radius: 8px;
     text-decoration: none;
     transition: background 0.2s, transform 0.2s;
+    white-space: nowrap;
+    cursor: pointer;
 }
 
 .login-btn:hover {
     background: #1e3d7c;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
+}
+
+.login-btn:active {
+    transform: scale(0.95);
 }
 
 .logout-btn {
@@ -87,6 +104,191 @@ body {
 .logout-btn:hover {
     background: #b91c1c;
     transform: translateY(-1px);
+}
+
+.logout-btn:active {
+    transform: scale(0.95);
+}
+
+/* ========== USER MENU ========== */
+.user-menu-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.user-menu-trigger {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 10px;
+    background: none;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    white-space: nowrap;
+}
+
+.user-menu-trigger:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.user-menu-trigger:active {
+    transform: scale(0.95);
+}
+
+.user-avatar {
+    font-size: 16px;
+}
+
+.user-name {
+    font-weight: 500;
+    color: #2d3748;
+    font-size: 14px;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-arrow {
+    font-size: 10px;
+    color: #a0aec0;
+    transition: transform 0.2s;
+}
+
+.user-arrow.open {
+    transform: rotate(180deg);
+}
+
+.user-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1000;
+    min-width: 180px;
+    margin-top: 8px;
+    overflow: hidden;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.user-menu-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #2d3748;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.user-menu-item:hover {
+    background: #f7fafc;
+}
+
+.user-menu-item:active {
+    transform: scale(0.98);
+}
+
+.menu-icon {
+    font-size: 16px;
+}
+
+.user-menu-divider {
+    margin: 0;
+    border: none;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* ========== МОБИЛЬНАЯ АДАПТАЦИЯ ========== */
+@media (max-width: 768px) {
+    .navbar-container {
+        padding: 10px 12px;
+        min-height: 54px;
+        gap: 8px;
+    }
+    
+    .logo {
+        font-size: 18px;
+    }
+    
+    .login-btn {
+        padding: 6px 14px;
+        font-size: 13px;
+    }
+    
+    .user-name {
+        font-size: 13px;
+        max-width: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar-container {
+        padding: 8px 10px;
+        min-height: 48px;
+        gap: 6px;
+    }
+    
+    .logo {
+        font-size: 16px;
+    }
+    
+    .login-btn {
+        padding: 5px 12px;
+        font-size: 12px;
+    }
+    
+    .user-menu-trigger {
+        padding: 4px 8px;
+        gap: 4px;
+    }
+    
+    .user-name {
+        font-size: 12px;
+        max-width: 60px;
+    }
+    
+    .user-avatar {
+        font-size: 14px;
+    }
+    
+    .user-arrow {
+        font-size: 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    .navbar-container {
+        padding: 6px 8px;
+        min-height: 42px;
+        gap: 4px;
+    }
+    
+    .logo {
+        font-size: 14px;
+    }
+    
+    .login-btn {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+    
+    .user-name {
+        font-size: 11px;
+        max-width: 50px;
+    }
+    
+    .user-menu-trigger {
+        padding: 3px 6px;
+    }
 }
 
 /* ========== DASHBOARD ========== */
@@ -108,88 +310,6 @@ body {
     color: #718096;
 }
 
-/* ========== USER MENU DROPDOWN ========== */
-.user-menu-container {
-    position: relative;
-}
-
-.user-menu-trigger {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    padding: 8px 12px;
-    background: none;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.user-menu-trigger:hover {
-    background: rgba(0, 0, 0, 0.05);
-}
-
-.user-avatar {
-    font-size: 18px;
-}
-
-.user-name {
-    font-weight: 500;
-    color: #2d3748;
-}
-
-.user-arrow {
-    font-size: 10px;
-    color: #a0aec0;
-    transition: transform 0.2s;
-}
-
-.user-arrow.open {
-    transform: rotate(180deg);
-}
-
-.user-menu-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    z-index: 1000;
-    min-width: 200px;
-    margin-top: 8px;
-    overflow: hidden;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
-
-.user-menu-item {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    width: 100%;
-    padding: 12px 16px;
-    font-size: 14px;
-    color: #2d3748;
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.2s;
-}
-
-.user-menu-item:hover {
-    background: #f7fafc;
-}
-
-.menu-icon {
-    font-size: 16px;
-}
-
-.user-menu-divider {
-    margin: 0;
-    border: none;
-    border-top: 1px solid #e2e8f0;
-}
-
 /* ========== ROOM DETAILS PAGE ========== */
 .room-details-container {
     max-width: 1280px;
@@ -205,10 +325,15 @@ body {
     font-weight: 500;
     color: #2850a7;
     text-decoration: none;
+    transition: opacity 0.2s;
 }
 
 .room-details-back a:hover {
     text-decoration: underline;
+}
+
+.room-details-back a:active {
+    opacity: 0.7;
 }
 
 .room-details-grid {
@@ -343,14 +468,19 @@ body {
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
 }
 
 .booking-primary-btn:hover {
     background: #1e3d7c;
+    transform: translateY(-2px);
 }
 
-/* ========== REVIEWS (для RoomDetails) ========== */
+.booking-primary-btn:active {
+    transform: scale(0.95);
+}
+
+/* ========== REVIEWS ========== */
 .reviews-main-btn {
     width: 100%;
     background: #2850a7;
@@ -368,6 +498,10 @@ body {
 .reviews-main-btn:hover {
     background: #1e3d7c;
     transform: translateY(-2px);
+}
+
+.reviews-main-btn:active {
+    transform: scale(0.95);
 }
 
 .reviews-modal {
@@ -407,11 +541,15 @@ body {
     font-size: 28px;
     cursor: pointer;
     color: #94a3b8;
-    transition: color 0.2s;
+    transition: color 0.2s, transform 0.2s;
 }
 
 .reviews-modal-close:hover {
     color: #ef4444;
+}
+
+.reviews-modal-close:active {
+    transform: scale(0.8);
 }
 
 .reviews-modal-body {
@@ -435,6 +573,11 @@ body {
 
 .write-review-btn-modal:hover {
     background: #1e3d7c;
+    transform: translateY(-2px);
+}
+
+.write-review-btn-modal:active {
+    transform: scale(0.95);
 }
 
 .review-form-modal {
@@ -463,11 +606,16 @@ body {
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
 }
 
 .submit-review-modal-btn:hover:not(:disabled) {
     background: #1e3d7c;
+    transform: translateY(-2px);
+}
+
+.submit-review-modal-btn:active:not(:disabled) {
+    transform: scale(0.95);
 }
 
 .submit-review-modal-btn:disabled {
@@ -484,11 +632,15 @@ body {
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
 }
 
 .cancel-review-modal-btn:hover {
     background: #cbd5e1;
+}
+
+.cancel-review-modal-btn:active {
+    transform: scale(0.95);
 }
 
 .stars {
@@ -499,7 +651,7 @@ body {
 .star {
     font-size: 24px;
     color: #cbd5e1;
-    transition: color 0.2s;
+    transition: color 0.2s, transform 0.2s;
 }
 
 .star.active {
@@ -512,6 +664,10 @@ body {
 
 .star.interactive:hover {
     transform: scale(1.15);
+}
+
+.star.interactive:active {
+    transform: scale(0.8);
 }
 
 .review-item-modal {
@@ -609,6 +765,10 @@ body {
     color: #a0aec0;
 }
 
+.search-bar input:active {
+    border-color: #2850a7;
+}
+
 .filters-row {
     display: flex;
     gap: 12px;
@@ -630,6 +790,11 @@ body {
 
 .filter-toggle-btn:hover {
     background: #1e3d7c;
+    transform: translateY(-2px);
+}
+
+.filter-toggle-btn:active {
+    transform: scale(0.95);
 }
 
 .filter-toggle-btn.active {
@@ -650,6 +815,11 @@ body {
 
 .reset-filters-btn:hover {
     background: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+.reset-filters-btn:active {
+    transform: scale(0.95);
 }
 
 .filters-panel {
@@ -680,11 +850,16 @@ body {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 14px;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .filter-input:focus {
     outline: none;
+    border-color: #2850a7;
+    box-shadow: 0 0 0 3px rgba(40, 80, 167, 0.1);
+}
+
+.filter-input:active {
     border-color: #2850a7;
 }
 
@@ -704,6 +879,15 @@ body {
     background: #2850a7;
     border-radius: 50%;
     cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.price-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.price-slider::-webkit-slider-thumb:active {
+    transform: scale(0.9);
 }
 
 .price-labels {
@@ -721,7 +905,7 @@ body {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 32px;
 }
 
@@ -733,11 +917,16 @@ body {
     background: white;
     border-radius: 16px;
     transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
 }
 
 .room-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.room-card:active {
+    transform: scale(0.98);
 }
 
 .room-image {
@@ -859,163 +1048,15 @@ body {
     transform: translateY(-2px);
 }
 
+.book-btn:active {
+    transform: scale(0.95);
+}
+
 .no-results {
     padding: 60px 20px;
     font-size: 18px;
     text-align: center;
     color: #718096;
-}
-
-/* ========== SETTINGS PAGE ========== */
-.settings-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 40px 20px;
-}
-
-.settings-card {
-    padding: 40px;
-    background: white;
-    border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.settings-back {
-    display: inline-block;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: #2850a7;
-    text-decoration: none;
-}
-
-.settings-back:hover {
-    text-decoration: underline;
-}
-
-.settings-title {
-    margin-bottom: 8px;
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a2e;
-}
-
-.settings-subtitle {
-    margin-bottom: 30px;
-    color: #718096;
-}
-
-.settings-section {
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.settings-section h2 {
-    margin-bottom: 16px;
-    font-size: 18px;
-    color: #1a1a2e;
-}
-
-.settings-field {
-    margin-bottom: 16px;
-}
-
-.settings-field label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 12px;
-    color: #718096;
-}
-
-.settings-value {
-    font-size: 16px;
-    color: #2d3748;
-}
-
-.logout-btn-settings {
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
-    color: white;
-    background: #e53e3e;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.logout-btn-settings:hover {
-    background: #c53030;
-}
-
-.danger-zone {
-    margin: -24px;
-    padding: 24px;
-    background: #fff5f5;
-    border-bottom: none;
-    border-radius: 16px;
-}
-
-.danger-zone h2 {
-    color: #c53030;
-}
-
-.danger-description {
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: #718096;
-}
-
-.delete-account-btn {
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
-    color: white;
-    background: #e53e3e;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.delete-account-btn:hover {
-    background: #c53030;
-}
-
-.confirm-delete {
-    margin-top: 16px;
-    padding: 16px;
-    background: white;
-    border-radius: 12px;
-}
-
-.confirm-text {
-    margin-bottom: 16px;
-    font-weight: 500;
-    color: #c53030;
-}
-
-.confirm-buttons {
-    display: flex;
-    gap: 12px;
-}
-
-.confirm-yes {
-    padding: 8px 20px;
-    color: white;
-    background: #e53e3e;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.confirm-no {
-    padding: 8px 20px;
-    color: #4a5568;
-    background: #e2e8f0;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
 }
 
 /* ========== AUTH PAGES ========== */
@@ -1086,6 +1127,10 @@ body {
     box-shadow: 0 0 0 3px rgba(40, 80, 167, 0.1);
 }
 
+.form-group input:active {
+    border-color: #2850a7;
+}
+
 .form-group input::placeholder {
     color: #a0aec0;
 }
@@ -1106,6 +1151,10 @@ body {
 .auth-btn:hover {
     background: #1e3d7c;
     transform: translateY(-2px);
+}
+
+.auth-btn:active {
+    transform: scale(0.95);
 }
 
 .auth-btn:disabled {
@@ -1131,6 +1180,10 @@ body {
 .auth-footer a:hover {
     color: #1e3d7c;
     text-decoration: underline;
+}
+
+.auth-footer a:active {
+    opacity: 0.7;
 }
 
 .error-message {
@@ -1176,7 +1229,7 @@ body {
     }
 }
 
-/* ========== IMAGE UPLOAD STYLES (только один раз) ========== */
+/* ========== IMAGE UPLOAD STYLES ========== */
 .image-upload-area {
     display: flex;
     flex-direction: column;
@@ -1195,13 +1248,18 @@ body {
     border-radius: 8px;
     cursor: pointer;
     text-align: center;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
     width: fit-content;
     font-weight: 500;
 }
 
 .file-input-label:hover {
     background: #1e3d7c;
+    transform: translateY(-2px);
+}
+
+.file-input-label:active {
+    transform: scale(0.95);
 }
 
 .image-preview {
@@ -1235,11 +1293,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
 }
 
 .remove-image-btn:hover {
     background: rgba(220, 38, 38, 0.8);
+}
+
+.remove-image-btn:active {
+    transform: scale(0.85);
 }
 
 .form-hint {
@@ -1249,7 +1311,7 @@ body {
     color: #718096;
 }
 
-/* ========== CREATE ROOM PAGE (общие стили) ========== */
+/* ========== CREATE ROOM PAGE ========== */
 .create-room-container {
     max-width: 800px;
     margin: 0 auto;
@@ -1269,6 +1331,13 @@ body {
     resize: vertical;
     border: 1px solid #dee2e6;
     border-radius: 8px;
+    transition: border-color 0.2s;
+}
+
+.create-room-form textarea:focus {
+    outline: none;
+    border-color: #2850a7;
+    box-shadow: 0 0 0 3px rgba(40, 80, 167, 0.1);
 }
 
 .create-room-form select {
@@ -1300,11 +1369,15 @@ body {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
 }
 
 .add-amenity-btn:hover {
     background: #dee2e6;
+}
+
+.add-amenity-btn:active {
+    transform: scale(0.95);
 }
 
 .amenities-tags {
@@ -1334,6 +1407,10 @@ body {
     cursor: pointer;
 }
 
+.amenity-tag-remove button:active {
+    transform: scale(0.8);
+}
+
 .form-actions {
     display: flex;
     gap: 16px;
@@ -1349,11 +1426,15 @@ body {
     border: 1px solid #dee2e6;
     border-radius: 10px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
 }
 
 .cancel-btn-form:hover {
     background: #e9ecef;
+}
+
+.cancel-btn-form:active {
+    transform: scale(0.95);
 }
 
 .submit-btn {
@@ -1365,11 +1446,16 @@ body {
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
 }
 
 .submit-btn:hover {
     background: #1e3d7c;
+    transform: translateY(-2px);
+}
+
+.submit-btn:active {
+    transform: scale(0.95);
 }
 
 .submit-btn:disabled {
@@ -1377,13 +1463,58 @@ body {
     opacity: 0.6;
 }
 
+/* ========== РАЗДЕЛ ДЛЯ МОБИЛЬНЫХ — ОТКЛЮЧАЕМ HOVER ========== */
+@media (hover: none) {
+    /* На тач-устройствах hover-эффекты не работают */
+    .login-btn:hover,
+    .logout-btn:hover,
+    .user-menu-trigger:hover,
+    .user-menu-item:hover,
+    .booking-primary-btn:hover,
+    .reviews-main-btn:hover,
+    .write-review-btn-modal:hover,
+    .submit-review-modal-btn:hover:not(:disabled),
+    .cancel-review-modal-btn:hover,
+    .auth-btn:hover,
+    .book-btn:hover,
+    .filter-toggle-btn:hover,
+    .reset-filters-btn:hover,
+    .file-input-label:hover,
+    .submit-btn:hover,
+    .cancel-btn-form:hover,
+    .add-amenity-btn:hover,
+    .room-card:hover,
+    .review-card:hover,
+    .history-card:hover,
+    .star.interactive:hover,
+    .price-slider::-webkit-slider-thumb:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .login-btn:hover {
+        background: #2850a7;
+    }
+    
+    .auth-btn:hover {
+        background: #2850a7;
+    }
+    
+    .submit-btn:hover {
+        background: #2850a7;
+    }
+    
+    .booking-primary-btn:hover {
+        background: #2850a7;
+    }
+    
+    .file-input-label:hover {
+        background: #2850a7;
+    }
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
-    .navbar-container {
-        flex-direction: column;
-        gap: 12px;
-    }
-
     .hero h1 {
         font-size: 32px;
     }
@@ -1396,10 +1527,6 @@ body {
         flex-direction: column;
     }
 
-    .filters {
-        justify-content: center;
-    }
-
     .auth-card {
         padding: 32px 24px;
     }
@@ -1407,4 +1534,82 @@ body {
     .form-row {
         grid-template-columns: 1fr;
     }
+    
+    .room-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px 12px;
+    }
+    
+    .hero h1 {
+        font-size: 24px;
+    }
+    
+    .hero p {
+        font-size: 14px;
+    }
+    
+    .room-details-title {
+        font-size: 24px;
+    }
+    
+    .reviews-main-btn {
+        font-size: 15px;
+        padding: 12px 16px;
+    }
+}
+
+/* ========== ДОПОЛНИТЕЛЬНЫЕ ИНТЕРАКТИВНЫЕ ЭЛЕМЕНТЫ ========== */
+/* Карточки бронирований в календаре */
+.calendar-cell {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.calendar-cell:active {
+    transform: scale(0.95);
+}
+
+.calendar-cell-free:active {
+    background: #2850a7 !important;
+}
+
+.calendar-cell-booked:active {
+    transform: scale(0.95);
+}
+
+/* Кнопки удаления */
+.btn-delete,
+.cancel-small-btn {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-delete:hover,
+.cancel-small-btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-delete:active,
+.cancel-small-btn:active {
+    transform: scale(0.9);
+}
+
+/* Модальные окна */
+.modal-overlay {
+    transition: opacity 0.3s ease;
+}
+
+/* Общий класс для интерактивных элементов */
+.interactive {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.interactive:active {
+    transform: scale(0.96);
 }
