@@ -28,3 +28,14 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/team3-frontend:latest
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/team3-frontend:latest
+            docker rm -f team3-frontend
+            docker run -d --name team3-frontend -p 8081:80 ${{ secrets.DOCKER_USERNAME }}/team3-frontend:latest
