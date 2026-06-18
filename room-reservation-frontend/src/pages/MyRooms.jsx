@@ -7,7 +7,8 @@ import Navbar from '../components/Navbar';
 
 export default function MyRooms() {
   const { user } = useAuth();
-  const { data: roomsData, isLoading, error, refetch } = useGetMyApartmentsQuery();
+  const { data, isLoading, isError, error, refetch } = useGetMyApartmentsQuery();
+  const rooms = data?.apartments || [];
   const [deleteApartment] = useDeleteApartmentMutation();
   const [deletingId, setDeletingId] = useState(null);
 
