@@ -87,6 +87,7 @@ export default function Reviews() {
     }
   };
 
+  // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
   const renderStars = (rating, interactive = false) => {
     return (
       <div className="stars">
@@ -116,6 +117,7 @@ export default function Reviews() {
     return user && review.user_id && review.user_id === user.id;
   };
 
+  // ===== ИСПРАВЛЕННЫЕ ФУНКЦИИ ДЛЯ ИМЕНИ ПОЛЬЗОВАТЕЛЯ =====
   const getUserDisplayName = (review) => {
     if (review.user_name) {
       return review.user_name;

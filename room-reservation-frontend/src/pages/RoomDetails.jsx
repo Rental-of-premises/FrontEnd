@@ -139,6 +139,7 @@ export default function RoomDetails() {
     return user && review.user_id && review.user_id === user.id;
   };
 
+  // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ИМЕНИ ПОЛЬЗОВАТЕЛЯ =====
   const getUserDisplayName = (review) => {
     if (review.user_name) {
       return review.user_name;
