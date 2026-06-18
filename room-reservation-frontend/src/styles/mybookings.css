@@ -46,10 +46,6 @@
   color: #2850a7;
 }
 
-.stats-number.waiting {
-  color: #f59e0b;
-}
-
 .stats-number.completed {
   color: #10b981;
 }
@@ -294,13 +290,6 @@
   border-radius: 6px;
 }
 
-.legend-waiting {
-  width: 20px;
-  height: 20px;
-  background: #f59e0b;
-  border-radius: 6px;
-}
-
 .legend-text {
   color: #64748b;
   font-size: 12px;
@@ -329,10 +318,6 @@
 
 .history-card.confirmed {
   border-left-color: #2850a7;
-}
-
-.history-card.waiting {
-  border-left-color: #f59e0b;
 }
 
 .history-card.completed {
@@ -367,11 +352,6 @@
 .status-badge.confirmed {
   background: #e0e7ff;
   color: #2850a7;
-}
-
-.status-badge.waiting {
-  background: #fef3c7;
-  color: #b45309;
 }
 
 .status-badge.completed {
@@ -480,32 +460,6 @@
   background: #1e3d7c;
 }
 
-/* ===== КНОПКА "ОСТАВИТЬ ОТЗЫВ" В ИСТОРИИ ===== */
-.review-from-history-btn {
-  background: #2850a7;
-  color: white;
-  border: none;
-  padding: 6px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s;
-}
-
-.review-from-history-btn:hover {
-  background: #1e3d7c;
-}
-
-.review-link {
-  text-decoration: none;
-}
-
-.history-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 .loader {
   display: flex;
   justify-content: center;
@@ -524,13 +478,4 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-/* ===== АНИМАЦИЯ ДЛЯ СМАЙЛИКА ===== */
-@keyframes float {
-  0%, 100% {
-    transform: rotate(90deg) translateY(0px);
-  }
-  50% {
-    transform: rotate(90deg) translateY(-10px);
-  }
 }
