@@ -1,7 +1,13 @@
 // src/pages/RoomDetails.jsx
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useGetApartmentByIdQuery, useCreateBookingMutation } from '../store/api';
+import { 
+  useGetApartmentByIdQuery, 
+  useCreateBookingMutation,
+  useGetReviewsByApartmentQuery,
+  useCreateReviewMutation,
+  useDeleteReviewMutation
+} from '../store/api';
 import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
 
@@ -9,19 +15,29 @@ export default function RoomDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  
   const { data: room, isLoading, error } = useGetApartmentByIdQuery(id);
   const [createBooking, { isLoading: bookingLoading }] = useCreateBookingMutation();
   
-  // Состояния для отзывов
+  // ===== РЕАЛЬНЫЕ ОТЗЫВЫ С БЭКЕНДА =====
+  const { 
+    data: reviewsData = [], 
+    isLoading: reviewsLoading,
+    refetch: refetchReviews
+  } = useGetReviewsByApartmentQuery(id, {
+    skip: !id,
+  });
+
+  const [createReview, { isLoading: creatingReview }] = useCreateReviewMutation();
+  const [deleteReview, { isLoading: deletingReview }] = useDeleteReviewMutation();
+
+  // ===== СОСТОЯНИЯ =====
   const [showReviews, setShowReviews] = useState(false);
-  const [reviews, setReviews] = useState([]);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
-  const [canReview, setCanReview] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
-  const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
+  const [deletingReviewId, setDeletingReviewId] = useState(null);
 
   // Проверяем параметр showReviews в URL
   useEffect(() => {
@@ -31,46 +47,11 @@ export default function RoomDetails() {
     }
   }, []);
 
-  // Загрузка отзывов
-  useEffect(() => {
-    if (showReviews) {
-      setReviewsLoading(true);
-      // TODO: Заменить на реальный API запрос
-      setTimeout(() => {
-        setReviews([
-          {
-            id: 1,
-            user_name: "Анна С.",
-            rating: 5,
-            comment: "Отличное место! Очень комфортно работать, быстрый интернет, удобные кресла. Обязательно приду ещё!",
-            created_at: "2026-06-10T14:30:00Z"
-          },
-          {
-            id: 2,
-            user_name: "Михаил К.",
-            rating: 4,
-            comment: "Хороший коворкинг, но иногда шумновато. В остальном всё супер!",
-            created_at: "2026-06-08T11:20:00Z"
-          },
-          {
-            id: 3,
-            user_name: "Елена В.",
-            rating: 5,
-            comment: "Идеальное место для проведения встреч. Рекомендую!",
-            created_at: "2026-06-05T09:15:00Z"
-          }
-        ]);
-        setCanReview(true);
-        setReviewsLoading(false);
-      }, 500);
-    }
-  }, [showReviews, id]);
-
   const handleBooking = () => {
     navigate(`/booking/${id}`);
   };
 
-  // Обработчики отзывов
+  // ===== ОБРАБОТЧИКИ ОТЗЫВОВ =====
   const handleRatingClick = (rating) => {
     setReviewData(prev => ({ ...prev, rating }));
   };
@@ -79,35 +60,50 @@ export default function RoomDetails() {
     e.preventDefault();
     setReviewError('');
     setReviewSuccess('');
-    setSubmittingReview(true);
+    setShowReviewForm(false);
 
     if (!reviewData.comment.trim()) {
       setReviewError('Напишите текст отзыва');
-      setSubmittingReview(false);
+      setShowReviewForm(true);
       return;
     }
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const newReview = {
-        id: reviews.length + 1,
-        user_name: user?.name || 'Пользователь',
-        rating: reviewData.rating,
+      await createReview({
+        apartment_id: parseInt(id),
         comment: reviewData.comment,
-        created_at: new Date().toISOString()
-      };
-      setReviews([newReview, ...reviews]);
+        stars: reviewData.rating
+      }).unwrap();
+      
       setReviewSuccess('Отзыв успешно опубликован! Спасибо!');
       setReviewData({ rating: 5, comment: '' });
-      setShowReviewForm(false);
+      refetchReviews();
+      
       setTimeout(() => setReviewSuccess(''), 3000);
     } catch (err) {
-      setReviewError('Ошибка при отправке отзыва');
-    } finally {
-      setSubmittingReview(false);
+      setReviewError(err.data?.error || 'Ошибка при отправке отзыва');
+      setShowReviewForm(true);
     }
   };
 
+  const handleDeleteReview = async (review) => {
+    const reviewId = typeof review === 'object' ? review.id : review;
+    
+    if (!window.confirm('Вы уверены, что хотите удалить этот отзыв?')) return;
+    
+    setDeletingReviewId(reviewId);
+    try {
+      await deleteReview(reviewId).unwrap();
+      refetchReviews();
+    } catch (err) {
+      console.error('Ошибка удаления:', err);
+      alert(err.data?.error || 'Ошибка при удалении отзыва');
+    } finally {
+      setDeletingReviewId(null);
+    }
+  };
+
+  // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
   const renderStars = (rating, interactive = false) => {
     return (
       <div className="stars">
@@ -125,6 +121,7 @@ export default function RoomDetails() {
   };
 
   const formatReviewDate = (dateString) => {
+    if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('ru-RU', {
       day: 'numeric',
       month: 'long',
@@ -133,9 +130,23 @@ export default function RoomDetails() {
   };
 
   const getAverageRating = () => {
-    if (reviews.length === 0) return 0;
-    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
-    return (sum / reviews.length).toFixed(1);
+    if (!reviewsData || reviewsData.length === 0) return 0;
+    const sum = reviewsData.reduce((acc, r) => acc + (r.stars || 0), 0);
+    return (sum / reviewsData.length).toFixed(1);
+  };
+
+  const isReviewAuthor = (review) => {
+    return user && review.user_id && review.user_id === user.id;
+  };
+
+  const getUserDisplayName = (review) => {
+    if (review.user_name) {
+      return review.user_name;
+    }
+    if (review.user && review.user.name) {
+      return review.user.name;
+    }
+    return `Пользователь #${review.user_id}`;
   };
 
   if (isLoading) {
@@ -220,12 +231,14 @@ export default function RoomDetails() {
               </div>
             </div>
 
+            {/* ===== КНОПКА ОТЗЫВОВ ===== */}
             <button 
               className="reviews-main-btn"
               onClick={() => setShowReviews(!showReviews)}
             >
-              {showReviews ? 'Скрыть отзывы' : 'Отзывы'} {reviews.length > 0 && `(${reviews.length})`}
-              {reviews.length > 0 && ` ⭐ ${getAverageRating()}`}
+              {showReviews ? 'Скрыть отзывы' : 'Отзывы'} 
+              {reviewsData && reviewsData.length > 0 && ` (${reviewsData.length})`}
+              {reviewsData && reviewsData.length > 0 && ` ⭐ ${getAverageRating()}`}
             </button>
 
             {showReviews && (
@@ -237,7 +250,8 @@ export default function RoomDetails() {
                   </div>
 
                   <div className="reviews-modal-body">
-                    {canReview && !showReviewForm && (
+                    {/* Кнопка "Оставить отзыв" */}
+                    {user && !showReviewForm && (
                       <button 
                         className="write-review-btn-modal"
                         onClick={() => setShowReviewForm(true)}
@@ -246,6 +260,7 @@ export default function RoomDetails() {
                       </button>
                     )}
 
+                    {/* Форма отзыва */}
                     {showReviewForm && (
                       <div className="review-form-modal">
                         <h4>Ваш отзыв</h4>
@@ -264,13 +279,24 @@ export default function RoomDetails() {
                               required
                             />
                           </div>
-                          {reviewError && <div className="error-message">{reviewError}</div>}
-                          {reviewSuccess && <div className="success-message">{reviewSuccess}</div>}
+                          {reviewError && <div className="error-message" style={{ marginBottom: '12px' }}>{reviewError}</div>}
+                          {reviewSuccess && <div className="success-message" style={{ marginBottom: '12px' }}>{reviewSuccess}</div>}
                           <div className="review-form-actions">
-                            <button type="submit" disabled={submittingReview} className="submit-review-modal-btn">
-                              {submittingReview ? 'Отправка...' : 'Опубликовать'}
+                            <button 
+                              type="submit" 
+                              disabled={creatingReview} 
+                              className="submit-review-modal-btn"
+                            >
+                              {creatingReview ? 'Отправка...' : 'Опубликовать'}
                             </button>
-                            <button type="button" onClick={() => setShowReviewForm(false)} className="cancel-review-modal-btn">
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                setShowReviewForm(false);
+                                setReviewError('');
+                              }} 
+                              className="cancel-review-modal-btn"
+                            >
                               Отмена
                             </button>
                           </div>
@@ -278,16 +304,41 @@ export default function RoomDetails() {
                       </div>
                     )}
 
+                    {/* Список отзывов */}
                     {reviewsLoading ? (
-                      <div className="loader"><div className="spinner"></div></div>
-                    ) : reviews.length === 0 ? (
-                      <div className="empty-reviews">Пока нет отзывов</div>
+                      <div className="loader"><div className="spinner" style={{ width: '30px', height: '30px' }}></div></div>
+                    ) : !reviewsData || reviewsData.length === 0 ? (
+                      <div className="empty-reviews">Пока нет отзывов. Будьте первым!</div>
                     ) : (
-                      reviews.map(review => (
+                      reviewsData.map(review => (
                         <div key={review.id} className="review-item-modal">
                           <div className="review-item-header">
-                            <span className="review-user-name">{review.user_name}</span>
-                            <div>{renderStars(review.rating)}</div>
+                            <span className="review-user-name">
+                              {getUserDisplayName(review)}
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              {renderStars(review.stars || 0)}
+                              {isReviewAuthor(review) && (
+                                <button
+                                  onClick={() => handleDeleteReview(review)}
+                                  disabled={deletingReviewId === review.id}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#ef4444',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    transition: 'background 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                >
+                                  {deletingReviewId === review.id ? '...' : '✕'}
+                                </button>
+                              )}
+                            </div>
                           </div>
                           <p className="review-item-comment">{review.comment}</p>
                           <span className="review-item-date">{formatReviewDate(review.created_at)}</span>
