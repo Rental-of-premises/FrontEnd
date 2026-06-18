@@ -121,7 +121,7 @@ export default function Catalog() {
 
         <div className="search-section">
           <div className="search-bar">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"></span>
             <input
               type="text"
               placeholder="Поиск по названию, адресу или метро..."
