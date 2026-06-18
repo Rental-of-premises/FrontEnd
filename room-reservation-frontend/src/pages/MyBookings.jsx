@@ -13,22 +13,34 @@ export default function MyBookings() {
   const [modalOpen, setModalOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState('active')
   
-  const { data: allBookings = [], isLoading: bookingsLoading, error, refetch } = useGetMyBookingsQuery()
-  const { data: allRooms = [], isLoading: roomsLoading } = useGetCatalogQuery({ limit: 1000, offset: 0 })
+  // Запрос бронирований — только если пользователь авторизован
+  const { data: allBookings = [], isLoading: bookingsLoading, error, refetch } = useGetMyBookingsQuery(undefined, {
+    skip: !user,
+  })
+  
+  // Запрос каталога (для получения названий помещений)
+  const { data: catalogResponse = {}, isLoading: roomsLoading } = useGetCatalogQuery({ limit: 1000, offset: 0 })
   const [cancelBooking] = useCancelBookingMutation()
 
+  // Извлекаем массив помещений из объекта ответа
+  const allRooms = catalogResponse?.apartments || []
+
+  // Безопасное создание карты комнат
   const roomsMap = useMemo(() => {
     const map = {}
-    allRooms.forEach(room => {
+    const safeRooms = Array.isArray(allRooms) ? allRooms : []
+    safeRooms.forEach(room => {
       map[room.id] = room
     })
     return map
   }, [allRooms])
 
+  // Безопасное обогащение бронирований данными о помещениях
   const enrichedBookings = useMemo(() => {
     const now = new Date()
+    const safeBookings = Array.isArray(allBookings) ? allBookings : []
     
-    return allBookings.map(booking => {
+    return safeBookings.map(booking => {
       const room = roomsMap[booking.apartment_id]
       const timeTo = new Date(booking.time_to)
       
@@ -48,17 +60,19 @@ export default function MyBookings() {
     })
   }, [allBookings, roomsMap])
 
-  // ===== СОРТИРОВКА ИСТОРИИ: от новых к старым =====
+  // Сортировка от новых к старым
   const sortedByDate = useMemo(() => {
-    return [...enrichedBookings].sort((a, b) => {
+    const safeBookings = Array.isArray(enrichedBookings) ? enrichedBookings : []
+    return [...safeBookings].sort((a, b) => {
       const dateA = new Date(a.time_from || a.created_at || 0)
       const dateB = new Date(b.time_from || b.created_at || 0)
-      return dateB - dateA // сначала новые
+      return dateB - dateA
     })
   }, [enrichedBookings])
 
+  // Статистика
   const stats = useMemo(() => {
-    const all = sortedByDate || []
+    const all = Array.isArray(sortedByDate) ? sortedByDate : []
     return {
       active: all.filter(b => b.displayStatus === 'confirmed').length,
       waiting: all.filter(b => b.displayStatus === 'waiting').length,
@@ -68,8 +82,9 @@ export default function MyBookings() {
     }
   }, [sortedByDate])
 
+  // Фильтрация
   const filteredBookings = useMemo(() => {
-    const all = sortedByDate || []
+    const all = Array.isArray(sortedByDate) ? sortedByDate : []
     if (statusFilter === 'active') {
       return all.filter(b => b.displayStatus === 'confirmed')
     }
@@ -82,38 +97,49 @@ export default function MyBookings() {
     return all
   }, [sortedByDate, statusFilter])
 
+  // ===== ИСПРАВЛЕНО: почасовые слоты с защитой =====
   const hourlySlots = useMemo(() => {
-    const all = sortedByDate || []
+    const all = Array.isArray(sortedByDate) ? sortedByDate : []
     const activeBookings = all.filter(b => b.displayStatus === 'confirmed')
     const slots = []
-    activeBookings.forEach(booking => {
-      const startDate = new Date(booking.time_from)
-      const endDate = new Date(booking.time_to)
-      const startHour = startDate.getHours()
-      const endHour = endDate.getHours()
-      const dateStr = startDate.toISOString().split('T')[0]
-      
-      for (let hour = startHour; hour < endHour; hour++) {
-        slots.push({
-          id: `${booking.id}-${hour}`,
-          bookingId: booking.id,
-          workspace: booking.apartment_title || `Помещение #${booking.apartment_id}`,
-          apartment_id: booking.apartment_id,
-          date: dateStr,
-          startTime: `${hour}:00`,
-          endTime: `${hour + 1}:00`,
-          capacity: booking.capacity || 0,
-          price_per_hour: booking.price_per_hour || 0,
-          status: booking.status,
-          displayStatus: booking.displayStatus,
-          created_at: booking.created_at,
-          originalBooking: booking
-        })
-      }
-    })
+    
+    // ✅ Проверка, что activeBookings — массив
+    if (Array.isArray(activeBookings)) {
+      activeBookings.forEach(booking => {
+        try {
+          const startDate = new Date(booking.time_from)
+          const endDate = new Date(booking.time_to)
+          const startHour = startDate.getHours()
+          const endHour = endDate.getHours()
+          const dateStr = startDate.toISOString().split('T')[0]
+          
+          for (let hour = startHour; hour < endHour; hour++) {
+            slots.push({
+              id: `${booking.id}-${hour}`,
+              bookingId: booking.id,
+              workspace: booking.apartment_title || `Помещение #${booking.apartment_id}`,
+              apartment_id: booking.apartment_id,
+              date: dateStr,
+              startTime: `${hour}:00`,
+              endTime: `${hour + 1}:00`,
+              capacity: booking.capacity || 0,
+              price_per_hour: booking.price_per_hour || 0,
+              status: booking.status,
+              displayStatus: booking.displayStatus,
+              created_at: booking.created_at,
+              originalBooking: booking
+            })
+          }
+        } catch (err) {
+          console.warn('Ошибка при создании слота для брони:', booking.id, err)
+        }
+      })
+    }
+    
     return slots
   }, [sortedByDate])
 
+  // ===== КАЛЕНДАРЬ =====
   const weekDays = useMemo(() => {
     const startDate = new Date(currentDate)
     const day = currentDate.getDay()
@@ -136,6 +162,7 @@ export default function MyBookings() {
 
   const getSlotForHour = (date, hour) => {
     const dateStr = date.toISOString().split('T')[0]
+    // ✅ hourlySlots уже массив благодаря useMemo
     return hourlySlots.find(slot => slot.date === dateStr && parseInt(slot.startTime.split(':')[0]) === hour)
   }
 
@@ -235,6 +262,26 @@ export default function MyBookings() {
     return { ...base, background: '#ffeeee', color: '#bc2222' }
   }
 
+  // ===== ЕСЛИ ПОЛЬЗОВАТЕЛЬ НЕ АВТОРИЗОВАН =====
+  if (!user) {
+    return (
+      <>
+        <Navbar />
+        <div className="mybookings-page">
+          <div className="error-message" style={{ background: '#fef2f2', color: '#ef4444', padding: '16px', borderRadius: '12px', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
+            <h3>Требуется авторизация</h3>
+            <p>Пожалуйста, войдите в аккаунт, чтобы просматривать свои бронирования.</p>
+            <Link to="/login">
+              <button className="auth-btn" style={{ marginTop: '16px' }}>
+                Войти
+              </button>
+            </Link>
+          </div>
+        </div>
+      </>
+    )
+  }
+
   if (bookingsLoading || roomsLoading) {
     return (
       <>
@@ -251,7 +298,7 @@ export default function MyBookings() {
       <>
         <Navbar />
         <div className="mybookings-page">
-          <div className="error-message">
+          <div className="error-message" style={{ background: '#fef2f2', color: '#ef4444', padding: '16px', borderRadius: '12px', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
             <h3>Ошибка загрузки бронирований</h3>
             <p>{error?.data?.error || error?.message || 'Попробуйте позже'}</p>
             <button onClick={() => refetch()} className="auth-btn" style={{ marginTop: '16px' }}>
@@ -262,6 +309,8 @@ export default function MyBookings() {
       </>
     )
   }
+
+  const hasAnyBookings = sortedByDate.length > 0
 
   return (
     <>
@@ -285,215 +334,291 @@ export default function MyBookings() {
             <h1 style={{ fontSize: '36px', fontWeight: '700', margin: '0 0 10px 0', letterSpacing: '-0.03em' }}>Мои бронирования</h1>
             <p style={{ color: '#f0f4ff', fontSize: '16px', margin: 0, opacity: 0.9 }}>Добро пожаловать, {user?.name || 'Пользователь'}!</p>
           </div>
-          <div style={{ display: 'flex', gap: '20px', background: 'rgba(255,255,255,0.1)', padding: '16px 24px', borderRadius: '16px', backdropFilter: 'blur(10px)' }}>
-            <div style={{ textAlign: 'center' }}><div style={{ fontSize: '20px', fontWeight: '700' }}>{stats.active}</div><div style={{ fontSize: '12px', opacity: 0.8 }}>активных</div></div>
-            <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }}></div>
-            <div style={{ textAlign: 'center' }}><div style={{ fontSize: '20px', fontWeight: '700' }}>{stats.waiting}</div><div style={{ fontSize: '12px', opacity: 0.8 }}>ожидают</div></div>
-            <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }}></div>
-            <div style={{ textAlign: 'center' }}><div style={{ fontSize: '20px', fontWeight: '700' }}>{stats.completed}</div><div style={{ fontSize: '12px', opacity: 0.8 }}>завершено</div></div>
-          </div>
+          {hasAnyBookings && (
+            <div style={{ display: 'flex', gap: '20px', background: 'rgba(255,255,255,0.1)', padding: '16px 24px', borderRadius: '16px', backdropFilter: 'blur(10px)' }}>
+              <div style={{ textAlign: 'center' }}><div style={{ fontSize: '20px', fontWeight: '700' }}>{stats.active}</div><div style={{ fontSize: '12px', opacity: 0.8 }}>активных</div></div>
+              <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }}></div>
+              <div style={{ textAlign: 'center' }}><div style={{ fontSize: '20px', fontWeight: '700' }}>{stats.waiting}</div><div style={{ fontSize: '12px', opacity: 0.8 }}>ожидают</div></div>
+              <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }}></div>
+              <div style={{ textAlign: 'center' }}><div style={{ fontSize: '20px', fontWeight: '700' }}>{stats.completed}</div><div style={{ fontSize: '12px', opacity: 0.8 }}>завершено</div></div>
+            </div>
+          )}
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
-          {['active', 'waiting', 'history'].map((type) => {
-            const labels = { active: `Активные (${stats.active})`, waiting: `Ожидают (${stats.waiting})`, history: `История (${stats.completed + stats.cancelled})` }
-            const active = statusFilter === type
-            return (
-              <button
-                key={type}
-                onClick={() => setStatusFilter(type)}
-                style={{
-                  padding: '10px 20px',
-                  background: active ? '#2850a7' : 'transparent',
-                  color: active ? '#ffffff' : '#64748b',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontWeight: '600',
-                  fontSize: '15px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {labels[type]}
+        {!hasAnyBookings ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '80px 20px',
+            background: '#ffffff',
+            borderRadius: '24px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{
+              fontSize: '72px',
+              fontWeight: '700',
+              color: '#2850a7',
+              transform: 'rotate(90deg)',
+              display: 'inline-block',
+              marginBottom: '20px',
+              opacity: 0.85,
+              animation: 'float 3s ease-in-out infinite',
+              letterSpacing: '-4px',
+              fontFamily: 'monospace'
+            }}>
+              :(
+            </div>
+            
+            <h2 style={{ 
+              fontSize: '28px', 
+              color: '#1e293b', 
+              marginBottom: '12px', 
+              fontWeight: '700',
+              letterSpacing: '-0.02em'
+            }}>
+              У вас пока нет бронирований
+            </h2>
+            
+            <p style={{ 
+              color: '#64748b', 
+              fontSize: '16px', 
+              marginBottom: '32px',
+              lineHeight: '1.6'
+            }}>
+              Найдите подходящее помещение в каталоге и забронируйте его
+            </p>
+            
+            <Link to="/catalog" style={{ textDecoration: 'none' }}>
+              <button style={{
+                padding: '14px 40px',
+                background: '#2850a7',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '12px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(40, 80, 167, 0.2)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#1e3d82'
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(40, 80, 167, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#2850a7'
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(40, 80, 167, 0.2)'
+              }}>
+                Перейти в каталог
               </button>
-            )
-          })}
-        </div>
-
-        {/* ========== АКТИВНЫЕ (Календарь) ========== */}
-        {statusFilter === 'active' && (
+            </Link>
+          </div>
+        ) : (
           <>
-            <div className="nav-buttons" style={{ marginBottom: '24px' }}>
-              <button onClick={goToPrevWeek} className="nav-btn">← Предыдущая</button>
-              <button onClick={goToToday} className="nav-btn today-btn">Сегодня</button>
-              <button onClick={goToNextWeek} className="nav-btn">Следующая →</button>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+              {['active', 'waiting', 'history'].map((type) => {
+                const labels = { active: `Активные (${stats.active})`, waiting: `Ожидают (${stats.waiting})`, history: `История (${stats.completed + stats.cancelled})` }
+                const active = statusFilter === type
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setStatusFilter(type)}
+                    style={{
+                      padding: '10px 20px',
+                      background: active ? '#2850a7' : 'transparent',
+                      color: active ? '#ffffff' : '#64748b',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontWeight: '600',
+                      fontSize: '15px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {labels[type]}
+                  </button>
+                )
+              })}
             </div>
 
-            <div className="calendar-wrapper">
-              <div className="calendar-table">
-                <div className="calendar-header-row">
-                  <div className="time-header">Время</div>
-                  {weekDays.map((day, idx) => (
-                    <div key={idx} className={`day-header ${isToday(day) ? 'day-header-today' : ''}`}>
-                      <div className="weekday">{formatWeekDay(day)}</div>
-                      <div className="day-number">{formatDate(day)}</div>
-                    </div>
-                  ))}
+            {/* ========== АКТИВНЫЕ (Календарь) ========== */}
+            {statusFilter === 'active' && (
+              <>
+                <div className="nav-buttons" style={{ marginBottom: '24px' }}>
+                  <button onClick={goToPrevWeek} className="nav-btn">← Предыдущая</button>
+                  <button onClick={goToToday} className="nav-btn today-btn">Сегодня</button>
+                  <button onClick={goToNextWeek} className="nav-btn">Следующая →</button>
                 </div>
 
-                {hours.map((hour) => (
-                  <div key={hour} className="calendar-row">
-                    <div className="time-cell">{hour}:00</div>
-                    {weekDays.map((day, dayIdx) => {
-                      const slot = getSlotForHour(day, hour)
-                      const booked = !!slot
-                      return (
-                        <div
-                          key={dayIdx}
-                          className={`calendar-cell ${booked ? 'calendar-cell-booked' : 'calendar-cell-free'}`}
-                          onClick={() => booked && slot && handleSlotClick(slot)}
-                        >
-                          {booked && slot && (
-                            <div className="booking-card" style={{ background: '#2850a7' }}>
-                              <div className="booking-title">{slot.workspace}</div>
-                              <div className="booking-time">{slot.startTime} - {slot.endTime}</div>
-                            </div>
-                          )}
+                <div className="calendar-wrapper">
+                  <div className="calendar-table">
+                    <div className="calendar-header-row">
+                      <div className="time-header">Время</div>
+                      {weekDays.map((day, idx) => (
+                        <div key={idx} className={`day-header ${isToday(day) ? 'day-header-today' : ''}`}>
+                          <div className="weekday">{formatWeekDay(day)}</div>
+                          <div className="day-number">{formatDate(day)}</div>
                         </div>
-                      )
-                    })}
+                      ))}
+                    </div>
+
+                    {hours.map((hour) => (
+                      <div key={hour} className="calendar-row">
+                        <div className="time-cell">{hour}:00</div>
+                        {weekDays.map((day, dayIdx) => {
+                          const slot = getSlotForHour(day, hour)
+                          const booked = !!slot
+                          return (
+                            <div
+                              key={dayIdx}
+                              className={`calendar-cell ${booked ? 'calendar-cell-booked' : 'calendar-cell-free'}`}
+                              onClick={() => booked && slot && handleSlotClick(slot)}
+                            >
+                              {booked && slot && (
+                                <div className="booking-card" style={{ background: '#2850a7' }}>
+                                  <div className="booking-title">{slot.workspace}</div>
+                                  <div className="booking-time">{slot.startTime} - {slot.endTime}</div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <div className="legend">
-              <div className="legend-item"><div className="legend-free"></div><span>Свободно</span></div>
-              <div className="legend-item"><div className="legend-booked" style={{ background: '#2850a7' }}></div><span>Подтверждено</span></div>
-            </div>
-          </>
-        )}
+                <div className="legend">
+                  <div className="legend-item"><div className="legend-free"></div><span>Свободно</span></div>
+                  <div className="legend-item"><div className="legend-booked" style={{ background: '#2850a7' }}></div><span>Подтверждено</span></div>
+                </div>
+              </>
+            )}
 
-        {/* ========== ОЖИДАЮТ ========== */}
-        {statusFilter === 'waiting' && (
-          <div className="history-list">
-            {filteredBookings.length === 0 ? (
-              <div className="empty-state">
-                <h3 className="empty-title">Нет бронирований, ожидающих подтверждения</h3>
-                <p className="empty-text">Когда вы создадите новое бронирование, оно появится здесь</p>
-              </div>
-            ) : (
-              filteredBookings.map(booking => {
-                const hoursDiff = (new Date(booking.time_to) - new Date(booking.time_from)) / 3600000
-                const totalPrice = hoursDiff * (booking.price_per_hour || 0)
-                
-                return (
-                  <div 
-                    key={booking.id} 
-                    className={`history-card ${getHistoryCardClass(booking.displayStatus)}`}
-                    onClick={() => {
-                      setSelectedBooking(booking)
-                      setModalOpen(true)
-                    }}
-                    style={{ borderRadius: '20px', padding: '30px' }}
-                  >
-                    <div className="history-card-header">
-                      <div className="history-status">
-                        <span className={getStatusBadgeClass(booking.displayStatus)}>
-                          {getStatusText(booking.displayStatus)}
-                        </span>
-                        <span className="history-date">{formatFullDate(booking.time_from)}</span>
-                      </div>
-                      <div className="history-price" style={{ fontSize: '22px', fontWeight: '700' }}>₽{totalPrice.toFixed(0)}</div>
-                    </div>
-                    <div className="history-card-body">
-                      <h3 className="history-workspace" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.apartment_title}</h3>
-                      <div className="history-time">
-                        {new Date(booking.time_from).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} - 
-                        {new Date(booking.time_to).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                      <div className="history-details">
-                        <span>{booking.capacity || 0} чел.</span>
-                        <span>₽{booking.price_per_hour || 0}/час</span>
-                      </div>
-                    </div>
-                    <div className="history-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                      <span className="history-created">Создано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
-                      <button 
-                        className="cancel-small-btn" 
-                        onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking.id); }}
-                        style={{ padding: '10px 20px', background: '#fef2f2', color: '#ef4444', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}
+            {/* ========== ОЖИДАЮТ ========== */}
+            {statusFilter === 'waiting' && (
+              <div className="history-list">
+                {filteredBookings.length === 0 ? (
+                  <div className="empty-state">
+                    <h3 className="empty-title">Нет бронирований, ожидающих подтверждения</h3>
+                    <p className="empty-text">Когда вы создадите новое бронирование, оно появится здесь</p>
+                  </div>
+                ) : (
+                  filteredBookings.map(booking => {
+                    const hoursDiff = (new Date(booking.time_to) - new Date(booking.time_from)) / 3600000
+                    const totalPrice = hoursDiff * (booking.price_per_hour || 0)
+                    
+                    return (
+                      <div 
+                        key={booking.id} 
+                        className={`history-card ${getHistoryCardClass(booking.displayStatus)}`}
+                        onClick={() => {
+                          setSelectedBooking(booking)
+                          setModalOpen(true)
+                        }}
+                        style={{ borderRadius: '20px', padding: '30px' }}
                       >
-                        Отменить
-                      </button>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        )}
-
-        {/* ========== ИСТОРИЯ (ОТ НОВЫХ К СТАРЫМ) ========== */}
-        {statusFilter === 'history' && (
-          <div className="history-list">
-            {filteredBookings.length === 0 ? (
-              <div className="empty-state">
-                <h3 className="empty-title">Нет бронирований в истории</h3>
-                <p className="empty-text">После завершения или отмены бронирований они появятся здесь</p>
+                        <div className="history-card-header">
+                          <div className="history-status">
+                            <span className={getStatusBadgeClass(booking.displayStatus)}>
+                              {getStatusText(booking.displayStatus)}
+                            </span>
+                            <span className="history-date">{formatFullDate(booking.time_from)}</span>
+                          </div>
+                          <div className="history-price" style={{ fontSize: '22px', fontWeight: '700' }}>₽{totalPrice.toFixed(0)}</div>
+                        </div>
+                        <div className="history-card-body">
+                          <h3 className="history-workspace" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.apartment_title}</h3>
+                          <div className="history-time">
+                            {new Date(booking.time_from).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} - 
+                            {new Date(booking.time_to).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <div className="history-details">
+                            <span>{booking.capacity || 0} чел.</span>
+                            <span>₽{booking.price_per_hour || 0}/час</span>
+                          </div>
+                        </div>
+                        <div className="history-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                          <span className="history-created">Создано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
+                          <button 
+                            className="cancel-small-btn" 
+                            onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking.id); }}
+                            style={{ padding: '10px 20px', background: '#fef2f2', color: '#ef4444', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}
+                          >
+                            Отменить
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
               </div>
-            ) : (
-              filteredBookings.map(booking => {
-                const hoursDiff = (new Date(booking.time_to) - new Date(booking.time_from)) / 3600000
-                const totalPrice = hoursDiff * (booking.price_per_hour || 0)
-                
-                return (
-                  <div 
-                    key={booking.id} 
-                    className={`history-card ${getHistoryCardClass(booking.displayStatus)}`}
-                    onClick={() => {
-                      setSelectedBooking(booking)
-                      setModalOpen(true)
-                    }}
-                    style={{ borderRadius: '20px', padding: '30px' }}
-                  >
-                    <div className="history-card-header">
-                      <div className="history-status">
-                        <span className={getStatusBadgeClass(booking.displayStatus)}>
-                          {getStatusText(booking.displayStatus)}
-                        </span>
-                        <span className="history-date">{formatFullDate(booking.time_from)}</span>
-                      </div>
-                      <div className="history-price" style={{ fontSize: '22px', fontWeight: '700' }}>₽{totalPrice.toFixed(0)}</div>
-                    </div>
-                    <div className="history-card-body">
-                      <h3 className="history-workspace" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.apartment_title}</h3>
-                      <div className="history-time">
-                        {new Date(booking.time_from).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} - 
-                        {new Date(booking.time_to).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                      <div className="history-details">
-                        <span>{booking.capacity || 0} чел.</span>
-                        <span>₽{booking.price_per_hour || 0}/час</span>
-                      </div>
-                    </div>
-                    <div className="history-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                      <span className="history-created">Забронировано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
-                      <div className="history-actions">
-                        {booking.displayStatus === 'completed' && (
-                          <Link to={`/catalog/${booking.room_id}?showReviews=true`} className="review-link" style={{ textDecoration: 'none' }}>
-                            <button style={{ padding: '10px 20px', background: '#2850a7', color: '#ffffff', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}>
-                              Оставить отзыв
-                            </button>
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })
             )}
-          </div>
+
+            {/* ========== ИСТОРИЯ ========== */}
+            {statusFilter === 'history' && (
+              <div className="history-list">
+                {filteredBookings.length === 0 ? (
+                  <div className="empty-state">
+                    <h3 className="empty-title">Нет бронирований в истории</h3>
+                    <p className="empty-text">После завершения или отмены бронирований они появятся здесь</p>
+                  </div>
+                ) : (
+                  filteredBookings.map(booking => {
+                    const hoursDiff = (new Date(booking.time_to) - new Date(booking.time_from)) / 3600000
+                    const totalPrice = hoursDiff * (booking.price_per_hour || 0)
+                    
+                    return (
+                      <div 
+                        key={booking.id} 
+                        className={`history-card ${getHistoryCardClass(booking.displayStatus)}`}
+                        onClick={() => {
+                          setSelectedBooking(booking)
+                          setModalOpen(true)
+                        }}
+                        style={{ borderRadius: '20px', padding: '30px' }}
+                      >
+                        <div className="history-card-header">
+                          <div className="history-status">
+                            <span className={getStatusBadgeClass(booking.displayStatus)}>
+                              {getStatusText(booking.displayStatus)}
+                            </span>
+                            <span className="history-date">{formatFullDate(booking.time_from)}</span>
+                          </div>
+                          <div className="history-price" style={{ fontSize: '22px', fontWeight: '700' }}>₽{totalPrice.toFixed(0)}</div>
+                        </div>
+                        <div className="history-card-body">
+                          <h3 className="history-workspace" style={{ fontSize: '22px', fontWeight: '700' }}>{booking.apartment_title}</h3>
+                          <div className="history-time">
+                            {new Date(booking.time_from).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} - 
+                            {new Date(booking.time_to).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <div className="history-details">
+                            <span>{booking.capacity || 0} чел.</span>
+                            <span>₽{booking.price_per_hour || 0}/час</span>
+                          </div>
+                        </div>
+                        <div className="history-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                          <span className="history-created">Забронировано: {new Date(booking.created_at).toLocaleDateString('ru-RU')}</span>
+                          <div className="history-actions">
+                            {booking.displayStatus === 'completed' && (
+                              <Link to={`/catalog/${booking.room_id}?showReviews=true`} className="review-link" style={{ textDecoration: 'none' }}>
+                                <button style={{ padding: '10px 20px', background: '#2850a7', color: '#ffffff', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}>
+                                  Оставить отзыв
+                                </button>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 

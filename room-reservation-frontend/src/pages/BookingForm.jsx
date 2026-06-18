@@ -21,13 +21,14 @@ export default function BookingForm() {
   const [existingBookings, setExistingBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
 
-  // Загружаем существующие бронирования для этого помещения
+  // ===== ИСПРАВЛЕННЫЙ ЗАПРОС К КАЛЕНДАРЮ =====
   const loadExistingBookings = async () => {
     if (!id) return;
     
     setLoadingBookings(true);
     try {
-      const response = await fetch(`http://localhost:8080/bookings/apartment/${id}`, {
+      // ✅ ПРАВИЛЬНЫЙ URL: /api/apartments/{id}/calendar
+      const response = await fetch(`https://team3.verstack.ru/api/apartments/${id}/calendar`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
@@ -126,7 +127,7 @@ export default function BookingForm() {
     if (isHourSelected(date, hour)) {
       setSelectedSlots(selectedSlots.filter(s => !(s.date === dateStr && s.hour === hour)));
     } else {
-      setSelectedSlots([...selectedSlots, { date: dateStr, hour, time: `₽{hour}:00` }]);
+      setSelectedSlots([...selectedSlots, { date: dateStr, hour, time: `${hour}:00` }]);
     }
   };
 

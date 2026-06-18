@@ -16,7 +16,11 @@ export default function RoomDetails() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const { data: room, isLoading, error } = useGetApartmentByIdQuery(id);
+  // ===== ПОЛУЧАЕМ ДАННЫЕ О ПОМЕЩЕНИИ (НОВАЯ СТРУКТУРА) =====
+  const { data: roomData, isLoading, error } = useGetApartmentByIdQuery(id);
+  const room = roomData?.apartment || null;
+  const images = roomData?.images || [];
+  
   const [createBooking, { isLoading: bookingLoading }] = useCreateBookingMutation();
   
   // ===== РЕАЛЬНЫЕ ОТЗЫВЫ С БЭКЕНДА =====
@@ -84,10 +88,11 @@ export default function RoomDetails() {
 
   // ===== ЗАГРУЖАЕМ ИМЕНА ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ВСЕХ ОТЗЫВОВ =====
   useEffect(() => {
-    if (reviewsData && reviewsData.length > 0) {
+    const safeReviews = Array.isArray(reviewsData) ? reviewsData : [];
+    if (safeReviews.length > 0) {
       const fetchUserNames = async () => {
         const names = {};
-        const uniqueUserIds = [...new Set(reviewsData.map(r => r.user_id).filter(Boolean))];
+        const uniqueUserIds = [...new Set(safeReviews.map(r => r.user_id).filter(Boolean))];
         
         const promises = uniqueUserIds.map(async (userId) => {
           try {
@@ -199,9 +204,10 @@ export default function RoomDetails() {
   };
 
   const getAverageRating = () => {
-    if (!reviewsData || reviewsData.length === 0) return 0;
-    const sum = reviewsData.reduce((acc, r) => acc + (r.stars || 0), 0);
-    return (sum / reviewsData.length).toFixed(1);
+    const safeReviews = Array.isArray(reviewsData) ? reviewsData : [];
+    if (safeReviews.length === 0) return 0;
+    const sum = safeReviews.reduce((acc, r) => acc + (r.stars || 0), 0);
+    return (sum / safeReviews.length).toFixed(1);
   };
 
   const isReviewAuthor = (review) => {
@@ -211,6 +217,14 @@ export default function RoomDetails() {
   const getUserDisplayName = (review) => {
     if (!review || !review.user_id) return 'Неизвестный пользователь';
     return userNames[review.user_id] || `Пользователь #${review.user_id}`;
+  };
+
+  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ГЛАВНОГО ИЗОБРАЖЕНИЯ =====
+  const getMainImage = () => {
+    if (images && images.length > 0 && images[0]?.image_url) {
+      return images[0].image_url;
+    }
+    return 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800';
   };
 
   if (isLoading) {
@@ -253,34 +267,39 @@ export default function RoomDetails() {
 
         <div className="room-details-grid">
           <div className="room-details-info">
+            {/* ===== ИСПОЛЬЗУЕМ getMainImage() ===== */}
             <img 
-              src={room.image_url || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800'} 
+              src={getMainImage()}
               alt={room.name} 
               className="room-details-image"
+              onError={(e) => {
+                e.target.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800';
+              }}
             />
+            
             <h1 className="room-details-title">{room.name}</h1>
             <p className="room-details-description">{room.description || 'Описание отсутствует'}</p>
             
             <div className="room-details-specs">
               <div className="spec-item">
-                <span className="spec-icon"></span>
+                <span className="spec-icon">👥</span>
                 <span className="spec-label">Вместимость:</span>
                 <span className="spec-value">{room.capacity || 0} человек</span>
               </div>
               <div className="spec-item">
-                <span className="spec-icon"></span>
+                <span className="spec-icon">🚇</span>
                 <span className="spec-label">Метро:</span>
                 <span className="spec-value">{room.metro || 'Не указано'}</span>
               </div>
               <div className="spec-item">
-                <span className="spec-icon"></span>
+                <span className="spec-icon">💰</span>
                 <span className="spec-label">Цена:</span>
                 <span className="spec-value">{room.price_per_hour || 0} ₽/час</span>
               </div>
               
               {/* ===== ИНФОРМАЦИЯ О ВЛАДЕЛЬЦЕ ===== */}
               <div className="spec-item">
-                <span className="spec-icon"></span>
+                <span className="spec-icon">👤</span>
                 <span className="spec-label">Владелец:</span>
                 <span className="spec-value">
                   {loadingSeller ? (
@@ -326,8 +345,8 @@ export default function RoomDetails() {
               onClick={() => setShowReviews(!showReviews)}
             >
               {showReviews ? 'Скрыть отзывы' : 'Отзывы'} 
-              {reviewsData && reviewsData.length > 0 && ` (${reviewsData.length})`}
-              {reviewsData && reviewsData.length > 0 && ` ⭐ ${getAverageRating()}`}
+              {Array.isArray(reviewsData) && reviewsData.length > 0 && ` (${reviewsData.length})`}
+              {Array.isArray(reviewsData) && reviewsData.length > 0 && ` ⭐ ${getAverageRating()}`}
             </button>
 
             {showReviews && (

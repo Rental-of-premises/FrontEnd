@@ -19,7 +19,29 @@ export default function Catalog() {
   });
   
   const { data, isLoading, isError, error, refetch } = useGetCatalogQuery(filters);
+  
+  // ===== ИЗВЛЕКАЕМ ДАННЫЕ ИЗ НОВОЙ СТРУКТУРЫ =====
   const rooms = data?.apartments || [];
+  const imagesData = data?.images || [];
+
+  // ===== КАРТА ИЗОБРАЖЕНИЙ ПО ID ПОМЕЩЕНИЯ =====
+  const imageMap = {};
+  if (Array.isArray(imagesData)) {
+    imagesData.forEach((imageList, index) => {
+      if (Array.isArray(imageList) && imageList.length > 0) {
+        imageMap[rooms[index]?.id] = imageList[0]?.image_url;
+      }
+    });
+  }
+
+  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИЗОБРАЖЕНИЯ =====
+  const getRoomImage = (room) => {
+    if (imageMap[room.id]) {
+      return imageMap[room.id];
+    }
+    return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
+  };
+
   useEffect(() => {
     const newFilters = {
       is_active: true,
@@ -44,7 +66,6 @@ export default function Catalog() {
     refetch();
   };
 
-  // ===== ИСПРАВЛЕННАЯ ФИЛЬТРАЦИЯ =====
   const safeRooms = Array.isArray(rooms) ? rooms : [];
 
   const filteredRooms = safeRooms.filter(room => {
@@ -208,9 +229,12 @@ export default function Catalog() {
             <div key={room.id} className="room-card">
               <div className="room-image-wrapper">
                 <img
-                  src={room.image_url || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80'}
+                  src={getRoomImage(room)}
                   alt={room.name}
                   className="room-image"
+                  onError={(e) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
+                  }}
                 />
               </div>
               

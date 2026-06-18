@@ -7,9 +7,28 @@ import Navbar from '../components/Navbar';
 
 export default function MyRooms() {
   const { user } = useAuth();
-  const { data: roomsData, isLoading, error, refetch } = useGetMyApartmentsQuery();
+  
+  // ===== ИЗМЕНЕНО: response вместо roomsData =====
+  const { data: response = {}, isLoading, error, refetch } = useGetMyApartmentsQuery(undefined, {
+    skip: !user,
+  });
+  
   const [deleteApartment] = useDeleteApartmentMutation();
   const [deletingId, setDeletingId] = useState(null);
+
+  // ===== ИЗВЛЕКАЕМ APARTMENTS И IMAGES =====
+  const roomsData = response?.apartments || [];
+  const images = response?.images || [];
+
+  // ===== КАРТА ИЗОБРАЖЕНИЙ =====
+  const imageMap = {};
+  if (Array.isArray(images)) {
+    images.forEach((imageList, index) => {
+      if (Array.isArray(imageList) && imageList.length > 0) {
+        imageMap[roomsData[index]?.id] = imageList[0]?.image_url;
+      }
+    });
+  }
 
   // Сортируем помещения от новых к старым по created_at
   const rooms = useMemo(() => {
@@ -20,6 +39,14 @@ export default function MyRooms() {
       return dateB - dateA;
     });
   }, [roomsData]);
+
+  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИЗОБРАЖЕНИЯ =====
+  const getRoomImage = (room) => {
+    if (imageMap[room.id]) {
+      return imageMap[room.id];
+    }
+    return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Вы уверены, что хотите удалить это помещение?')) return;
@@ -43,6 +70,25 @@ export default function MyRooms() {
       year: 'numeric'
     });
   };
+
+  if (!user) {
+    return (
+      <>
+        <Navbar />
+        <div className="container">
+          <div className="error-message" style={{ background: '#fef2f2', color: '#ef4444', padding: '16px', borderRadius: '12px', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
+            <h3>Требуется авторизация</h3>
+            <p>Пожалуйста, войдите в аккаунт, чтобы просматривать свои помещения.</p>
+            <Link to="/login">
+              <button className="auth-btn" style={{ marginTop: '16px' }}>
+                Войти
+              </button>
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -125,7 +171,7 @@ export default function MyRooms() {
           </Link>
         </div>
 
-        {/* ===== ГРИД КАРТОЧЕК (как в каталоге) ===== */}
+        {/* ===== ГРИД КАРТОЧЕК ===== */}
         <div className="rooms-grid" style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
@@ -177,9 +223,12 @@ export default function MyRooms() {
                 {/* Изображение */}
                 <div style={{ position: 'relative', height: '200px', width: '100%', overflow: 'hidden' }}>
                   <img 
-                    src={room.image_url || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80'} 
+                    src={getRoomImage(room)}
                     alt={room.name} 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
+                    }}
                   />
                   <span style={{ 
                     position: 'absolute', 
@@ -236,7 +285,7 @@ export default function MyRooms() {
                     {room.description?.substring(0, 100) || 'Нет описания'}...
                   </p>
 
-                  {/* Характеристики (как в каталоге) */}
+                  {/* Характеристики */}
                   <div style={{ 
                     display: 'flex', 
                     flexWrap: 'wrap', 
