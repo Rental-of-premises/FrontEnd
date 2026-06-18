@@ -6,7 +6,8 @@ import {
   useCreateBookingMutation,
   useGetReviewsByApartmentQuery,
   useCreateReviewMutation,
-  useDeleteReviewMutation
+  useDeleteReviewMutation,
+  useGetUserByIdQuery  // ← ДОБАВЛЯЕМ
 } from '../store/api';
 import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
@@ -38,6 +39,9 @@ export default function RoomDetails() {
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
   const [deletingReviewId, setDeletingReviewId] = useState(null);
+  
+  // ===== СОСТОЯНИЕ ДЛЯ ИМЕН ПОЛЬЗОВАТЕЛЕЙ =====
+  const [userNames, setUserNames] = useState({});
 
   // Проверяем параметр showReviews в URL
   useEffect(() => {
@@ -46,6 +50,39 @@ export default function RoomDetails() {
       setShowReviews(true);
     }
   }, []);
+
+  // ===== ЗАГРУЖАЕМ ИМЕНА ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ВСЕХ ОТЗЫВОВ =====
+  useEffect(() => {
+    if (reviewsData && reviewsData.length > 0) {
+      const fetchUserNames = async () => {
+        const names = {};
+        for (const review of reviewsData) {
+          if (review.user_id && !names[review.user_id]) {
+            try {
+              // Получаем пользователя по ID
+              const response = await fetch(`https://team3.verstack.ru/api/users/${review.user_id}`, {
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              if (response.ok) {
+                const userData = await response.json();
+                names[review.user_id] = userData.name || `Пользователь #${review.user_id}`;
+              } else {
+                names[review.user_id] = `Пользователь #${review.user_id}`;
+              }
+            } catch (err) {
+              console.error('Ошибка загрузки пользователя:', err);
+              names[review.user_id] = `Пользователь #${review.user_id}`;
+            }
+          }
+        }
+        setUserNames(names);
+      };
+      fetchUserNames();
+    }
+  }, [reviewsData]);
 
   const handleBooking = () => {
     navigate(`/booking/${id}`);
@@ -139,14 +176,10 @@ export default function RoomDetails() {
     return user && review.user_id && review.user_id === user.id;
   };
 
+  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИМЕНИ ПОЛЬЗОВАТЕЛЯ =====
   const getUserDisplayName = (review) => {
-    if (review.user_name) {
-      return review.user_name;
-    }
-    if (review.user && review.user.name) {
-      return review.user.name;
-    }
-    return `Пользователь #${review.user_id}`;
+    if (!review || !review.user_id) return 'Неизвестный пользователь';
+    return userNames[review.user_id] || `Пользователь #${review.user_id}`;
   };
 
   if (isLoading) {

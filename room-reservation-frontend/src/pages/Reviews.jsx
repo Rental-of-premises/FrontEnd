@@ -1,5 +1,5 @@
 // src/pages/Reviews.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { 
@@ -34,6 +34,41 @@ export default function Reviews() {
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  
+  // ===== СОСТОЯНИЕ ДЛЯ ИМЕН ПОЛЬЗОВАТЕЛЕЙ =====
+  const [userNames, setUserNames] = useState({});
+
+  // ===== ЗАГРУЖАЕМ ИМЕНА ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ВСЕХ ОТЗЫВОВ =====
+  useEffect(() => {
+    if (reviews && reviews.length > 0) {
+      const fetchUserNames = async () => {
+        const names = {};
+        for (const review of reviews) {
+          if (review.user_id && !names[review.user_id]) {
+            try {
+              const response = await fetch(`https://team3.verstack.ru/api/users/${review.user_id}`, {
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              if (response.ok) {
+                const userData = await response.json();
+                names[review.user_id] = userData.name || `Пользователь #${review.user_id}`;
+              } else {
+                names[review.user_id] = `Пользователь #${review.user_id}`;
+              }
+            } catch (err) {
+              console.error('Ошибка загрузки пользователя:', err);
+              names[review.user_id] = `Пользователь #${review.user_id}`;
+            }
+          }
+        }
+        setUserNames(names);
+      };
+      fetchUserNames();
+    }
+  }, [reviews]);
 
   // ===== ОБРАБОТЧИКИ =====
   const handleRatingClick = (rating) => {
@@ -87,6 +122,7 @@ export default function Reviews() {
     }
   };
 
+  // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
   const renderStars = (rating, interactive = false) => {
     return (
       <div className="stars">
@@ -116,14 +152,10 @@ export default function Reviews() {
     return user && review.user_id && review.user_id === user.id;
   };
 
+  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИМЕНИ ПОЛЬЗОВАТЕЛЯ =====
   const getUserDisplayName = (review) => {
-    if (review.user_name) {
-      return review.user_name;
-    }
-    if (review.user && review.user.name) {
-      return review.user.name;
-    }
-    return `Пользователь #${review.user_id}`;
+    if (!review || !review.user_id) return 'Неизвестный пользователь';
+    return userNames[review.user_id] || `Пользователь #${review.user_id}`;
   };
 
   const getAvatarLetter = (review) => {
