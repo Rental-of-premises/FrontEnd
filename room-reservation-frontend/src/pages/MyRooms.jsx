@@ -323,7 +323,7 @@ export default function MyRooms() {
               transition: 'all 0.2s'
             }}
           >
-            🏠 Мои помещения ({rooms.length})
+            Мои помещения ({rooms.length})
           </button>
           <button
             onClick={() => setActiveTab('bookings')}
@@ -340,7 +340,7 @@ export default function MyRooms() {
               position: 'relative'
             }}
           >
-            📋 Брони моих помещений
+            Брони моих помещений
             {waitingBookings.length > 0 && (
               <span style={{
                 position: 'absolute',
@@ -645,13 +645,12 @@ export default function MyRooms() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                       <div>
                         <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', margin: '0 0 4px 0' }}>
-                          🏠 {roomName}
+                          {roomName}
                         </h3>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#64748b', fontSize: '14px' }}>
                           <span>👤 <strong>{userName}</strong></span>
                           <span>📅 {formatFullDate(booking.time_from)}</span>
                           <span>⏱️ {hoursDiff.toFixed(1)} ч.</span>
-                          <span>💰 <strong>{totalPrice.toFixed(0)} ₽</strong></span>
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
