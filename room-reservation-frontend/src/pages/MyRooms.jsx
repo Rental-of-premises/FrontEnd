@@ -15,6 +15,7 @@ export default function MyRooms() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('rooms');
   const [userNames, setUserNames] = useState({});
+  const [apartmentNames, setApartmentNames] = useState({});
   
   // ===== МОИ ПОМЕЩЕНИЯ =====
   const { data: response = {}, isLoading: roomsLoading, error: roomsError, refetch: refetchRooms } = useGetMyApartmentsQuery(undefined, {
@@ -31,6 +32,21 @@ export default function MyRooms() {
   const [rejectBooking] = useRejectBookingMutation();
   const [deletingId, setDeletingId] = useState(null);
   const [processingBookingId, setProcessingBookingId] = useState(null);
+
+  // ===== ИЗВЛЕКАЕМ ДАННЫЕ =====
+  const roomsData = response?.apartments || [];
+  const images = response?.images || [];
+
+  // ===== КАРТА НАЗВАНИЙ ПОМЕЩЕНИЙ =====
+  useEffect(() => {
+    if (roomsData && roomsData.length > 0) {
+      const names = {};
+      roomsData.forEach(room => {
+        names[room.id] = room.name;
+      });
+      setApartmentNames(names);
+    }
+  }, [roomsData]);
 
   // ===== ЗАГРУЗКА ИМЕН ПОЛЬЗОВАТЕЛЕЙ =====
   useEffect(() => {
@@ -62,10 +78,6 @@ export default function MyRooms() {
     
     fetchUserNames();
   }, [sellerBookings]);
-
-  // ===== ИЗВЛЕКАЕМ ДАННЫЕ =====
-  const roomsData = response?.apartments || [];
-  const images = response?.images || [];
 
   // ===== КАРТА ИЗОБРАЖЕНИЙ =====
   const imageMap = {};
@@ -613,7 +625,8 @@ export default function MyRooms() {
                 const totalPrice = hoursDiff * (booking.price_per_hour || 0);
                 const isWaiting = booking.status === 'waiting';
                 const userName = userNames[booking.user_id] || `Пользователь #${booking.user_id}`;
-                const roomName = booking.apartment_title || `Помещение #${booking.apartment_id}`;
+                // ===== ИСПОЛЬЗУЕМ КАРТУ НАЗВАНИЙ =====
+                const roomName = apartmentNames[booking.apartment_id] || `Помещение #${booking.apartment_id}`;
 
                 return (
                   <div 
