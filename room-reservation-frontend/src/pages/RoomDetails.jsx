@@ -10,20 +10,22 @@ import {
 } from '../store/api';
 import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
+import ImageCarousel from '../components/ImageCarousel';
 
 export default function RoomDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // ===== ПОЛУЧАЕМ ДАННЫЕ О ПОМЕЩЕНИИ (НОВАЯ СТРУКТУРА) =====
+  // ===== ПОЛУЧАЕМ ДАННЫЕ О ПОМЕЩЕНИИ =====
   const { data: roomData, isLoading, error } = useGetApartmentByIdQuery(id);
   const room = roomData?.apartment || null;
   const images = roomData?.images || [];
+  const imageUrls = images.map(img => img.image_url);
   
   const [createBooking, { isLoading: bookingLoading }] = useCreateBookingMutation();
   
-  // ===== РЕАЛЬНЫЕ ОТЗЫВЫ С БЭКЕНДА =====
+  // ===== ОТЗЫВЫ =====
   const { 
     data: reviewsData = [], 
     isLoading: reviewsLoading,
@@ -219,14 +221,6 @@ export default function RoomDetails() {
     return userNames[review.user_id] || `Пользователь #${review.user_id}`;
   };
 
-  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ГЛАВНОГО ИЗОБРАЖЕНИЯ =====
-  const getMainImage = () => {
-    if (images && images.length > 0 && images[0]?.image_url) {
-      return images[0].image_url;
-    }
-    return 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800';
-  };
-
   if (isLoading) {
     return (
       <>
@@ -267,14 +261,10 @@ export default function RoomDetails() {
 
         <div className="room-details-grid">
           <div className="room-details-info">
-            {/* ===== ИСПОЛЬЗУЕМ getMainImage() ===== */}
-            <img 
-              src={getMainImage()}
-              alt={room.name} 
-              className="room-details-image"
-              onError={(e) => {
-                e.target.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800';
-              }}
+            {/* ✅ КАРУСЕЛЬ ВМЕСТО ОДНОГО ИЗОБРАЖЕНИЯ */}
+            <ImageCarousel 
+              images={imageUrls} 
+              alt={room?.name || 'Помещение'} 
             />
             
             <h1 className="room-details-title">{room.name}</h1>
@@ -297,7 +287,6 @@ export default function RoomDetails() {
                 <span className="spec-value">{room.price_per_hour || 0} ₽/час</span>
               </div>
               
-              {/* ===== ИНФОРМАЦИЯ О ВЛАДЕЛЬЦЕ ===== */}
               <div className="spec-item">
                 <span className="spec-icon">👤</span>
                 <span className="spec-label">Владелец:</span>
@@ -358,7 +347,6 @@ export default function RoomDetails() {
                   </div>
 
                   <div className="reviews-modal-body">
-                    {/* Кнопка "Оставить отзыв" */}
                     {user && !showReviewForm && (
                       <button 
                         className="write-review-btn-modal"
@@ -368,7 +356,6 @@ export default function RoomDetails() {
                       </button>
                     )}
 
-                    {/* Форма отзыва */}
                     {showReviewForm && (
                       <div className="review-form-modal">
                         <h4>Ваш отзыв</h4>
@@ -412,7 +399,6 @@ export default function RoomDetails() {
                       </div>
                     )}
 
-                    {/* Список отзывов */}
                     {reviewsLoading ? (
                       <div className="loader"><div className="spinner" style={{ width: '30px', height: '30px' }}></div></div>
                     ) : !reviewsData || reviewsData.length === 0 ? (
@@ -463,7 +449,6 @@ export default function RoomDetails() {
             <div className="booking-card-sticky">
               <h2>Забронировать</h2>
               
-              {/* ===== ИНФОРМАЦИЯ О ВЛАДЕЛЬЦЕ В БЛОКЕ БРОНИРОВАНИЯ ===== */}
               {sellerData && (
                 <div style={{
                   background: '#f8fafc',
