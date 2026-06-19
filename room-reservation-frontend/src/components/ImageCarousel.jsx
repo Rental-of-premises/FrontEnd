@@ -40,7 +40,6 @@ export default function ImageCarousel({ images, alt = 'Изображение' }
       borderRadius: '16px',
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
     }}>
-      {/* Основное изображение */}
       <div style={{ 
         position: 'relative', 
         width: '100%', 
@@ -63,7 +62,6 @@ export default function ImageCarousel({ images, alt = 'Изображение' }
         />
       </div>
 
-      {/* Кнопки навигации (если больше 1 фото) */}
       {images.length > 1 && (
         <>
           <button
@@ -119,7 +117,6 @@ export default function ImageCarousel({ images, alt = 'Изображение' }
             ›
           </button>
 
-          {/* Индикаторы (точки внизу) */}
           <div style={{
             position: 'absolute',
             bottom: '16px',
@@ -147,7 +144,6 @@ export default function ImageCarousel({ images, alt = 'Изображение' }
             ))}
           </div>
 
-          {/* Счетчик */}
           <div style={{
             position: 'absolute',
             top: '16px',

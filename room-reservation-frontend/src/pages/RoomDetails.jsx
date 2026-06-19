@@ -17,7 +17,6 @@ export default function RoomDetails() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // ===== ПОЛУЧАЕМ ДАННЫЕ О ПОМЕЩЕНИИ =====
   const { data: roomData, isLoading, error } = useGetApartmentByIdQuery(id);
   const room = roomData?.apartment || null;
   const images = roomData?.images || [];
@@ -25,7 +24,6 @@ export default function RoomDetails() {
   
   const [createBooking, { isLoading: bookingLoading }] = useCreateBookingMutation();
   
-  // ===== ОТЗЫВЫ =====
   const { 
     data: reviewsData = [], 
     isLoading: reviewsLoading,
@@ -37,7 +35,6 @@ export default function RoomDetails() {
   const [createReview, { isLoading: creatingReview }] = useCreateReviewMutation();
   const [deleteReview, { isLoading: deletingReview }] = useDeleteReviewMutation();
 
-  // ===== СОСТОЯНИЯ =====
   const [showReviews, setShowReviews] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
@@ -45,14 +42,10 @@ export default function RoomDetails() {
   const [reviewSuccess, setReviewSuccess] = useState('');
   const [deletingReviewId, setDeletingReviewId] = useState(null);
   
-  // ===== СОСТОЯНИЕ ДЛЯ ИМЕН ПОЛЬЗОВАТЕЛЕЙ =====
   const [userNames, setUserNames] = useState({});
-  
-  // ===== СОСТОЯНИЕ ДЛЯ ВЛАДЕЛЬЦА =====
   const [sellerData, setSellerData] = useState(null);
   const [loadingSeller, setLoadingSeller] = useState(false);
 
-  // Проверяем параметр showReviews в URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('showReviews') === 'true') {
@@ -60,7 +53,6 @@ export default function RoomDetails() {
     }
   }, []);
 
-  // ===== ЗАГРУЖАЕМ ДАННЫЕ ВЛАДЕЛЬЦА =====
   useEffect(() => {
     if (room && room.seller_id) {
       const fetchSeller = async () => {
@@ -75,8 +67,6 @@ export default function RoomDetails() {
           if (response.ok) {
             const data = await response.json();
             setSellerData(data);
-          } else {
-            console.error('Ошибка загрузки владельца:', response.status);
           }
         } catch (err) {
           console.error('Ошибка загрузки владельца:', err);
@@ -88,7 +78,6 @@ export default function RoomDetails() {
     }
   }, [room]);
 
-  // ===== ЗАГРУЖАЕМ ИМЕНА ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ВСЕХ ОТЗЫВОВ =====
   useEffect(() => {
     const safeReviews = Array.isArray(reviewsData) ? reviewsData : [];
     if (safeReviews.length > 0) {
@@ -127,7 +116,6 @@ export default function RoomDetails() {
     navigate(`/booking/${id}`);
   };
 
-  // ===== ОБРАБОТЧИКИ ОТЗЫВОВ =====
   const handleRatingClick = (rating) => {
     setReviewData(prev => ({ ...prev, rating }));
   };
@@ -179,7 +167,6 @@ export default function RoomDetails() {
     }
   };
 
-  // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
   const renderStars = (rating, interactive = false) => {
     return (
       <div className="stars">
@@ -261,11 +248,7 @@ export default function RoomDetails() {
 
         <div className="room-details-grid">
           <div className="room-details-info">
-            {/* ✅ КАРУСЕЛЬ ВМЕСТО ОДНОГО ИЗОБРАЖЕНИЯ */}
-            <ImageCarousel 
-              images={imageUrls} 
-              alt={room?.name || 'Помещение'} 
-            />
+            <ImageCarousel images={imageUrls} alt={room?.name || 'Помещение'} />
             
             <h1 className="room-details-title">{room.name}</h1>
             <p className="room-details-description">{room.description || 'Описание отсутствует'}</p>
@@ -328,7 +311,6 @@ export default function RoomDetails() {
               </div>
             </div>
 
-            {/* ===== КНОПКА ОТЗЫВОВ ===== */}
             <button 
               className="reviews-main-btn"
               onClick={() => setShowReviews(!showReviews)}
