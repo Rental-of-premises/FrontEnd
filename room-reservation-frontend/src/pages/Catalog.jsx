@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useGetCatalogQuery } from '../store/api';
 import Navbar from '../components/Navbar';
+import MetroAutocomplete from '../components/MetroAutocomplete';
 
 export default function Catalog() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,7 +21,6 @@ export default function Catalog() {
   
   const { data, isLoading, isError, error, refetch } = useGetCatalogQuery(filters);
   
-  // ===== ИЗВЛЕКАЕМ ДАННЫЕ ИЗ НОВОЙ СТРУКТУРЫ =====
   const rooms = data?.apartments || [];
   const imagesData = data?.images || [];
 
@@ -66,9 +66,7 @@ export default function Catalog() {
     refetch();
   };
 
-  const safeRooms = Array.isArray(rooms) ? rooms : [];
-
-  const filteredRooms = safeRooms.filter(room => {
+  const filteredRooms = rooms.filter(room => {
     const matchesSearch = searchTerm === '' ||
       room.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       room.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -205,13 +203,11 @@ export default function Catalog() {
               </div>
 
               <div className="filter-group">
-                <label>Станция метро</label>
-                <input
-                  type="text"
-                  className="filter-input"
-                  placeholder="Например, Технологический институт"
+                <MetroAutocomplete
                   value={metroStation}
-                  onChange={(e) => setMetroStation(e.target.value)}
+                  onChange={(value) => setMetroStation(value || '')}
+                  placeholder="Начните вводить название станции..."
+                  label="🚇 Станция метро"
                 />
               </div>
 
