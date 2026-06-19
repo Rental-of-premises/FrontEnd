@@ -11,7 +11,10 @@ export default function EditRoom() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const { data: room, isLoading, error } = useGetApartmentByIdQuery(id);
+  const { data: roomData, isLoading, error } = useGetApartmentByIdQuery(id);
+  // ===== ИЗВЛЕКАЕМ apartment ИЗ ОТВЕТА =====
+  const room = roomData?.apartment || null;
+  
   const [updateApartment, { isLoading: updating }] = useUpdateApartmentMutation();
   
   const [formData, setFormData] = useState({
@@ -31,6 +34,7 @@ export default function EditRoom() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // ===== ЗАПОЛНЯЕМ ФОРМУ ДАННЫМИ ИЗ room =====
   useEffect(() => {
     if (room) {
       setFormData({
@@ -111,43 +115,48 @@ export default function EditRoom() {
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!formData.name.trim()) {
-      setErrorMsg('Название обязательно');
-      return;
+    // ===== Собираем только измененные поля =====
+    const updates = {};
+    
+    if (formData.name !== room.name) updates.name = formData.name;
+    if (formData.description !== room.description) updates.description = formData.description || '';
+    if (formData.capacity !== room.capacity) updates.capacity = Number(formData.capacity);
+    if (formData.price_per_hour !== room.price_per_hour) updates.price_per_hour = Number(formData.price_per_hour);
+    if (formData.is_active !== room.is_active) updates.is_active = formData.is_active;
+    if (formData.metro !== room.metro) updates.metro = formData.metro;
+    if (formData.address !== room.address) updates.address = formData.address;
+    
+    // Проверяем изображение
+    if (formData.image_file) {
+      try {
+        setUploading(true);
+        const imageUrl = await saveImageAsDataUrl(formData.image_file);
+        updates.image_url = imageUrl;
+        setUploading(false);
+      } catch (err) {
+        setErrorMsg('Ошибка при загрузке изображения');
+        return;
+      }
+    } else if (formData.image_preview && formData.image_preview !== room.image_url) {
+      updates.image_url = formData.image_preview;
     }
-    if (!formData.image_preview && !formData.image_file) {
-      setErrorMsg('Изображение обязательно');
-      return;
+    
+    // Проверяем удобства
+    if (JSON.stringify(formData.amenities) !== JSON.stringify(room.amenities || [])) {
+      updates.amenities = formData.amenities;
     }
-    if (!formData.metro.trim()) {
-      setErrorMsg('Укажите станцию метро');
-      return;
-    }
-    if (!formData.address.trim()) {
-      setErrorMsg('Укажите адрес');
+
+    // Если ничего не изменилось
+    if (Object.keys(updates).length === 0) {
+      setSuccessMsg('Никаких изменений не было внесено');
+      setTimeout(() => setSuccessMsg(''), 2000);
       return;
     }
 
     try {
-      let imageUrl = formData.image_preview;
-      
-      if (formData.image_file) {
-        setUploading(true);
-        imageUrl = await saveImageAsDataUrl(formData.image_file);
-        setUploading(false);
-      }
-
       await updateApartment({
         id: parseInt(id),
-        name: formData.name,
-        description: formData.description || '',
-        capacity: Number(formData.capacity),
-        price_per_hour: Number(formData.price_per_hour),
-        is_active: formData.is_active,
-        image_url: imageUrl,
-        metro: formData.metro,
-        address: formData.address,
-        amenities: formData.amenities
+        ...updates
       }).unwrap();
       
       setSuccessMsg('Помещение успешно обновлено!');
@@ -216,7 +225,7 @@ export default function EditRoom() {
               Редактировать помещение
             </h1>
             <p className="editroom-subtitle" style={{ color: '#64748b', fontSize: '15px', margin: 0 }}>
-              Измените параметры или описание вашего рабочего пространства
+              Измените только те поля, которые нужно обновить
             </p>
           </div>
 
@@ -235,6 +244,7 @@ export default function EditRoom() {
             {errorMsg && <div className="error-message" style={{ background: '#fef2f2', color: '#ef4444', padding: '12px 16px', borderRadius: '12px', fontSize: '14px', border: '1px solid #fee2e2' }}>{errorMsg}</div>}
             {successMsg && <div className="success-message" style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px 16px', borderRadius: '12px', fontSize: '14px', border: '1px solid #dcfce7' }}>{successMsg}</div>}
 
+            {/* ===== НАЗВАНИЕ ===== */}
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Название помещения</label>
               <input
@@ -242,13 +252,14 @@ export default function EditRoom() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                required
+                placeholder={room.name || 'Введите название'}
                 style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '15px', outline: 'none', boxSizing: 'border-box', transition: 'all 0.2s' }}
                 onFocus={(e) => { e.target.style.borderColor = '#2850a7'; e.target.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)'; }}
                 onBlur={(e) => { e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = 'none'; }}
               />
             </div>
 
+            {/* ===== ОПИСАНИЕ ===== */}
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Описание</label>
               <textarea
@@ -256,12 +267,14 @@ export default function EditRoom() {
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
+                placeholder={room.description || 'Введите описание'}
                 style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '15px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical' }}
                 onFocus={(e) => { e.target.style.borderColor = '#2850a7'; e.target.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)'; }}
                 onBlur={(e) => { e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = 'none'; }}
               />
             </div>
 
+            {/* ===== ВМЕСТИМОСТЬ И ЦЕНА ===== */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Вместимость (чел.)</label>
@@ -271,6 +284,7 @@ export default function EditRoom() {
                   value={formData.capacity}
                   onChange={handleChange}
                   min="1"
+                  placeholder={room.capacity?.toString() || '1'}
                   style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
                   onFocus={(e) => { e.target.style.borderColor = '#2850a7'; e.target.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)'; }}
                   onBlur={(e) => { e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = 'none'; }}
@@ -286,6 +300,7 @@ export default function EditRoom() {
                   onChange={handleChange}
                   min="100"
                   step="100"
+                  placeholder={room.price_per_hour?.toString() || '500'}
                   style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
                   onFocus={(e) => { e.target.style.borderColor = '#2850a7'; e.target.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)'; }}
                   onBlur={(e) => { e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = 'none'; }}
@@ -293,6 +308,7 @@ export default function EditRoom() {
               </div>
             </div>
 
+            {/* ===== МЕТРО И АДРЕС ===== */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>🚇 Метро</label>
@@ -301,7 +317,7 @@ export default function EditRoom() {
                   name="metro"
                   value={formData.metro}
                   onChange={handleChange}
-                  required
+                  placeholder={room.metro || 'Введите станцию метро'}
                   style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
                   onFocus={(e) => { e.target.style.borderColor = '#2850a7'; e.target.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)'; }}
                   onBlur={(e) => { e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = 'none'; }}
@@ -315,7 +331,7 @@ export default function EditRoom() {
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
-                  required
+                  placeholder={room.address || 'Введите адрес'}
                   style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
                   onFocus={(e) => { e.target.style.borderColor = '#2850a7'; e.target.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)'; }}
                   onBlur={(e) => { e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = 'none'; }}
@@ -323,6 +339,7 @@ export default function EditRoom() {
               </div>
             </div>
 
+            {/* ===== ИЗОБРАЖЕНИЕ ===== */}
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Изображение помещения</label>
               <div className="image-upload-area">
@@ -356,6 +373,7 @@ export default function EditRoom() {
               <small className="form-hint" style={{ display: 'block', marginTop: '8px', fontSize: '12px', color: '#718096' }}>Поддерживаются JPG, PNG, GIF. Максимум 5MB</small>
             </div>
 
+            {/* ===== УДОБСТВА ===== */}
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Удобства</label>
               <div className="amenities-input-group" style={{ display: 'flex', gap: '12px' }}>
@@ -393,6 +411,7 @@ export default function EditRoom() {
               )}
             </div>
 
+            {/* ===== АКТИВНОСТЬ ===== */}
             <div className="form-group checkbox-group" style={{ marginTop: '8px' }}>
               <label className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '15px', color: '#334155', cursor: 'pointer', fontWeight: '500' }}>
                 <input
@@ -406,6 +425,7 @@ export default function EditRoom() {
               </label>
             </div>
 
+            {/* ===== КНОПКИ ===== */}
             <div className="form-actions" style={{ display: 'flex', gap: '16px', marginTop: '12px', paddingTop: '24px', borderTop: '1px solid #e2e8f0' }}>
               <Link to="/my-rooms" className="cancel-btn-form" style={{ 
                 flex: 1, 
