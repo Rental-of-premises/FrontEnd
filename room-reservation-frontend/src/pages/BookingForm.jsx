@@ -11,7 +11,8 @@ export default function BookingForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const { data: room, isLoading, error: roomError } = useGetApartmentByIdQuery(id);
+  const { data: roomData, isLoading, error: roomError } = useGetApartmentByIdQuery(id);
+  const room = roomData?.apartment || null;
   const [createBooking, { isLoading: bookingLoading }] = useCreateBookingMutation();
   
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -21,13 +22,12 @@ export default function BookingForm() {
   const [existingBookings, setExistingBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
 
-  // ===== ИСПРАВЛЕННЫЙ ЗАПРОС К КАЛЕНДАРЮ =====
+  // Загрузка существующих бронирований
   const loadExistingBookings = async () => {
     if (!id) return;
     
     setLoadingBookings(true);
     try {
-      // ✅ ПРАВИЛЬНЫЙ URL: /api/apartments/{id}/calendar
       const response = await fetch(`https://team3.verstack.ru/api/apartments/${id}/calendar`, {
         credentials: 'include',
         headers: {
@@ -78,6 +78,7 @@ export default function BookingForm() {
     }
   }, [bookingSuccess]);
 
+  // ===== КАЛЕНДАРЬ =====
   const weekDays = useMemo(() => {
     const startDate = new Date(currentDate);
     const day = currentDate.getDay();
@@ -131,6 +132,7 @@ export default function BookingForm() {
     }
   };
 
+  // ===== РАСЧЕТ ИНТЕРВАЛОВ =====
   const getBookingIntervals = () => {
     const grouped = {};
     selectedSlots.forEach(slot => {
@@ -173,15 +175,25 @@ export default function BookingForm() {
     return intervals;
   };
 
+  // ===== РАСЧЕТ ОБЩЕЙ ЦЕНЫ =====
   const calculateTotalPrice = () => {
     if (!room) return 0;
     let totalHours = 0;
-    getBookingIntervals().forEach(interval => {
+    const intervals = getBookingIntervals();
+    intervals.forEach(interval => {
       totalHours += interval.endHour - interval.startHour;
     });
     return totalHours * room.price_per_hour;
   };
 
+  // ===== ОТОБРАЖЕНИЕ ЦЕНЫ ЗА ИНТЕРВАЛ =====
+  const getIntervalPrice = (interval) => {
+    if (!room) return 0;
+    const hours = interval.endHour - interval.startHour;
+    return hours * room.price_per_hour;
+  };
+
+  // ===== ПОДТВЕРЖДЕНИЕ БРОНИРОВАНИЯ =====
   const handleSubmitBooking = async () => {
     if (selectedSlots.length === 0) {
       setBookingError('Выберите хотя бы один час');
@@ -299,6 +311,10 @@ export default function BookingForm() {
     );
   }
 
+  // ===== ВЫЧИСЛЯЕМ ОБЩУЮ ЦЕНУ ДЛЯ ОТОБРАЖЕНИЯ =====
+  const totalPrice = calculateTotalPrice();
+  const intervals = getBookingIntervals();
+
   return (
     <>
       <Navbar />
@@ -365,21 +381,34 @@ export default function BookingForm() {
 
         <div className="bookingform-selected">
           <h3>Выбранные часы: {selectedSlots.length}</h3>
+          
+          {/* ===== ОТОБРАЖЕНИЕ ВЫБРАННЫХ ИНТЕРВАЛОВ С ЦЕНОЙ ===== */}
           {selectedSlots.length > 0 && (
             <div className="selected-list">
-              {getBookingIntervals().map((interval, idx) => (
-                <div key={idx} className="selected-interval">
-                  <span>{new Date(interval.date).toLocaleDateString('ru-RU')}</span>
-                  <span>{interval.startTime} - {interval.endTime}</span>
-                  <span>{room.price_per_hour * (interval.endHour - interval.startHour)} ₽</span>
-                </div>
-              ))}
+              {intervals.map((interval, idx) => {
+                const hoursCount = interval.endHour - interval.startHour;
+                const price = getIntervalPrice(interval);
+                return (
+                  <div key={idx} className="selected-interval">
+                    <span>{new Date(interval.date).toLocaleDateString('ru-RU', { 
+                      day: 'numeric', 
+                      month: 'short',
+                      year: 'numeric'
+                    })}</span>
+                    <span>{interval.startTime} - {interval.endTime}</span>
+                    <span>{hoursCount} ч × {room.price_per_hour} ₽ = <strong>{price} ₽</strong></span>
+                  </div>
+                );
+              })}
             </div>
           )}
+          
+          {/* ===== ИТОГОВАЯ ЦЕНА ===== */}
           <div className="selected-total">
             <span>Итого:</span>
-            <span>{calculateTotalPrice()} ₽</span>
+            <span>{totalPrice} ₽</span>
           </div>
+          
           <button 
             className="submit-booking-btn" 
             onClick={handleSubmitBooking}
@@ -387,6 +416,7 @@ export default function BookingForm() {
           >
             {bookingLoading ? 'Бронирование...' : `Забронировать (${selectedSlots.length} час)`}
           </button>
+          
           {bookingError && <div className="error-message">{bookingError}</div>}
           {bookingSuccess && <div className="success-message">{bookingSuccess}</div>}
         </div>
