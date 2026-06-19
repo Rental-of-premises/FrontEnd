@@ -11,6 +11,8 @@ export default function EditRoom() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  console.log('🔍 ID из URL:', id);
+  
   const { data: roomData, isLoading, error, refetch } = useGetApartmentByIdQuery(id);
   const room = roomData?.apartment || null;
   const existingImages = roomData?.images || [];
@@ -42,9 +44,13 @@ export default function EditRoom() {
   const [imageChanged, setImageChanged] = useState(false);
 
   const MAX_CLIENT_STORAGE = 5 * 1024 * 1024;
+  const API_URL = 'http://localhost:8080';
 
+  // Заполняем форму данными
   useEffect(() => {
     if (room) {
+      console.log('📦 Загружено помещение:', room);
+      
       let imageUrl = '';
       if (existingImages && existingImages.length > 0) {
         imageUrl = existingImages[0].image_url;
@@ -80,7 +86,12 @@ export default function EditRoom() {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      console.log('⚠️ Файл не выбран');
+      return;
+    }
+
+    console.log('📸 Выбран файл:', file.name, file.size, 'bytes');
 
     if (!file.type.startsWith('image/')) {
       setErrorMsg('Пожалуйста, выберите изображение');
@@ -95,11 +106,12 @@ export default function EditRoom() {
     const isLarge = file.size > MAX_CLIENT_STORAGE;
     setIsLargeImage(isLarge);
     setFileSize((file.size / 1024 / 1024).toFixed(2) + ' MB');
-    setImageChanged(true);
+    setImageChanged(true); // <- УСТАНАВЛИВАЕМ ФЛАГ
 
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result;
+      console.log('📸 Base64 готов, длина:', base64.length);
       setFormData(prev => ({
         ...prev,
         image_file: isLarge ? file : null,
@@ -109,14 +121,35 @@ export default function EditRoom() {
       }));
       setErrorMsg('');
     };
+    reader.onerror = (err) => {
+      console.error('❌ Ошибка чтения файла:', err);
+      setErrorMsg('Ошибка чтения файла');
+    };
     reader.readAsDataURL(file);
   };
 
-  const uploadImageToBackend = (apartmentId, file) => {
-    return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append('images', file);
+  // Загрузка изображения на бэкенд
+  const uploadImage = async (apartmentId, imageData) => {
+    console.log('📤 Загружаем изображение для помещения:', apartmentId);
+    
+    let file;
+    if (imageData instanceof File) {
+      file = imageData;
+      console.log('📤 Это File object, размер:', file.size);
+    } else if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
+      console.log('📤 Конвертируем base64 в File...');
+      const response = await fetch(imageData);
+      const blob = await response.blob();
+      file = new File([blob], 'image.png', { type: blob.type });
+      console.log('📤 Создан File, размер:', file.size);
+    } else {
+      throw new Error('Неверный формат изображения');
+    }
 
+    const formData = new FormData();
+    formData.append('images', file);
+
+    return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       
       xhr.upload.addEventListener('progress', (e) => {
@@ -130,6 +163,7 @@ export default function EditRoom() {
         if (xhr.status === 200) {
           try {
             const data = JSON.parse(xhr.response);
+            console.log('✅ Изображение загружено:', data);
             resolve(data);
           } catch (err) {
             reject(new Error('Ошибка парсинга ответа'));
@@ -141,7 +175,9 @@ export default function EditRoom() {
       
       xhr.onerror = () => reject(new Error('Ошибка сети'));
       
-      xhr.open('POST', `http://localhost:8080/api/account/apartments/${apartmentId}/upload-images`);
+      const url = `${API_URL}/api/account/apartments/${apartmentId}/upload-images`;
+      console.log('📤 URL загрузки:', url);
+      xhr.open('POST', url);
       xhr.withCredentials = true;
       xhr.send(formData);
     });
@@ -182,78 +218,121 @@ export default function EditRoom() {
     setErrorMsg('');
     setSuccessMsg('');
 
+    // Проверка: существует ли помещение
+    if (!room) {
+      setErrorMsg('Помещение не найдено');
+      return;
+    }
+
+    // Проверка: правильный ли ID
+    if (parseInt(id) !== room.id) {
+      setErrorMsg(`Ошибка: ID не совпадает. URL: ${id}, Данные: ${room.id}`);
+      return;
+    }
+
+    console.log('🔄 Начинаем сохранение...');
+    console.log('🖼️ imageChanged:', imageChanged);
+    console.log('📸 formData.image_file:', formData.image_file);
+    console.log('📸 formData.image_base64:', formData.image_base64 ? 'есть (длина ' + formData.image_base64.length + ')' : 'нет');
+
     try {
-      // Собираем только измененные поля
+      // ========== ОБРАБОТКА ИЗОБРАЖЕНИЯ ==========
+      // ЗАГРУЖАЕМ ИЗОБРАЖЕНИЕ ВСЕГДА, если оно есть
+      const imageToUpload = formData.image_file || formData.image_base64;
+      
+      if (imageToUpload) {
+        console.log('🖼️ Загружаем изображение...');
+        setUploading(true);
+        setUploadProgress(0);
+        
+        const result = await uploadImage(parseInt(id), imageToUpload);
+        console.log('✅ Изображение загружено:', result);
+        setUploading(false);
+        
+        // После загрузки изображения очищаем formData, чтобы не загружать повторно
+        setFormData(prev => ({
+          ...prev,
+          image_file: null,
+          image_base64: null
+        }));
+        setImageChanged(false);
+      } else {
+        console.log('🖼️ Нет нового изображения для загрузки');
+      }
+
+      // ========== ОБНОВЛЕНИЕ ДАННЫХ ПОМЕЩЕНИЯ ==========
       const updates = {};
       
-      if (formData.name !== room.name) updates.name = formData.name;
-      if (formData.description !== room.description) updates.description = formData.description || '';
-      if (formData.capacity !== room.capacity) updates.capacity = Number(formData.capacity);
-      if (formData.price_per_hour !== room.price_per_hour) updates.price_per_hour = Number(formData.price_per_hour);
-      if (formData.is_active !== room.is_active) updates.is_active = formData.is_active;
-      if (formData.metro !== room.metro) updates.metro = formData.metro;
-      if (formData.address !== room.address) updates.address = formData.address;
-      if (JSON.stringify(formData.amenities) !== JSON.stringify(room.amenities || [])) {
-        updates.amenities = formData.amenities;
+      if (formData.name !== room.name) {
+        updates.name = String(formData.name).trim();
+      }
+      
+      if (formData.description !== room.description) {
+        updates.description = String(formData.description || '').trim() || null;
+      }
+      
+      if (Number(formData.capacity) !== Number(room.capacity)) {
+        updates.capacity = Number(formData.capacity);
+      }
+      
+      if (Number(formData.price_per_hour) !== Number(room.price_per_hour)) {
+        updates.price_per_hour = Number(formData.price_per_hour);
+      }
+      
+      if (Boolean(formData.is_active) !== Boolean(room.is_active)) {
+        updates.is_active = Boolean(formData.is_active);
+      }
+      
+      if (formData.metro !== room.metro) {
+        updates.metro = String(formData.metro || '').trim() || null;
+      }
+      
+      if (formData.address !== room.address) {
+        updates.address = String(formData.address || '').trim() || null;
+      }
+      
+      const currentAmenities = Array.isArray(formData.amenities) ? formData.amenities : [];
+      const originalAmenities = Array.isArray(room.amenities) ? room.amenities : [];
+      
+      if (JSON.stringify(currentAmenities) !== JSON.stringify(originalAmenities)) {
+        updates.amenities = currentAmenities;
       }
 
-      console.log('📤 Отправляем обновление:', updates);
+      console.log('📤 Обновление данных помещения:', updates);
 
-      // Обработка изображения
-      if (imageChanged) {
-        if (formData.image_file) {
-          // >5MB - загружаем на бэкенд отдельно
-          // Сначала обновляем данные без изображения
-          if (Object.keys(updates).length > 0) {
-            console.log('📤 Шаг 1: Обновляем данные');
-            await updateApartment({
-              id: parseInt(id),
-              ...updates
-            }).unwrap();
-          }
-          
-          // Затем загружаем изображение
-          console.log('📤 Шаг 2: Загружаем изображение');
-          setUploading(true);
-          setUploadProgress(0);
-          await uploadImageToBackend(id, formData.image_file);
-          setUploading(false);
-          
-          setSuccessMsg('Помещение успешно обновлено!');
-          setTimeout(() => navigate('/my-rooms'), 1500);
-          return;
-        } else if (formData.image_base64) {
-          // ≤5MB - отправляем как base64
-          updates.image_url = formData.image_base64;
-        }
-      }
-
-      // Если ничего не изменилось
-      if (Object.keys(updates).length === 0) {
+      if (Object.keys(updates).length > 0) {
+        console.log('📤 Отправляем обновление данных:', updates);
+        const result = await updateApartment({
+          id: parseInt(id),
+          ...updates
+        }).unwrap();
+        console.log('✅ Данные обновлены:', result);
+      } else if (!imageToUpload) {
         setSuccessMsg('Никаких изменений не было внесено');
         setTimeout(() => setSuccessMsg(''), 2000);
         return;
       }
 
-      console.log('📤 Отправляем обновление с изображением:', updates);
-      const result = await updateApartment({
-        id: parseInt(id),
-        ...updates
-      }).unwrap();
-      
-      console.log('✅ Обновление успешно:', result);
       setSuccessMsg('Помещение успешно обновлено!');
       setTimeout(() => navigate('/my-rooms'), 1500);
+      
     } catch (err) {
       console.error('❌ Ошибка обновления:', err);
-      // Показываем детальную ошибку
-      const errorMessage = err?.data?.error || err?.message || 'Ошибка при обновлении помещения';
-      setErrorMsg(errorMessage);
       
-      // Если есть подробности в ответе
-      if (err?.data?.details) {
-        setErrorMsg(prev => prev + '\n' + JSON.stringify(err.data.details));
+      let errorMessage = 'Ошибка при обновлении помещения';
+      
+      if (err?.data?.error) {
+        errorMessage = err.data.error;
+      } else if (err?.message) {
+        errorMessage = err.message;
       }
+      
+      if (err?.data?.details) {
+        errorMessage += '\n' + JSON.stringify(err.data.details, null, 2);
+      }
+      
+      setErrorMsg(errorMessage);
+      setUploading(false);
     }
   };
 
@@ -396,54 +475,24 @@ export default function EditRoom() {
                   id="image-upload"
                 />
                 <label htmlFor="image-upload" className="file-input-label">
-                  {imageChanged ? 'Изменить изображение' : 'Выберите новое изображение'}
+                  Выберите изображение
                 </label>
                 
                 {formData.image_preview && (
                   <div className="image-preview">
                     <img 
-                      src={formData.image_preview.startsWith('data:') ? formData.image_preview : `http://localhost:8080${formData.image_preview}`} 
+                      src={formData.image_preview.startsWith('data:') ? formData.image_preview : `${API_URL}${formData.image_preview}`} 
                       alt="Preview"
                       onError={(e) => {
                         e.target.src = 'https://via.placeholder.com/300x200?text=Нет+изображения';
                       }}
                     />
-                    {imageChanged && (
-                      <button 
-                        type="button" 
-                        className="remove-image-btn"
-                        onClick={restoreOriginalImage}
-                      >
-                        ↺
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {!imageChanged && formData.existing_image_url && (
-                  <div style={{ marginTop: '8px', fontSize: '14px', color: '#10b981' }}>
-                    ✅ Текущее изображение сохранено
                     <button 
-                      type="button"
-                      onClick={() => {
-                        setImageChanged(true);
-                        setFormData(prev => ({
-                          ...prev,
-                          image_preview: '',
-                          existing_image_url: ''
-                        }));
-                      }}
-                      style={{ 
-                        marginLeft: '12px', 
-                        color: '#ef4444', 
-                        background: 'none', 
-                        border: 'none', 
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        textDecoration: 'underline'
-                      }}
+                      type="button" 
+                      className="remove-image-btn"
+                      onClick={restoreOriginalImage}
                     >
-                      Удалить изображение
+                      ✕
                     </button>
                   </div>
                 )}
@@ -470,6 +519,9 @@ export default function EditRoom() {
                   </div>
                 )}
               </div>
+              <small className="form-hint">
+                Поддерживаются JPG, PNG, GIF, WEBP. Максимум 20MB
+              </small>
             </div>
 
             {/* Удобства */}
