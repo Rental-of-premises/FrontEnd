@@ -89,6 +89,27 @@ export default function MyRooms() {
     });
   }
 
+  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИЗОБРАЖЕНИЯ (ПЕРВОЕ ИЗОБРАЖЕНИЕ) =====
+  const getRoomImage = (room, index) => {
+    // 1. Проверяем imageMap
+    if (imageMap && imageMap[room.id]) {
+      return imageMap[room.id];
+    }
+    
+    // 2. Проверяем images напрямую по индексу
+    if (images && images[index] && images[index].length > 0) {
+      return images[index][0].image_url;
+    }
+    
+    // 3. Проверяем напрямую в room
+    if (room.image_url) {
+      return room.image_url;
+    }
+    
+    // 4. Заглушка
+    return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
+  };
+
   // ===== СОРТИРОВКА ПОМЕЩЕНИЙ =====
   const rooms = useMemo(() => {
     const data = Array.isArray(roomsData) ? roomsData : [];
@@ -110,14 +131,6 @@ export default function MyRooms() {
   }, [sellerBookings]);
 
   const waitingBookings = sortedBookings.filter(b => b.status === 'waiting');
-
-  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИЗОБРАЖЕНИЯ =====
-  const getRoomImage = (room) => {
-    if (imageMap[room.id]) {
-      return imageMap[room.id];
-    }
-    return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
-  };
 
   // ===== УДАЛЕНИЕ ПОМЕЩЕНИЯ =====
   const handleDelete = async (id) => {
@@ -383,7 +396,7 @@ export default function MyRooms() {
                 </Link>
               </div>
             ) : (
-              rooms.map(room => (
+              rooms.map((room, index) => (
                 <div 
                   key={room.id} 
                   style={{
@@ -411,7 +424,7 @@ export default function MyRooms() {
                 >
                   <div style={{ position: 'relative', height: '200px', width: '100%', overflow: 'hidden' }}>
                     <img 
-                      src={getRoomImage(room)}
+                      src={getRoomImage(room, index)}
                       alt={room.name} 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                       onError={(e) => {
@@ -625,7 +638,6 @@ export default function MyRooms() {
                 const totalPrice = hoursDiff * (booking.price_per_hour || 0);
                 const isWaiting = booking.status === 'waiting';
                 const userName = userNames[booking.user_id] || `Пользователь #${booking.user_id}`;
-                // ===== ИСПОЛЬЗУЕМ КАРТУ НАЗВАНИЙ =====
                 const roomName = apartmentNames[booking.apartment_id] || `Помещение #${booking.apartment_id}`;
 
                 return (

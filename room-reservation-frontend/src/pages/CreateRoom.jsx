@@ -16,21 +16,18 @@ export default function CreateRoom() {
     description: '',
     capacity: 1,
     price_per_hour: 500,
-    image_file: null,
-    image_base64: null,
+    image_files: [],
+    image_previews: [],
     metro: '',
     address: '',
-    amenities: []
   });
   
-  const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [amenityInput, setAmenityInput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isLargeImage, setIsLargeImage] = useState(false);
 
-  const MAX_CLIENT_STORAGE = 5 * 1024 * 1024;
+  const MAX_FILES = 10;
+  const API_URL = 'https://team3.verstack.ru';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,71 +35,54 @@ export default function CreateRoom() {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      setError('Пожалуйста, выберите изображение');
-      return;
-    }
-
-    if (file.size > 20 * 1024 * 1024) {
-      setError('Изображение не должно превышать 20MB');
-      return;
-    }
-
-    const isLarge = file.size > MAX_CLIENT_STORAGE;
-    setIsLargeImage(isLarge);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-      
-      if (isLarge) {
-        setFormData(prev => ({
-          ...prev,
-          image_file: file,
-          image_base64: null,
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          image_file: null,
-          image_base64: reader.result,
-        }));
-      }
-    };
+    const files = Array.from(e.target.files);
     
-    reader.readAsDataURL(file);
-    setError('');
-  };
+    if (formData.image_previews.length + files.length > MAX_FILES) {
+      setError(`Максимум ${MAX_FILES} изображений`);
+      return;
+    }
 
-  const handleAddAmenity = () => {
-    if (amenityInput.trim() && !formData.amenities.includes(amenityInput.trim())) {
+    const validFiles = [];
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        setError(`Файл "${file.name}" не является изображением`);
+        continue;
+      }
+      if (file.size > 20 * 1024 * 1024) {
+        setError(`Файл "${file.name}" больше 20MB`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) return;
+
+    const readers = validFiles.map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve({ file, preview: reader.result });
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then((results) => {
       setFormData(prev => ({
         ...prev,
-        amenities: [...prev.amenities, amenityInput.trim()]
+        image_files: [...prev.image_files, ...results.map(r => r.file)],
+        image_previews: [...prev.image_previews, ...results.map(r => r.preview)]
       }));
-      setAmenityInput('');
-    }
+      setError('');
+    });
   };
 
-  const handleRemoveAmenity = (amenity) => {
+  const removeImage = (index) => {
     setFormData(prev => ({
       ...prev,
-      amenities: prev.amenities.filter(a => a !== amenity)
+      image_files: prev.image_files.filter((_, i) => i !== index),
+      image_previews: prev.image_previews.filter((_, i) => i !== index)
     }));
-  };
-
-  const saveImageAsDataUrl = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        resolve(e.target.result);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
   };
 
   const handleSubmit = async (e) => {
@@ -116,8 +96,8 @@ export default function CreateRoom() {
       return;
     }
 
-    if (!formData.image_base64 && !formData.image_file) {
-      setError('Пожалуйста, выберите изображение');
+    if (formData.image_files.length === 0) {
+      setError('Выберите хотя бы одно изображение');
       setLoading(false);
       return;
     }
@@ -136,32 +116,41 @@ export default function CreateRoom() {
 
     try {
       setUploading(true);
-      let imageDataUrl = null;
-      
-      if (formData.image_file) {
-        imageDataUrl = await saveImageAsDataUrl(formData.image_file);
-        setUploading(false);
-      } else if (formData.image_base64) {
-        imageDataUrl = formData.image_base64;
-      }
       
       const payload = {
         title: formData.title,
         description: formData.description || '',
         capacity: Number(formData.capacity),
         price_per_hour: Number(formData.price_per_hour),
-        image_url: imageDataUrl,
         metro: formData.metro,
         address: formData.address,
-        amenities: formData.amenities
+        is_active: true
       };
       
-      await addApartment(payload).unwrap();
+      const result = await addApartment(payload).unwrap();
+      const apartmentId = result.id;
+
+      const formDataUpload = new FormData();
+      for (const file of formData.image_files) {
+        formDataUpload.append('images', file);
+      }
+
+      const uploadResponse = await fetch(`${API_URL}/api/account/apartments/${apartmentId}/upload-images`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formDataUpload
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Ошибка загрузки изображений');
+      }
+
       navigate('/my-rooms');
     } catch (err) {
       setError(err.data?.error || err.message || 'Ошибка при добавлении помещения');
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -194,7 +183,7 @@ export default function CreateRoom() {
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
-                placeholder="Опишите помещение, его особенности и для чего оно лучше всего подходит..."
+                placeholder="Опишите помещение..."
               />
             </div>
 
@@ -249,7 +238,7 @@ export default function CreateRoom() {
             </div>
 
             <div className="form-group">
-              <label>Изображение помещения *</label>
+              <label>Изображения помещения * (макс. {MAX_FILES})</label>
               <div className="image-upload-area">
                 <input
                   type="file"
@@ -257,58 +246,64 @@ export default function CreateRoom() {
                   onChange={handleFileChange}
                   className="file-input"
                   id="image-upload"
+                  multiple
                 />
                 <label htmlFor="image-upload" className="file-input-label">
-                  {imagePreview ? 'Изменить изображение' : 'Выберите изображение'}
+                  {formData.image_files.length > 0 
+                    ? `Выбрано ${formData.image_files.length} файлов` 
+                    : 'Выберите изображения'}
                 </label>
                 
-                {imagePreview && (
-                  <div className="image-preview">
-                    <img src={imagePreview} alt="Preview" />
-                    <button 
-                      type="button" 
-                      className="remove-image-btn"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, image_file: null, image_base64: null }));
-                        setImagePreview(null);
-                        setIsLargeImage(false);
-                      }}
-                    >
-                      ×
-                    </button>
+                {formData.image_previews.length > 0 && (
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
+                    gap: '10px',
+                    marginTop: '12px'
+                  }}>
+                    {formData.image_previews.map((preview, index) => (
+                      <div key={index} style={{ position: 'relative' }}>
+                        <img 
+                          src={preview} 
+                          alt={`Превью ${index + 1}`} 
+                          style={{ 
+                            width: '100%', 
+                            height: '100px', 
+                            objectFit: 'cover',
+                            borderRadius: '8px',
+                            border: '1px solid #e2e8f0'
+                          }} 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          style={{
+                            position: 'absolute',
+                            top: '4px',
+                            right: '4px',
+                            width: '24px',
+                            height: '24px',
+                            background: 'rgba(0,0,0,0.6)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
               <small className="form-hint">
-                {isLargeImage ? 'Файл >5MB будет загружен на сервер' : 'Файлы ≤5MB хранятся локально'}
+                Максимум {MAX_FILES} файлов, каждый до 20MB. Поддерживаются JPG, PNG, GIF, WEBP.
               </small>
-            </div>
-
-            <div className="form-group">
-              <label>Удобства</label>
-              <div className="amenities-input-group">
-                <input
-                  type="text"
-                  value={amenityInput}
-                  onChange={(e) => setAmenityInput(e.target.value)}
-                  placeholder="Добавить удобство (WiFi, Кофе, ...)"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAmenity())}
-                />
-                <button type="button" onClick={handleAddAmenity} className="add-amenity-btn">
-                  + Добавить
-                </button>
-              </div>
-              
-              {formData.amenities.length > 0 && (
-                <div className="amenities-tags">
-                  {formData.amenities.map(amenity => (
-                    <span key={amenity} className="amenity-tag-remove">
-                      {amenity}
-                      <button type="button" onClick={() => handleRemoveAmenity(amenity)}>×</button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div className="form-actions">
@@ -320,7 +315,7 @@ export default function CreateRoom() {
                 className="submit-btn" 
                 disabled={loading || uploading}
               >
-                {uploading ? 'Сохранение изображения...' : loading ? 'Публикация...' : 'Опубликовать'}
+                {uploading ? 'Загрузка...' : loading ? 'Публикация...' : 'Опубликовать'}
               </button>
             </div>
           </form>
