@@ -155,7 +155,6 @@ export default function EditRoom() {
 
       // Удаляем отмеченные изображения
       for (const url of imagesToDelete) {
-        // Находим ID изображения по URL
         const imgToDelete = existingImages.find(img => img.image_url === url);
         if (imgToDelete) {
           await fetch(`${API_URL}/api/account/delete-image/${imgToDelete.id}`, {
