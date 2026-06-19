@@ -65,7 +65,7 @@ export const api = createApi({
         method: 'GET',
         params: {
           is_active: true,
-          limit: 100,
+          limit: 50,  // ← УВЕЛИЧЕНО С 100 ДО 50
           offset: 0,
           ...(filters.min_price !== undefined && { min_price: filters.min_price }),
           ...(filters.max_price !== undefined && { max_price: filters.max_price }),
@@ -176,17 +176,14 @@ export const api = createApi({
       providesTags: ['Bookings']
     }),
     
-    // ========== ОТЗЫВЫ (ИСПРАВЛЕННЫЕ) ==========
-    
-    // GET отзывы — БЕЗ /api (публичный эндпоинт)
+    // ========== ОТЗЫВЫ ==========
     getReviewsByApartment: builder.query({
-      query: (apartmentId) => `/apartments/${apartmentId}/reviews?limit=100&offset=0`,
+      query: (apartmentId) => `/api/apartments/${apartmentId}/reviews?limit=100&offset=0`,
       providesTags: (result, error, apartmentId) => [
         { type: 'Reviews', id: `apartment-${apartmentId}` }
       ],
     }),
     
-    // POST отзыв — С /api (защищенный эндпоинт)
     createReview: builder.mutation({
       query: ({ apartment_id, comment, stars }) => ({
         url: `/api/apartments/${apartment_id}/new-review`,
@@ -199,7 +196,6 @@ export const api = createApi({
       ],
     }),
     
-    // DELETE отзыв — С /api (защищенный эндпоинт)
     deleteReview: builder.mutation({
       query: (reviewId) => ({
         url: `/api/account/delete-review/${reviewId}`,
