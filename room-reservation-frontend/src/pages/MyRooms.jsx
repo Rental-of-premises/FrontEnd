@@ -46,6 +46,7 @@ export default function MyRooms() {
     }
   }, [roomsData]);
 
+  // ========== ЗАГРУЗКА ИМЁН ПОЛЬЗОВАТЕЛЕЙ ДЛЯ БРОНЕЙ ==========
   useEffect(() => {
     const fetchUserNames = async () => {
       if (!sellerBookings || sellerBookings.length === 0) return;
@@ -61,7 +62,8 @@ export default function MyRooms() {
           });
           if (response.ok) {
             const userData = await response.json();
-            names[userId] = userData.name || `Пользователь #${userId}`;
+            // ✅ Берем user из вложенного объекта
+            names[userId] = userData.user?.name || userData.name || `Пользователь #${userId}`;
           } else {
             names[userId] = `Пользователь #${userId}`;
           }
@@ -508,7 +510,6 @@ export default function MyRooms() {
                       </span>
                     </div>
 
-                    {/* ===== УДОБСТВА ===== */}
                     <div style={{ 
                       display: 'flex', 
                       flexWrap: 'wrap', 
