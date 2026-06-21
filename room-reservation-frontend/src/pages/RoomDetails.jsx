@@ -54,6 +54,7 @@ export default function RoomDetails() {
     }
   }, []);
 
+  // ========== ЗАГРУЗКА ВЛАДЕЛЬЦА ==========
   useEffect(() => {
     if (room && room.seller_id) {
       const fetchSeller = async () => {
@@ -67,7 +68,8 @@ export default function RoomDetails() {
           });
           if (response.ok) {
             const data = await response.json();
-            setSellerData(data);
+            // ✅ Берем user из вложенного объекта
+            setSellerData(data.user || data);
           }
         } catch (err) {
           console.error('Ошибка загрузки владельца:', err);
@@ -79,6 +81,7 @@ export default function RoomDetails() {
     }
   }, [room]);
 
+  // ========== ЗАГРУЗКА ИМЁН ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ОТЗЫВОВ ==========
   useEffect(() => {
     const safeReviews = Array.isArray(reviewsData) ? reviewsData : [];
     if (safeReviews.length > 0) {
@@ -96,7 +99,8 @@ export default function RoomDetails() {
             });
             if (response.ok) {
               const userData = await response.json();
-              names[userId] = userData.name || `Пользователь #${userId}`;
+              // ✅ Берем user из вложенного объекта
+              names[userId] = userData.user?.name || userData.name || `Пользователь #${userId}`;
             } else {
               names[userId] = `Пользователь #${userId}`;
             }

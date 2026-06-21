@@ -37,6 +37,7 @@ export default function Reviews() {
   
   const [userNames, setUserNames] = useState({});
 
+  // ========== ЗАГРУЗКА ИМЁН ПОЛЬЗОВАТЕЛЕЙ ==========
   useEffect(() => {
     if (reviews && reviews.length > 0) {
       const fetchUserNames = async () => {
@@ -52,7 +53,8 @@ export default function Reviews() {
               });
               if (response.ok) {
                 const userData = await response.json();
-                names[review.user_id] = userData.name || `Пользователь #${review.user_id}`;
+                // ✅ Берем user из вложенного объекта
+                names[review.user_id] = userData.user?.name || userData.name || `Пользователь #${review.user_id}`;
               } else {
                 names[review.user_id] = `Пользователь #${review.user_id}`;
               }
