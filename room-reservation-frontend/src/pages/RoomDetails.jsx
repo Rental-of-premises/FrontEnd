@@ -299,15 +299,17 @@ export default function RoomDetails() {
             <div className="room-details-amenities">
               <h3>Удобства</h3>
               <div className="amenities-list">
-                {room.amenities?.map((item, idx) => (
-                  <span key={idx} className="amenity-tag">✓ {item}</span>
-                ))}
-                {(!room.amenities || room.amenities.length === 0) && (
-                  <>
-                    <span className="amenity-tag">✓ WiFi</span>
-                    <span className="amenity-tag">✓ Кондиционер</span>
-                    <span className="amenity-tag">✓ Рабочее место</span>
-                  </>
+                {room.amenities && room.amenities.length > 0 ? (
+                  room.amenities.map((item, idx) => {
+                    const amenityName = typeof item === 'string' ? item : item?.name || 'Неизвестно';
+                    return (
+                      <span key={idx} className="amenity-tag">
+                        ✓ {amenityName}
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span style={{ color: '#94a3b8' }}>Нет удобств</span>
                 )}
               </div>
             </div>

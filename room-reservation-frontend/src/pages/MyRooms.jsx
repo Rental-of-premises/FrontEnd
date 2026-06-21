@@ -86,15 +86,15 @@ export default function MyRooms() {
 
   const getRoomImage = (room, index) => {
     if (imageMap && imageMap[room.id]) {
-      return imageMap[room.id];
+      return `${API_URL}${imageMap[room.id]}`;
     }
     
     if (images && images[index] && images[index].length > 0) {
-      return images[index][0].image_url;
+      return `${API_URL}${images[index][0].image_url}`;
     }
     
     if (room.image_url) {
-      return room.image_url;
+      return `${API_URL}${room.image_url}`;
     }
     
     return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
@@ -503,24 +503,32 @@ export default function MyRooms() {
                       </span>
                     </div>
 
+                    {/* ===== УДОБСТВА ===== */}
                     <div style={{ 
                       display: 'flex', 
                       flexWrap: 'wrap', 
                       gap: '6px', 
                       marginBottom: '20px' 
                     }}>
-                      {room.amenities?.slice(0, 4).map((item, idx) => (
-                        <span key={idx} style={{ 
-                          padding: '4px 10px', 
-                          fontSize: '11px', 
-                          fontWeight: '500', 
-                          color: '#4a5568', 
-                          background: '#f1f3f5', 
-                          borderRadius: '6px' 
-                        }}>
-                          {item}
-                        </span>
-                      ))}
+                      {room.amenities && room.amenities.length > 0 ? (
+                        room.amenities.slice(0, 4).map((item, idx) => {
+                          const amenityName = typeof item === 'string' ? item : item?.name || 'Неизвестно';
+                          return (
+                            <span key={idx} style={{ 
+                              padding: '4px 10px', 
+                              fontSize: '11px', 
+                              fontWeight: '500', 
+                              color: '#4a5568', 
+                              background: '#f1f3f5', 
+                              borderRadius: '6px' 
+                            }}>
+                              {amenityName}
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>Нет удобств</span>
+                      )}
                       {room.amenities?.length > 4 && (
                         <span style={{ 
                           padding: '4px 10px', 
@@ -532,12 +540,6 @@ export default function MyRooms() {
                         }}>
                           +{room.amenities.length - 4}
                         </span>
-                      )}
-                      {(!room.amenities || room.amenities.length === 0) && (
-                        <>
-                          <span style={{ padding: '4px 10px', fontSize: '11px', fontWeight: '500', color: '#4a5568', background: '#f1f3f5', borderRadius: '6px' }}>WiFi</span>
-                          <span style={{ padding: '4px 10px', fontSize: '11px', fontWeight: '500', color: '#4a5568', background: '#f1f3f5', borderRadius: '6px' }}>Кондиционер</span>
-                        </>
                       )}
                     </div>
 

@@ -1,9 +1,10 @@
-// src/pages/Catalog.jsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useGetCatalogQuery } from '../store/api';
 import Navbar from '../components/Navbar';
 import MetroAutocomplete from '../components/MetroAutocomplete';
+
+const API_URL = 'https://team3.verstack.ru';
 
 export default function Catalog() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,7 +25,6 @@ export default function Catalog() {
   const rooms = data?.apartments || [];
   const imagesData = data?.images || [];
 
-  //КАРТА ИЗОБРАЖЕНИЙ ПО ID ПОМЕЩЕНИЯ
   const imageMap = {};
   if (Array.isArray(imagesData)) {
     imagesData.forEach((imageList, index) => {
@@ -34,10 +34,9 @@ export default function Catalog() {
     });
   }
 
-  //ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИЗОБРАЖЕНИЯ
   const getRoomImage = (room) => {
     if (imageMap[room.id]) {
-      return imageMap[room.id];
+      return `${API_URL}${imageMap[room.id]}`;
     }
     return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
   };
@@ -265,25 +264,26 @@ export default function Catalog() {
                   minHeight: '32px',
                   alignItems: 'center'
                 }}>
-                  {room.amenities?.map((item, idx) => (
-                    <span key={idx} className="amenity" style={{ 
-                      padding: '4px 10px', 
-                      fontSize: '11px', 
-                      fontWeight: '500', 
-                      color: '#4a5568', 
-                      background: '#f1f3f5', 
-                      borderRadius: '6px',
-                      whiteSpace: 'nowrap',
-                      display: 'inline-block'
-                    }}>
-                      {item}
-                    </span>
-                  ))}
-                  {(!room.amenities || room.amenities.length === 0) && (
-                    <>
-                      <span className="amenity" style={{ padding: '4px 10px', fontSize: '11px', fontWeight: '500', color: '#4a5568', background: '#f1f3f5', borderRadius: '6px', whiteSpace: 'nowrap', display: 'inline-block' }}>WiFi</span>
-                      <span className="amenity" style={{ padding: '4px 10px', fontSize: '11px', fontWeight: '500', color: '#4a5568', background: '#f1f3f5', borderRadius: '6px', whiteSpace: 'nowrap', display: 'inline-block' }}>Кондиционер</span>
-                    </>
+                  {room.amenities && room.amenities.length > 0 ? (
+                    room.amenities.map((item, idx) => {
+                      const amenityName = typeof item === 'string' ? item : item?.name || 'Неизвестно';
+                      return (
+                        <span key={idx} className="amenity" style={{ 
+                          padding: '4px 10px', 
+                          fontSize: '11px', 
+                          fontWeight: '500', 
+                          color: '#4a5568', 
+                          background: '#f1f3f5', 
+                          borderRadius: '6px',
+                          whiteSpace: 'nowrap',
+                          display: 'inline-block'
+                        }}>
+                          {amenityName}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>Нет удобств</span>
                   )}
                 </div>
                 

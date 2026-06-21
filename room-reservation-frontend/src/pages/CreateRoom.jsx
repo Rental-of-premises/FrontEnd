@@ -22,7 +22,7 @@ export default function CreateRoom() {
     image_previews: [],
     metro: '',
     address: '',
-    amenities: [], // ← добавляем массив ID удобств
+    amenities: [],
   });
   
   const [uploading, setUploading] = useState(false);
@@ -131,7 +131,7 @@ export default function CreateRoom() {
         metro: formData.metro,
         address: formData.address,
         is_active: true,
-        amenities: formData.amenities // ← отправляем массив ID удобств
+        amenities: formData.amenities
       };
       
       const result = await addApartment(payload).unwrap();
@@ -244,7 +244,6 @@ export default function CreateRoom() {
               </div>
             </div>
 
-            {/* ===== УДОБСТВА ===== */}
             <AmenitiesSelector
               selectedIds={formData.amenities}
               onChange={handleAmenitiesChange}

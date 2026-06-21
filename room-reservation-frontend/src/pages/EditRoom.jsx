@@ -31,7 +31,7 @@ export default function EditRoom() {
     existing_images: [],
     metro: '',
     address: '',
-    amenities: [], // ← массив ID удобств
+    amenities: [],
   });
   
   const [uploading, setUploading] = useState(false);
@@ -44,7 +44,6 @@ export default function EditRoom() {
 
   useEffect(() => {
     if (room) {
-      // Получаем ID удобств из объекта
       const amenityIds = room.amenities?.map(a => a.id) || [];
       
       setFormData({
@@ -155,7 +154,6 @@ export default function EditRoom() {
       if (formData.metro !== room.metro) updates.metro = String(formData.metro || '').trim() || null;
       if (formData.address !== room.address) updates.address = String(formData.address || '').trim() || null;
       
-      // Обновляем удобства (отправляем массив ID)
       const currentAmenityIds = room.amenities?.map(a => a.id) || [];
       if (JSON.stringify(formData.amenities) !== JSON.stringify(currentAmenityIds)) {
         updates.amenities = formData.amenities;
@@ -324,7 +322,6 @@ export default function EditRoom() {
               </div>
             </div>
 
-            {/* ===== УДОБСТВА ===== */}
             <AmenitiesSelector
               selectedIds={formData.amenities}
               onChange={handleAmenitiesChange}
