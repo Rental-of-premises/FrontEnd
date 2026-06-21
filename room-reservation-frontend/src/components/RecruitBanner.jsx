@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const RECRUIT_URL = 'https://www.youtube.com/watch?v=ваше_видео';
+const RECRUIT_URL = 'https://youtu.be/dQw4w9WgXcQ?si=RHezddyowa-u14TP';
 const BANNER_HIDE_KEY = 'recruit_banner_hidden_until';
 
 export default function RecruitBanner() {
@@ -125,7 +125,7 @@ export default function RecruitBanner() {
 
       {isMinimized ? (
         <img
-          src="https://giffun.ru/wp-content/uploads/2022/08/milaya-animatsiya-1.gif"
+          src="https://giffun.ru/wp-content/uploads/2022/08/bongo-cat-typing.gif"
           alt="Милая гифка с котом"
           style={{
             width: '100%',
@@ -143,7 +143,7 @@ export default function RecruitBanner() {
             marginBottom: '8px'
           }}>
             <img
-              src="https://giffun.ru/wp-content/uploads/2022/08/milaya-animatsiya-1.gif"
+              src="https://giffun.ru/wp-content/uploads/2022/08/bongo-cat-typing.gif"
               alt="Милая гифка с котом"
               style={{
                 width: '100%',
