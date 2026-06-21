@@ -14,8 +14,8 @@ import MyRooms from './pages/MyRooms';
 import EditRoom from './pages/EditRoom';
 import Reviews from './pages/Reviews';
 import ConfirmEmail from './pages/ConfirmEmail';
+import RecruitBanner from './components/RecruitBanner'; // ✅ Добавляем импорт
 
-// Компонент-обертка для проверки авторизации
 function AuthChecker() {
   const { user, logout } = useAuth();
 
@@ -52,22 +52,25 @@ function AuthChecker() {
 
 function AppContent() {
   return (
-    <Routes>
-      <Route path="/" element={<Catalog />} />
-      <Route path="/catalog" element={<Catalog />} />
-      <Route path="/catalog/:id" element={<RoomDetails />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/confirm-email" element={<ConfirmEmail />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/create-room" element={<CreateRoom />} />
-      <Route path="/my-bookings" element={<MyBookings />} />
-      <Route path="/booking/:id" element={<BookingForm />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/my-rooms" element={<MyRooms />} />
-      <Route path="/edit-room/:id" element={<EditRoom />} />
-      <Route path="/reviews/:id" element={<Reviews />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Catalog />} />
+        <Route path="/catalog" element={<Catalog />} />
+        <Route path="/catalog/:id" element={<RoomDetails />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/confirm-email" element={<ConfirmEmail />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/create-room" element={<CreateRoom />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/booking/:id" element={<BookingForm />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/my-rooms" element={<MyRooms />} />
+        <Route path="/edit-room/:id" element={<EditRoom />} />
+        <Route path="/reviews/:id" element={<Reviews />} />
+      </Routes>
+      <RecruitBanner /> {/* ✅ Добавляем баннер */}
+    </>
   );
 }
 

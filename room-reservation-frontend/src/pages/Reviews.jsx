@@ -36,11 +36,13 @@ export default function Reviews() {
   const [deletingId, setDeletingId] = useState(null);
   
   const [userNames, setUserNames] = useState({});
+  const [userAvatars, setUserAvatars] = useState({});
 
   useEffect(() => {
     if (reviews && reviews.length > 0) {
-      const fetchUserNames = async () => {
+      const fetchUserData = async () => {
         const names = {};
+        const avatars = {};
         for (const review of reviews) {
           if (review.user_id && !names[review.user_id]) {
             try {
@@ -51,8 +53,12 @@ export default function Reviews() {
                 }
               });
               if (response.ok) {
-                const userData = await response.json();
-                names[review.user_id] = userData.user?.name || userData.name || `Пользователь #${review.user_id}`;
+                const data = await response.json();
+                const userData = data.user || data;
+                names[review.user_id] = userData.name || `Пользователь #${review.user_id}`;
+                if (data.avatar) {
+                  avatars[review.user_id] = data.avatar.image_data;
+                }
               } else {
                 names[review.user_id] = `Пользователь #${review.user_id}`;
               }
@@ -63,8 +69,9 @@ export default function Reviews() {
           }
         }
         setUserNames(names);
+        setUserAvatars(avatars);
       };
-      fetchUserNames();
+      fetchUserData();
     }
   }, [reviews]);
 
@@ -151,6 +158,11 @@ export default function Reviews() {
   const getUserDisplayName = (review) => {
     if (!review || !review.user_id) return 'Неизвестный пользователь';
     return userNames[review.user_id] || `Пользователь #${review.user_id}`;
+  };
+
+  const getUserAvatar = (review) => {
+    if (!review || !review.user_id) return null;
+    return userAvatars[review.user_id] || null;
   };
 
   const getAvatarLetter = (review) => {
@@ -298,49 +310,66 @@ export default function Reviews() {
               <p style={{ color: '#64748b', marginBottom: '24px' }}>Будьте первым, кто оставит отзыв об этом помещении!</p>
             </div>
           ) : (
-            reviews.map(review => (
-              <div key={review.id} className="review-card" style={{ background: 'white', borderRadius: '16px', padding: '20px', marginBottom: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                <div className="review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                  <div className="review-user" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="user-avatar" style={{ width: '36px', height: '36px', background: '#2850a7', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
-                      {getAvatarLetter(review)}
-                    </span>
-                    <span className="user-name" style={{ fontWeight: '600', color: '#1e293b' }}>
-                      {getUserDisplayName(review)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div className="review-rating">
-                      {renderStars(review.stars || 0)}
+            reviews.map(review => {
+              const avatar = getUserAvatar(review);
+              return (
+                <div key={review.id} className="review-card" style={{ background: 'white', borderRadius: '16px', padding: '20px', marginBottom: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                  <div className="review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div className="review-user" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {avatar ? (
+                        <img 
+                          src={avatar} 
+                          alt={getUserDisplayName(review)} 
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: '1px solid #e2e8f0'
+                          }}
+                        />
+                      ) : (
+                        <span className="user-avatar" style={{ width: '36px', height: '36px', background: '#2850a7', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
+                          {getAvatarLetter(review)}
+                        </span>
+                      )}
+                      <span className="user-name" style={{ fontWeight: '600', color: '#1e293b' }}>
+                        {getUserDisplayName(review)}
+                      </span>
                     </div>
-                    {isAuthor(review) && (
-                      <button
-                        onClick={() => handleDeleteReview(review)}
-                        disabled={deletingId === review.id}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#ef4444',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      >
-                        {deletingId === review.id ? '...' : '✕ Удалить'}
-                      </button>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="review-rating">
+                        {renderStars(review.stars || 0)}
+                      </div>
+                      {isAuthor(review) && (
+                        <button
+                          onClick={() => handleDeleteReview(review)}
+                          disabled={deletingId === review.id}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          {deletingId === review.id ? '...' : '✕ Удалить'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="review-comment" style={{ color: '#334155', lineHeight: '1.6', marginBottom: '12px', fontSize: '15px' }}>{review.comment}</p>
+                  <div className="review-date" style={{ color: '#94a3b8', fontSize: '12px' }}>
+                    {formatDate(review.created_at)}
                   </div>
                 </div>
-                <p className="review-comment" style={{ color: '#334155', lineHeight: '1.6', marginBottom: '12px', fontSize: '15px' }}>{review.comment}</p>
-                <div className="review-date" style={{ color: '#94a3b8', fontSize: '12px' }}>
-                  {formatDate(review.created_at)}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

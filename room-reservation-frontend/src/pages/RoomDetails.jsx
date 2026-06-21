@@ -44,7 +44,9 @@ export default function RoomDetails() {
   const [deletingReviewId, setDeletingReviewId] = useState(null);
   
   const [userNames, setUserNames] = useState({});
+  const [userAvatars, setUserAvatars] = useState({});
   const [sellerData, setSellerData] = useState(null);
+  const [sellerAvatar, setSellerAvatar] = useState(null);
   const [loadingSeller, setLoadingSeller] = useState(false);
 
   useEffect(() => {
@@ -54,6 +56,7 @@ export default function RoomDetails() {
     }
   }, []);
 
+  // ========== ЗАГРУЗКА ВЛАДЕЛЬЦА ==========
   useEffect(() => {
     if (room && room.seller_id) {
       const fetchSeller = async () => {
@@ -67,7 +70,11 @@ export default function RoomDetails() {
           });
           if (response.ok) {
             const data = await response.json();
-            setSellerData(data.user || data);
+            const userData = data.user || data;
+            setSellerData(userData);
+            if (data.avatar) {
+              setSellerAvatar(data.avatar.image_data);
+            }
           }
         } catch (err) {
           console.error('Ошибка загрузки владельца:', err);
@@ -79,11 +86,13 @@ export default function RoomDetails() {
     }
   }, [room]);
 
+  // ========== ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ОТЗЫВОВ ==========
   useEffect(() => {
     const safeReviews = Array.isArray(reviewsData) ? reviewsData : [];
     if (safeReviews.length > 0) {
-      const fetchUserNames = async () => {
+      const fetchUserData = async () => {
         const names = {};
+        const avatars = {};
         const uniqueUserIds = [...new Set(safeReviews.map(r => r.user_id).filter(Boolean))];
         
         const promises = uniqueUserIds.map(async (userId) => {
@@ -95,8 +104,12 @@ export default function RoomDetails() {
               }
             });
             if (response.ok) {
-              const userData = await response.json();
-              names[userId] = userData.user?.name || userData.name || `Пользователь #${userId}`;
+              const data = await response.json();
+              const userData = data.user || data;
+              names[userId] = userData.name || `Пользователь #${userId}`;
+              if (data.avatar) {
+                avatars[userId] = data.avatar.image_data;
+              }
             } else {
               names[userId] = `Пользователь #${userId}`;
             }
@@ -108,8 +121,9 @@ export default function RoomDetails() {
         
         await Promise.all(promises);
         setUserNames(names);
+        setUserAvatars(avatars);
       };
-      fetchUserNames();
+      fetchUserData();
     }
   }, [reviewsData]);
 
@@ -209,6 +223,11 @@ export default function RoomDetails() {
     return userNames[review.user_id] || `Пользователь #${review.user_id}`;
   };
 
+  const getUserAvatar = (review) => {
+    if (!review || !review.user_id) return null;
+    return userAvatars[review.user_id] || null;
+  };
+
   if (isLoading) {
     return (
       <>
@@ -274,19 +293,49 @@ export default function RoomDetails() {
               <div className="spec-item">
                 <span className="spec-icon">👤</span>
                 <span className="spec-label">Владелец:</span>
-                <span className="spec-value">
+                <span className="spec-value" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {loadingSeller ? (
                     'Загрузка...'
                   ) : sellerData ? (
                     <>
-                      {sellerData.name || `Пользователь #${room.seller_id}`}
-                      <span style={{ 
-                        display: 'block', 
-                        fontSize: '12px', 
-                        color: '#94a3b8',
-                        fontWeight: '400'
-                      }}>
-                        📧 {sellerData.email || 'Email не указан'}
+                      {sellerAvatar ? (
+                        <img 
+                          src={sellerAvatar} 
+                          alt={sellerData.name} 
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: '2px solid #e2e8f0'
+                          }}
+                        />
+                      ) : (
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          background: '#2850a7',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontWeight: '700'
+                        }}>
+                          {sellerData.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </span>
+                      )}
+                      <span>
+                        {sellerData.name || `Пользователь #${room.seller_id}`}
+                        <span style={{ 
+                          display: 'block', 
+                          fontSize: '12px', 
+                          color: '#94a3b8',
+                          fontWeight: '400'
+                        }}>
+                          📧 {sellerData.email || 'Email не указан'}
+                        </span>
                       </span>
                     </>
                   ) : (
@@ -389,40 +438,71 @@ export default function RoomDetails() {
                     ) : !reviewsData || reviewsData.length === 0 ? (
                       <div className="empty-reviews">Пока нет отзывов. Будьте первым!</div>
                     ) : (
-                      reviewsData.map(review => (
-                        <div key={review.id} className="review-item-modal">
-                          <div className="review-item-header">
-                            <span className="review-user-name">
-                              {getUserDisplayName(review)}
-                            </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              {renderStars(review.stars || 0)}
-                              {isReviewAuthor(review) && (
-                                <button
-                                  onClick={() => handleDeleteReview(review)}
-                                  disabled={deletingReviewId === review.id}
-                                  style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#ef4444',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                    padding: '4px 8px',
-                                    borderRadius: '4px',
-                                    transition: 'background 0.2s'
-                                  }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                >
-                                  {deletingReviewId === review.id ? '...' : '✕'}
-                                </button>
-                              )}
+                      reviewsData.map(review => {
+                        const avatar = getUserAvatar(review);
+                        return (
+                          <div key={review.id} className="review-item-modal">
+                            <div className="review-item-header">
+                              <span className="review-user-name" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                {avatar ? (
+                                  <img 
+                                    src={avatar} 
+                                    alt={getUserDisplayName(review)} 
+                                    style={{
+                                      width: '28px',
+                                      height: '28px',
+                                      borderRadius: '50%',
+                                      objectFit: 'cover',
+                                      border: '1px solid #e2e8f0'
+                                    }}
+                                  />
+                                ) : (
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '50%',
+                                    background: '#2850a7',
+                                    color: '#ffffff',
+                                    fontSize: '12px',
+                                    fontWeight: '700'
+                                  }}>
+                                    {getUserDisplayName(review)?.charAt(0)?.toUpperCase() || 'U'}
+                                  </span>
+                                )}
+                                {getUserDisplayName(review)}
+                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                {renderStars(review.stars || 0)}
+                                {isReviewAuthor(review) && (
+                                  <button
+                                    onClick={() => handleDeleteReview(review)}
+                                    disabled={deletingReviewId === review.id}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: '#ef4444',
+                                      cursor: 'pointer',
+                                      fontSize: '14px',
+                                      padding: '4px 8px',
+                                      borderRadius: '4px',
+                                      transition: 'background 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                  >
+                                    {deletingReviewId === review.id ? '...' : '✕'}
+                                  </button>
+                                )}
+                              </div>
                             </div>
+                            <p className="review-item-comment">{review.comment}</p>
+                            <span className="review-item-date">{formatReviewDate(review.created_at)}</span>
                           </div>
-                          <p className="review-item-comment">{review.comment}</p>
-                          <span className="review-item-date">{formatReviewDate(review.created_at)}</span>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 </div>
@@ -445,11 +525,43 @@ export default function RoomDetails() {
                   <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>
                     📞 Контакт владельца
                   </div>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>
-                    {sellerData.name || `Владелец #${room.seller_id}`}
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#2850a7', wordBreak: 'break-all' }}>
-                    ✉️ {sellerData.email || 'Email не указан'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {sellerAvatar ? (
+                      <img 
+                        src={sellerAvatar} 
+                        alt={sellerData.name} 
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: '2px solid #e2e8f0'
+                        }}
+                      />
+                    ) : (
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: '#2850a7',
+                        color: '#ffffff',
+                        fontSize: '16px',
+                        fontWeight: '700'
+                      }}>
+                        {sellerData.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </span>
+                    )}
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>
+                        {sellerData.name || `Владелец #${room.seller_id}`}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#2850a7', wordBreak: 'break-all' }}>
+                        ✉️ {sellerData.email || 'Email не указан'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

@@ -408,11 +408,26 @@ export default function MyRooms() {
                     e.currentTarget.style.borderColor = '#e2e8f0';
                   }}
                 >
-                  <div style={{ position: 'relative', height: '200px', width: '100%', overflow: 'hidden' }}>
+                  <div style={{ 
+                    position: 'relative', 
+                    height: '200px', 
+                    width: '100%', 
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#f1f5f9'
+                  }}>
                     <img 
                       src={getRoomImage(room, index)}
                       alt={room.name} 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'contain',
+                        maxWidth: '100%',
+                        maxHeight: '100%'
+                      }} 
                       onError={(e) => {
                         e.target.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
                       }}
