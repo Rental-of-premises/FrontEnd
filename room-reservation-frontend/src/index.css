@@ -1311,6 +1311,47 @@ body {
     color: #718096;
 }
 
+/* ===== ИЗОБРАЖЕНИЯ НЕ ОБРЕЗАЮТСЯ ===== */
+.room-image,
+.room-card-image img,
+.room-image-wrapper img,
+.booking-image img,
+.room-details-image {
+  object-fit: contain !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+.room-image-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #f1f5f9 !important;
+  overflow: hidden !important;
+}
+
+.room-image-wrapper img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* ===== КОНТЕЙНЕРЫ ДЛЯ ИЗОБРАЖЕНИЙ ===== */
+.image-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 /* ========== CREATE ROOM PAGE ========== */
 .create-room-container {
     max-width: 800px;

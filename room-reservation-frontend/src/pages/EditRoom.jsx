@@ -127,7 +127,6 @@ export default function EditRoom() {
 
   const markExistingImageForDeletion = (index) => {
     const urlToDelete = formData.existing_images[index];
-    // Находим ID изображения для удаления
     const imgToDelete = existingImages.find(img => img.image_data === urlToDelete);
     if (imgToDelete) {
       setImagesToDelete(prev => [...prev, imgToDelete.id]);
@@ -149,7 +148,6 @@ export default function EditRoom() {
     }
 
     try {
-      // 1. Обновляем данные помещения
       const updates = {};
       if (formData.name !== room.name) updates.name = String(formData.name).trim();
       if (formData.description !== room.description) updates.description = String(formData.description || '').trim() || null;
@@ -171,12 +169,10 @@ export default function EditRoom() {
         }).unwrap();
       }
 
-      // 2. Удаляем отмеченные изображения через update-images с параметром delete_images
       if (imagesToDelete.length > 0) {
         const formDataUpdate = new FormData();
         formDataUpdate.append('delete_images', imagesToDelete.join(','));
         
-        // Добавляем новые файлы, если есть
         for (const file of formData.new_image_files) {
           formDataUpdate.append('images', file);
         }
@@ -194,7 +190,6 @@ export default function EditRoom() {
         }
         setUploading(false);
       } else if (formData.new_image_files.length > 0) {
-        // 3. Если только добавляем новые изображения (без удаления)
         const formDataUpload = new FormData();
         for (const file of formData.new_image_files) {
           formDataUpload.append('images', file);
@@ -366,9 +361,12 @@ export default function EditRoom() {
                         style={{ 
                           width: '100%', 
                           height: '100px', 
-                          objectFit: 'cover',
+                          objectFit: 'contain',
+                          maxWidth: '100%',
+                          maxHeight: '100%',
                           borderRadius: '8px',
-                          border: '1px solid #e2e8f0'
+                          border: '1px solid #e2e8f0',
+                          background: '#f1f5f9'
                         }} 
                         onError={(e) => {
                           e.target.src = 'https://via.placeholder.com/120x100?text=Ошибка';
@@ -437,9 +435,12 @@ export default function EditRoom() {
                           style={{ 
                             width: '100%', 
                             height: '100px', 
-                            objectFit: 'cover',
+                            objectFit: 'contain',
+                            maxWidth: '100%',
+                            maxHeight: '100%',
                             borderRadius: '8px',
-                            border: '1px solid #e2e8f0'
+                            border: '1px solid #e2e8f0',
+                            background: '#f1f5f9'
                           }} 
                         />
                         <button

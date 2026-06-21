@@ -42,7 +42,10 @@ export default function ImageCarousel({ images, alt = 'Изображение' }
         position: 'relative', 
         width: '100%', 
         height: '400px', 
-        background: '#f1f5f9' 
+        background: '#f1f5f9',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
         <img
           src={getFullImageUrl(images[currentIndex])}
@@ -50,7 +53,9 @@ export default function ImageCarousel({ images, alt = 'Изображение' }
           style={{
             width: '100%',
             height: '100%',
-            objectFit: 'cover'
+            objectFit: 'contain',
+            maxWidth: '100%',
+            maxHeight: '100%'
           }}
           onError={(e) => {
             e.target.src = 'https://via.placeholder.com/800x400?text=Изображение+не+загружено';

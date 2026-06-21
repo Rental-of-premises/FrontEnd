@@ -128,16 +128,22 @@ const BookingModal = ({ isOpen, onClose, booking, onCancel, room }) => {
               marginBottom: '20px', 
               borderRadius: '16px', 
               overflow: 'hidden',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#f1f5f9',
+              height: '200px'
             }}>
               <img 
                 src={room.image_url} 
                 alt={room.name} 
                 style={{ 
-                  width: '100%', 
-                  height: '200px', 
-                  objectFit: 'cover',
-                  display: 'block'
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  maxWidth: '100%',
+                  maxHeight: '100%'
                 }}
               />
             </div>

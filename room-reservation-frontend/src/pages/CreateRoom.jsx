@@ -31,31 +31,63 @@ export default function CreateRoom() {
 
   const MAX_FILES = 10;
 
+  // ========== ВАЛИДАЦИЯ ==========
+  const validateForm = () => {
+    // Проверяем все обязательные поля
+    if (!formData.name.trim()) {
+      setError('❌ Название помещения обязательно');
+      return false;
+    }
+    if (!formData.metro.trim()) {
+      setError('❌ Укажите станцию метро');
+      return false;
+    }
+    if (!formData.address.trim()) {
+      setError('❌ Укажите адрес');
+      return false;
+    }
+    if (formData.image_files.length === 0) {
+      setError('❌ Добавьте хотя бы одно изображение');
+      return false;
+    }
+    if (formData.price_per_hour < 100) {
+      setError('❌ Цена должна быть не менее 100 ₽/час');
+      return false;
+    }
+    if (formData.capacity < 1) {
+      setError('❌ Вместимость должна быть не менее 1 человека');
+      return false;
+    }
+    return true;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (error) setError('');
   };
 
   const handleAmenitiesChange = (selectedIds) => {
     setFormData(prev => ({ ...prev, amenities: selectedIds }));
+    if (error) setError('');
   };
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     
     if (formData.image_previews.length + files.length > MAX_FILES) {
-      setError(`Максимум ${MAX_FILES} изображений`);
+      setError(`❌ Максимум ${MAX_FILES} изображений`);
       return;
     }
 
     const validFiles = [];
     for (const file of files) {
       if (!file.type.startsWith('image/')) {
-        setError(`Файл "${file.name}" не является изображением`);
+        setError(`❌ Файл "${file.name}" не является изображением`);
         continue;
       }
       if (file.size > 20 * 1024 * 1024) {
-        setError(`Файл "${file.name}" больше 20MB`);
+        setError(`❌ Файл "${file.name}" больше 20MB`);
         continue;
       }
       validFiles.push(file);
@@ -89,6 +121,7 @@ export default function CreateRoom() {
       image_files: prev.image_files.filter((_, i) => i !== index),
       image_previews: prev.image_previews.filter((_, i) => i !== index)
     }));
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -96,40 +129,24 @@ export default function CreateRoom() {
     setError('');
     setLoading(true);
 
-    if (!formData.name) {
-      setError('Название обязательно');
+    // ========== ВАЛИДАЦИЯ ПЕРЕД ОТПРАВКОЙ ==========
+    if (!validateForm()) {
       setLoading(false);
-      return;
-    }
-
-    if (formData.image_files.length === 0) {
-      setError('Выберите хотя бы одно изображение');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.metro) {
-      setError('Укажите станцию метро');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.address) {
-      setError('Укажите адрес');
-      setLoading(false);
+      document.querySelector('.error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     try {
       setUploading(true);
       
+      // 1. Создаём помещение
       const payload = {
-        name: formData.name,
-        description: formData.description || '',
+        name: formData.name.trim(),
+        description: formData.description.trim() || '',
         capacity: Number(formData.capacity),
         price_per_hour: Number(formData.price_per_hour),
-        metro: formData.metro,
-        address: formData.address,
+        metro: formData.metro.trim(),
+        address: formData.address.trim(),
         is_active: true,
         amenities: formData.amenities
       };
@@ -137,6 +154,7 @@ export default function CreateRoom() {
       const result = await addApartment(payload).unwrap();
       const apartmentId = result.id;
 
+      // 2. Загружаем изображения
       const formDataUpload = new FormData();
       for (const file of formData.image_files) {
         formDataUpload.append('images', file);
@@ -149,17 +167,38 @@ export default function CreateRoom() {
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Ошибка загрузки изображений');
+        // Если загрузка изображений не удалась — удаляем помещение, чтобы не было "бесполезных копий"
+        try {
+          await fetch(`${API_URL}/api/account/apartments/${apartmentId}/delete`, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
+        } catch (e) {
+          console.warn('Не удалось удалить помещение после ошибки загрузки:', e);
+        }
+        const errorText = await uploadResponse.text();
+        throw new Error(`Ошибка загрузки изображений: ${uploadResponse.status} ${errorText}`);
       }
 
       navigate('/my-rooms');
+      
     } catch (err) {
-      setError(err.data?.error || err.message || 'Ошибка при добавлении помещения');
+      console.error('Ошибка создания:', err);
+      setError(err.data?.error || err.message || '❌ Ошибка при добавлении помещения');
     } finally {
       setLoading(false);
       setUploading(false);
     }
   };
+
+  // ========== ПРОВЕРКА: можно ли отправить ==========
+  const isFormValid = 
+    formData.name.trim() !== '' &&
+    formData.metro.trim() !== '' &&
+    formData.address.trim() !== '' &&
+    formData.image_files.length > 0 &&
+    formData.price_per_hour >= 100 &&
+    formData.capacity >= 1;
 
   return (
     <>
@@ -169,8 +208,23 @@ export default function CreateRoom() {
           <h1 className="page-title">Опубликовать помещение</h1>
           
           <form onSubmit={handleSubmit} className="create-room-form">
-            {error && <div className="error-message">{error}</div>}
+            {/* ===== ОШИБКА ===== */}
+            {error && (
+              <div className="error-message" style={{
+                background: '#fef2f2',
+                color: '#ef4444',
+                padding: '16px 20px',
+                borderRadius: '12px',
+                border: '1px solid #fee2e2',
+                marginBottom: '20px',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                {error}
+              </div>
+            )}
             
+            {/* ===== НАЗВАНИЕ ===== */}
             <div className="form-group">
               <label>Название *</label>
               <input
@@ -180,9 +234,13 @@ export default function CreateRoom() {
                 onChange={handleChange}
                 placeholder="Например: Modern Coworking Space"
                 required
+                style={{
+                  borderColor: !formData.name.trim() && error ? '#ef4444' : undefined
+                }}
               />
             </div>
 
+            {/* ===== ОПИСАНИЕ ===== */}
             <div className="form-group">
               <label>Описание</label>
               <textarea
@@ -194,9 +252,10 @@ export default function CreateRoom() {
               />
             </div>
 
+            {/* ===== ВМЕСТИМОСТЬ И ЦЕНА ===== */}
             <div className="form-row">
               <div className="form-group">
-                <label>Вместимость (человек)</label>
+                <label>Вместимость (человек) *</label>
                 <input
                   type="number"
                   name="capacity"
@@ -204,11 +263,15 @@ export default function CreateRoom() {
                   onChange={handleChange}
                   min="1"
                   max="200"
+                  required
+                  style={{
+                    borderColor: formData.capacity < 1 && error ? '#ef4444' : undefined
+                  }}
                 />
               </div>
 
               <div className="form-group">
-                <label>Цена за час (₽)</label>
+                <label>Цена за час (₽) *</label>
                 <input
                   type="number"
                   name="price_per_hour"
@@ -216,15 +279,23 @@ export default function CreateRoom() {
                   onChange={handleChange}
                   min="100"
                   step="100"
+                  required
+                  style={{
+                    borderColor: formData.price_per_hour < 100 && error ? '#ef4444' : undefined
+                  }}
                 />
               </div>
             </div>
 
+            {/* ===== МЕТРО И АДРЕС ===== */}
             <div className="form-row">
               <div className="form-group">
                 <MetroAutocomplete
                   value={formData.metro}
-                  onChange={(value) => setFormData(prev => ({ ...prev, metro: value }))}
+                  onChange={(value) => {
+                    setFormData(prev => ({ ...prev, metro: value }));
+                    if (error) setError('');
+                  }}
                   placeholder="Начните вводить название станции..."
                   required={true}
                   label="Метро *"
@@ -240,16 +311,21 @@ export default function CreateRoom() {
                   onChange={handleChange}
                   placeholder="Например: ул. Тверская, д. 15"
                   required
+                  style={{
+                    borderColor: !formData.address.trim() && error ? '#ef4444' : undefined
+                  }}
                 />
               </div>
             </div>
 
+            {/* ===== УДОБСТВА ===== */}
             <AmenitiesSelector
               selectedIds={formData.amenities}
               onChange={handleAmenitiesChange}
               label="Удобства (выберите из списка)"
             />
 
+            {/* ===== ИЗОБРАЖЕНИЯ ===== */}
             <div className="form-group">
               <label>Изображения помещения * (макс. {MAX_FILES})</label>
               <div className="image-upload-area">
@@ -261,12 +337,26 @@ export default function CreateRoom() {
                   id="image-upload"
                   multiple
                 />
-                <label htmlFor="image-upload" className="file-input-label">
+                <label 
+                  htmlFor="image-upload" 
+                  className="file-input-label"
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 24px',
+                    background: formData.image_files.length > 0 ? '#10b981' : '#2850a7',
+                    color: '#ffffff',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                >
                   {formData.image_files.length > 0 
-                    ? `Выбрано ${formData.image_files.length} файлов` 
-                    : 'Выберите изображения'}
+                    ? `✅ Выбрано ${formData.image_files.length} файлов` 
+                    : '📷 Выберите изображения'}
                 </label>
                 
+                {/* ===== ПРЕВЬЮ ИЗОБРАЖЕНИЙ ===== */}
                 {formData.image_previews.length > 0 && (
                   <div style={{ 
                     display: 'grid', 
@@ -275,16 +365,26 @@ export default function CreateRoom() {
                     marginTop: '12px'
                   }}>
                     {formData.image_previews.map((preview, index) => (
-                      <div key={index} style={{ position: 'relative' }}>
+                      <div key={index} style={{ 
+                        position: 'relative',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        border: '1px solid #e2e8f0',
+                        background: '#f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '100px'
+                      }}>
                         <img 
                           src={preview} 
                           alt={`Превью ${index + 1}`} 
                           style={{ 
-                            width: '100%', 
-                            height: '100px', 
-                            objectFit: 'cover',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0'
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            maxWidth: '100%',
+                            maxHeight: '100%'
                           }} 
                         />
                         <button
@@ -296,7 +396,7 @@ export default function CreateRoom() {
                             right: '4px',
                             width: '24px',
                             height: '24px',
-                            background: 'rgba(0,0,0,0.6)',
+                            background: 'rgba(239,68,68,0.85)',
                             color: 'white',
                             border: 'none',
                             borderRadius: '50%',
@@ -304,8 +404,11 @@ export default function CreateRoom() {
                             fontSize: '14px',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            transition: 'all 0.2s'
                           }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.85)'}
                         >
                           ×
                         </button>
@@ -319,17 +422,95 @@ export default function CreateRoom() {
               </small>
             </div>
 
-            <div className="form-actions">
-              <button type="button" onClick={() => navigate('/dashboard')} className="cancel-btn-form">
+            {/* ===== КНОПКИ ===== */}
+            <div className="form-actions" style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+              <button 
+                type="button" 
+                onClick={() => navigate('/dashboard')} 
+                className="cancel-btn-form"
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  background: '#f1f5f9',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: '#475569',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
                 Отмена
               </button>
+              
               <button 
                 type="submit" 
                 className="submit-btn" 
-                disabled={loading || uploading}
+                disabled={!isFormValid || loading || uploading}
+                style={{
+                  flex: 2,
+                  padding: '14px',
+                  background: (!isFormValid || loading || uploading) 
+                    ? '#94a3b8' 
+                    : 'linear-gradient(135deg, #2850a7 0%, #1e3d82 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: (!isFormValid || loading || uploading) 
+                    ? 'not-allowed' 
+                    : 'pointer',
+                  transition: 'all 0.2s',
+                  opacity: (!isFormValid || loading || uploading) ? 0.7 : 1,
+                  boxShadow: isFormValid && !loading && !uploading 
+                    ? '0 4px 12px rgba(40, 80, 167, 0.3)' 
+                    : 'none'
+                }}
               >
-                {uploading ? 'Загрузка...' : loading ? 'Публикация...' : 'Опубликовать'}
+                {uploading 
+                  ? '⏳ Загрузка изображений...' 
+                  : loading 
+                    ? '⏳ Публикация...' 
+                    : !formData.image_files.length 
+                      ? 'Добавьте изображения' 
+                      : !formData.name.trim() || !formData.metro.trim() || !formData.address.trim()
+                        ? 'Заполните все поля'
+                        : 'Опубликовать'}
               </button>
+            </div>
+
+            {/* ===== ПОДСКАЗКА ===== */}
+            <div style={{
+              marginTop: '16px',
+              padding: '12px 16px',
+              background: '#f8fafc',
+              borderRadius: '10px',
+              border: '1px solid #e2e8f0',
+              fontSize: '13px',
+              color: '#64748b'
+            }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ 
+                  color: formData.name.trim() ? '#10b981' : '#94a3b8'
+                }}>{formData.name.trim() ? '✅' : '⬜'} Название</span>
+                <span style={{ 
+                  color: formData.metro.trim() ? '#10b981' : '#94a3b8'
+                }}>{formData.metro.trim() ? '✅' : '⬜'} Метро</span>
+                <span style={{ 
+                  color: formData.address.trim() ? '#10b981' : '#94a3b8'
+                }}>{formData.address.trim() ? '✅' : '⬜'} Адрес</span>
+                <span style={{ 
+                  color: formData.image_files.length > 0 ? '#10b981' : '#94a3b8'
+                }}>{formData.image_files.length > 0 ? '✅' : '⬜'} Изображения</span>
+                <span style={{ 
+                  color: formData.price_per_hour >= 100 ? '#10b981' : '#94a3b8'
+                }}>{formData.price_per_hour >= 100 ? '✅' : '⬜'} Цена ≥ 100₽</span>
+                <span style={{ 
+                  color: formData.capacity >= 1 ? '#10b981' : '#94a3b8'
+                }}>{formData.capacity >= 1 ? '✅' : '⬜'} Вместимость ≥ 1</span>
+              </div>
             </div>
           </form>
         </div>
