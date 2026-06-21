@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 
-const RECRUIT_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'; // Замените на вашу ссылку
+// Замените ссылку на ваш YouTube-ролик для рекрутинга
+const RECRUIT_URL = 'https://www.youtube.com/watch?v=ваше_видео';
 
 export default function RecruitBanner() {
   const [isVisible, setIsVisible] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
 
-  // Проверяем, был ли уже клик
   useEffect(() => {
     const hasClicked = localStorage.getItem('recruit_banner_clicked');
     if (hasClicked) {
@@ -122,8 +122,8 @@ export default function RecruitBanner() {
       {isMinimized ? (
         // Свёрнутый вид — только гифка
         <img
-          src="https://media.tenor.com/9BxwOO6sNuoAAAAi/cute-cat.gif"
-          alt="Милая гифка"
+          src="https://giffun.ru/wp-content/uploads/2022/08/milaya-animatsiya-1.gif"
+          alt="Милая гифка с котом"
           style={{
             width: '100%',
             height: '100%',
@@ -141,8 +141,8 @@ export default function RecruitBanner() {
             marginBottom: '8px'
           }}>
             <img
-              src="https://media.tenor.com/9BxwOO6sNuoAAAAi/cute-cat.gif"
-              alt="Милая гифка"
+              src="https://giffun.ru/wp-content/uploads/2022/08/milaya-animatsiya-1.gif"
+              alt="Милая гифка с котом"
               style={{
                 width: '100%',
                 height: '100%',
@@ -153,7 +153,7 @@ export default function RecruitBanner() {
           <div
             onClick={handleClick}
             style={{
-              background: 'linear-gradient(135deg, #2850a7 0%, #3b82f6 100%)',
+              background: 'linear-gradient(135deg, #ff6b6b, #ff4757)',
               color: 'white',
               padding: '10px 16px',
               borderRadius: '10px',
@@ -161,18 +161,19 @@ export default function RecruitBanner() {
               fontSize: '14px',
               cursor: 'pointer',
               transition: 'all 0.2s',
-              boxShadow: '0 4px 12px rgba(40, 80, 167, 0.3)'
+              boxShadow: '0 4px 12px rgba(255, 71, 87, 0.3)',
+              animation: 'pulse 2s infinite'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(40, 80, 167, 0.4)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 71, 87, 0.4)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(40, 80, 167, 0.3)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 71, 87, 0.3)';
             }}
           >
-            🎯 Нажми меня!
+            Нажми меня!
           </div>
           <p style={{
             fontSize: '10px',

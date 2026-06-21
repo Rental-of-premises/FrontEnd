@@ -29,9 +29,9 @@ export default function CreateRoom() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const MAX_FILES = 10;
+  const MAX_FILES = 5;
 
-  // ========== ВАЛИДАЦИЯ ==========
+  //ВАЛИДАЦИЯ
   const validateForm = () => {
     // Проверяем все обязательные поля
     if (!formData.name.trim()) {
@@ -50,7 +50,7 @@ export default function CreateRoom() {
       setError('❌ Добавьте хотя бы одно изображение');
       return false;
     }
-    if (formData.price_per_hour < 100) {
+    if (formData.price_per_hour < 0) {
       setError('❌ Цена должна быть не менее 100 ₽/час');
       return false;
     }
@@ -129,7 +129,7 @@ export default function CreateRoom() {
     setError('');
     setLoading(true);
 
-    // ========== ВАЛИДАЦИЯ ПЕРЕД ОТПРАВКОЙ ==========
+    //ВАЛИДАЦИЯ ПЕРЕД ОТПРАВКОЙ
     if (!validateForm()) {
       setLoading(false);
       document.querySelector('.error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -139,7 +139,7 @@ export default function CreateRoom() {
     try {
       setUploading(true);
       
-      // 1. Создаём помещение
+      // Создаём помещение
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim() || '',
@@ -154,7 +154,7 @@ export default function CreateRoom() {
       const result = await addApartment(payload).unwrap();
       const apartmentId = result.id;
 
-      // 2. Загружаем изображения
+      // Загружаем изображения
       const formDataUpload = new FormData();
       for (const file of formData.image_files) {
         formDataUpload.append('images', file);
@@ -167,7 +167,6 @@ export default function CreateRoom() {
       });
 
       if (!uploadResponse.ok) {
-        // Если загрузка изображений не удалась — удаляем помещение, чтобы не было "бесполезных копий"
         try {
           await fetch(`${API_URL}/api/account/apartments/${apartmentId}/delete`, {
             method: 'DELETE',
@@ -191,7 +190,7 @@ export default function CreateRoom() {
     }
   };
 
-  // ========== ПРОВЕРКА: можно ли отправить ==========
+  //ПРОВЕРКА
   const isFormValid = 
     formData.name.trim() !== '' &&
     formData.metro.trim() !== '' &&
@@ -208,7 +207,6 @@ export default function CreateRoom() {
           <h1 className="page-title">Опубликовать помещение</h1>
           
           <form onSubmit={handleSubmit} className="create-room-form">
-            {/* ===== ОШИБКА ===== */}
             {error && (
               <div className="error-message" style={{
                 background: '#fef2f2',
@@ -224,7 +222,6 @@ export default function CreateRoom() {
               </div>
             )}
             
-            {/* ===== НАЗВАНИЕ ===== */}
             <div className="form-group">
               <label>Название *</label>
               <input
@@ -240,7 +237,6 @@ export default function CreateRoom() {
               />
             </div>
 
-            {/* ===== ОПИСАНИЕ ===== */}
             <div className="form-group">
               <label>Описание</label>
               <textarea
@@ -252,7 +248,6 @@ export default function CreateRoom() {
               />
             </div>
 
-            {/* ===== ВМЕСТИМОСТЬ И ЦЕНА ===== */}
             <div className="form-row">
               <div className="form-group">
                 <label>Вместимость (человек) *</label>
@@ -287,7 +282,6 @@ export default function CreateRoom() {
               </div>
             </div>
 
-            {/* ===== МЕТРО И АДРЕС ===== */}
             <div className="form-row">
               <div className="form-group">
                 <MetroAutocomplete
@@ -318,14 +312,12 @@ export default function CreateRoom() {
               </div>
             </div>
 
-            {/* ===== УДОБСТВА ===== */}
             <AmenitiesSelector
               selectedIds={formData.amenities}
               onChange={handleAmenitiesChange}
               label="Удобства (выберите из списка)"
             />
 
-            {/* ===== ИЗОБРАЖЕНИЯ ===== */}
             <div className="form-group">
               <label>Изображения помещения * (макс. {MAX_FILES})</label>
               <div className="image-upload-area">
@@ -353,10 +345,9 @@ export default function CreateRoom() {
                 >
                   {formData.image_files.length > 0 
                     ? `✅ Выбрано ${formData.image_files.length} файлов` 
-                    : '📷 Выберите изображения'}
+                    : 'Выберите изображения'}
                 </label>
                 
-                {/* ===== ПРЕВЬЮ ИЗОБРАЖЕНИЙ ===== */}
                 {formData.image_previews.length > 0 && (
                   <div style={{ 
                     display: 'grid', 
@@ -418,11 +409,10 @@ export default function CreateRoom() {
                 )}
               </div>
               <small className="form-hint">
-                Максимум {MAX_FILES} файлов, каждый до 20MB. Поддерживаются JPG, PNG, WEBP.
+                Максимум {MAX_FILES} файлов, каждый до 10MB. Поддерживаются JPG, PNG.
               </small>
             </div>
 
-            {/* ===== КНОПКИ ===== */}
             <div className="form-actions" style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
               <button 
                 type="button" 
@@ -481,7 +471,6 @@ export default function CreateRoom() {
               </button>
             </div>
 
-            {/* ===== ПОДСКАЗКА ===== */}
             <div style={{
               marginTop: '16px',
               padding: '12px 16px',

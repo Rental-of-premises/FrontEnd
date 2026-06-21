@@ -40,7 +40,7 @@ export default function EditRoom() {
   const [successMsg, setSuccessMsg] = useState('');
   const [imagesToDelete, setImagesToDelete] = useState([]);
 
-  const MAX_FILES = 10;
+  const MAX_FILES = 5;
 
   useEffect(() => {
     if (room) {
@@ -471,7 +471,7 @@ export default function EditRoom() {
                 )}
               </div>
               <small className="form-hint">
-                Максимум {MAX_FILES} файлов, каждый до 20MB
+                Максимум {MAX_FILES} файлов, каждый до 10MB
               </small>
             </div>
 
