@@ -140,7 +140,7 @@ export const api = createApi({
       invalidatesTags: ['Apartments']
     }),
     
-    // ===== УДОБСТВА (FIXED LIST FROM BACKEND) =====
+    // ===== УДОБСТВА =====
     getAmenities: builder.query({
       query: () => '/api/amenities',
       providesTags: ['Amenities']
@@ -213,8 +213,8 @@ export const api = createApi({
         method: 'POST',
         body: { 
           apartment_id: apartment_id,
-          comment, 
-          stars
+          stars: stars,
+          comment: comment
         },
       }),
       invalidatesTags: (result, error, { apartment_id }) => [
