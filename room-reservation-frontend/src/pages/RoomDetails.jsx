@@ -21,7 +21,7 @@ export default function RoomDetails() {
   const { data: roomData, isLoading, error } = useGetApartmentByIdQuery(id);
   const room = roomData?.apartment || null;
   const images = roomData?.images || [];
-  const imageUrls = images.map(img => img.image_url);
+  const imageUrls = images.map(img => img.image_data);
   
   const [createBooking, { isLoading: bookingLoading }] = useCreateBookingMutation();
   
@@ -54,7 +54,6 @@ export default function RoomDetails() {
     }
   }, []);
 
-  // ========== ЗАГРУЗКА ВЛАДЕЛЬЦА ==========
   useEffect(() => {
     if (room && room.seller_id) {
       const fetchSeller = async () => {
@@ -68,7 +67,6 @@ export default function RoomDetails() {
           });
           if (response.ok) {
             const data = await response.json();
-            // ✅ Берем user из вложенного объекта
             setSellerData(data.user || data);
           }
         } catch (err) {
@@ -81,7 +79,6 @@ export default function RoomDetails() {
     }
   }, [room]);
 
-  // ========== ЗАГРУЗКА ИМЁН ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ОТЗЫВОВ ==========
   useEffect(() => {
     const safeReviews = Array.isArray(reviewsData) ? reviewsData : [];
     if (safeReviews.length > 0) {
@@ -99,7 +96,6 @@ export default function RoomDetails() {
             });
             if (response.ok) {
               const userData = await response.json();
-              // ✅ Берем user из вложенного объекта
               names[userId] = userData.user?.name || userData.name || `Пользователь #${userId}`;
             } else {
               names[userId] = `Пользователь #${userId}`;

@@ -9,22 +9,26 @@ export const getFullImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
   
   // Если это data:image (base64) — возвращаем как есть
-  if (imageUrl.startsWith('data:')) {
+  if (typeof imageUrl === 'string' && imageUrl.startsWith('data:')) {
     return imageUrl;
   }
   
   // Если это уже полный URL (http:// или https://) — возвращаем как есть
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+  if (typeof imageUrl === 'string' && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
     return imageUrl;
   }
   
   // Если это уже начинается с /uploads/ — добавляем API_URL
-  if (imageUrl.startsWith('/uploads/')) {
+  if (typeof imageUrl === 'string' && imageUrl.startsWith('/uploads/')) {
     return `${API_URL}${imageUrl}`;
   }
   
   // Иначе — добавляем API_URL и /uploads/
-  return `${API_URL}/uploads/${imageUrl}`;
+  if (typeof imageUrl === 'string') {
+    return `${API_URL}/uploads/${imageUrl}`;
+  }
+  
+  return null;
 };
 
 /**
@@ -38,9 +42,9 @@ export const getMainImage = (images) => {
   // Ищем изображение с position = 0
   const main = images.find(img => img.position === 0);
   if (main) {
-    return getFullImageUrl(main.image_url);
+    return getFullImageUrl(main.image_data);
   }
   
   // Или берем первое
-  return getFullImageUrl(images[0].image_url);
+  return getFullImageUrl(images[0].image_data);
 };

@@ -54,7 +54,7 @@ export default function EditRoom() {
         is_active: room.is_active !== undefined ? room.is_active : true,
         new_image_files: [],
         new_image_previews: [],
-        existing_images: existingImages.map(img => img.image_url) || [],
+        existing_images: existingImages.map(img => img.image_data) || [],
         metro: room.metro || '',
         address: room.address || '',
         amenities: amenityIds,
@@ -167,12 +167,19 @@ export default function EditRoom() {
       }
 
       for (const url of imagesToDelete) {
-        const imgToDelete = existingImages.find(img => img.image_url === url);
+        const imgToDelete = existingImages.find(img => img.image_data === url);
         if (imgToDelete) {
-          await fetch(`${API_URL}/api/account/delete-image/${imgToDelete.id}`, {
-            method: 'DELETE',
-            credentials: 'include'
-          });
+          try {
+            const response = await fetch(`${API_URL}/api/account/delete-image/${imgToDelete.id}`, {
+              method: 'DELETE',
+              credentials: 'include'
+            });
+            if (!response.ok) {
+              console.warn(`Не удалось удалить изображение ${imgToDelete.id}: ${response.status}`);
+            }
+          } catch (e) {
+            console.warn('Ошибка при удалении изображения:', e);
+          }
         }
       }
 
@@ -342,7 +349,7 @@ export default function EditRoom() {
                   {formData.existing_images.map((url, index) => (
                     <div key={index} style={{ position: 'relative' }}>
                       <img 
-                        src={`${API_URL}${url}`} 
+                        src={url}
                         alt={`Изображение ${index + 1}`} 
                         style={{ 
                           width: '100%', 

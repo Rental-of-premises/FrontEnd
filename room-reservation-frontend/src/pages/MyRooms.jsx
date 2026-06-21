@@ -46,7 +46,6 @@ export default function MyRooms() {
     }
   }, [roomsData]);
 
-  // ========== ЗАГРУЗКА ИМЁН ПОЛЬЗОВАТЕЛЕЙ ДЛЯ БРОНЕЙ ==========
   useEffect(() => {
     const fetchUserNames = async () => {
       if (!sellerBookings || sellerBookings.length === 0) return;
@@ -62,7 +61,6 @@ export default function MyRooms() {
           });
           if (response.ok) {
             const userData = await response.json();
-            // ✅ Берем user из вложенного объекта
             names[userId] = userData.user?.name || userData.name || `Пользователь #${userId}`;
           } else {
             names[userId] = `Пользователь #${userId}`;
@@ -97,11 +95,11 @@ export default function MyRooms() {
     }
     
     if (images && images[index] && images[index].length > 0) {
-      return getFullImageUrl(images[index][0].image_url);
+      return getFullImageUrl(images[index][0].image_data);
     }
     
-    if (room.image_url) {
-      return getFullImageUrl(room.image_url);
+    if (room.image_data) {
+      return getFullImageUrl(room.image_data);
     }
     
     return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
