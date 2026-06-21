@@ -1,4 +1,3 @@
-// src/pages/RoomDetails.jsx
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { 
@@ -46,6 +45,8 @@ export default function RoomDetails() {
   const [sellerData, setSellerData] = useState(null);
   const [loadingSeller, setLoadingSeller] = useState(false);
 
+  const API_URL = 'https://team3.verstack.ru';
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('showReviews') === 'true') {
@@ -58,7 +59,7 @@ export default function RoomDetails() {
       const fetchSeller = async () => {
         setLoadingSeller(true);
         try {
-          const response = await fetch(`https://team3.verstack.ru/api/users/${room.seller_id}`, {
+          const response = await fetch(`${API_URL}/api/users/${room.seller_id}`, {
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json'
@@ -87,7 +88,7 @@ export default function RoomDetails() {
         
         const promises = uniqueUserIds.map(async (userId) => {
           try {
-            const response = await fetch(`https://team3.verstack.ru/api/users/${userId}`, {
+            const response = await fetch(`${API_URL}/api/users/${userId}`, {
               credentials: 'include',
               headers: {
                 'Content-Type': 'application/json'

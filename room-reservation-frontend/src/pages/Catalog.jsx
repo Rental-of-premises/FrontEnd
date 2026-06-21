@@ -24,7 +24,7 @@ export default function Catalog() {
   const rooms = data?.apartments || [];
   const imagesData = data?.images || [];
 
-  // ===== КАРТА ИЗОБРАЖЕНИЙ ПО ID ПОМЕЩЕНИЯ =====
+  //КАРТА ИЗОБРАЖЕНИЙ ПО ID ПОМЕЩЕНИЯ
   const imageMap = {};
   if (Array.isArray(imagesData)) {
     imagesData.forEach((imageList, index) => {
@@ -34,7 +34,7 @@ export default function Catalog() {
     });
   }
 
-  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИЗОБРАЖЕНИЯ =====
+  //ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИЗОБРАЖЕНИЯ
   const getRoomImage = (room) => {
     if (imageMap[room.id]) {
       return imageMap[room.id];

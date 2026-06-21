@@ -1,4 +1,3 @@
-// src/pages/CreateRoom.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAddApartmentMutation } from '../store/api';
@@ -12,7 +11,7 @@ export default function CreateRoom() {
   const [addApartment] = useAddApartmentMutation();
   
   const [formData, setFormData] = useState({
-    title: '',
+    name: '',
     description: '',
     capacity: 1,
     price_per_hour: 500,
@@ -90,7 +89,7 @@ export default function CreateRoom() {
     setError('');
     setLoading(true);
 
-    if (!formData.title) {
+    if (!formData.name) {
       setError('Название обязательно');
       setLoading(false);
       return;
@@ -118,13 +117,14 @@ export default function CreateRoom() {
       setUploading(true);
       
       const payload = {
-        title: formData.title,
+        name: formData.name,
         description: formData.description || '',
         capacity: Number(formData.capacity),
         price_per_hour: Number(formData.price_per_hour),
         metro: formData.metro,
         address: formData.address,
-        is_active: true
+        is_active: true,
+        amenities: []
       };
       
       const result = await addApartment(payload).unwrap();
@@ -168,8 +168,8 @@ export default function CreateRoom() {
               <label>Название *</label>
               <input
                 type="text"
-                name="title"
-                value={formData.title}
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
                 placeholder="Например: Modern Coworking Space"
                 required
@@ -220,7 +220,7 @@ export default function CreateRoom() {
                   onChange={(value) => setFormData(prev => ({ ...prev, metro: value }))}
                   placeholder="Начните вводить название станции..."
                   required={true}
-                  label="🚇 Метро *"
+                  label="Метро *"
                 />
               </div>
 
@@ -302,7 +302,7 @@ export default function CreateRoom() {
                 )}
               </div>
               <small className="form-hint">
-                Максимум {MAX_FILES} файлов, каждый до 20MB. Поддерживаются JPG, PNG, GIF, WEBP.
+                Максимум {MAX_FILES} файлов, каждый до 20MB. Поддерживаются JPG, PNG, WEBP.
               </small>
             </div>
 

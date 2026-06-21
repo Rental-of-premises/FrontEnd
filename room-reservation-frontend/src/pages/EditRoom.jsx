@@ -1,4 +1,3 @@
-// src/pages/EditRoom.jsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -136,7 +135,6 @@ export default function EditRoom() {
     }
 
     try {
-      // Обновляем данные помещения
       const updates = {};
       if (formData.name !== room.name) updates.name = String(formData.name).trim();
       if (formData.description !== room.description) updates.description = String(formData.description || '').trim() || null;
@@ -153,7 +151,6 @@ export default function EditRoom() {
         }).unwrap();
       }
 
-      // Удаляем отмеченные изображения
       for (const url of imagesToDelete) {
         const imgToDelete = existingImages.find(img => img.image_url === url);
         if (imgToDelete) {
@@ -164,7 +161,6 @@ export default function EditRoom() {
         }
       }
 
-      // Загружаем новые изображения
       if (formData.new_image_files.length > 0) {
         const formDataUpload = new FormData();
         for (const file of formData.new_image_files) {
@@ -189,7 +185,7 @@ export default function EditRoom() {
       setTimeout(() => navigate('/my-rooms'), 1500);
       
     } catch (err) {
-      console.error('❌ Ошибка обновления:', err);
+      console.error('Ошибка обновления:', err);
       setErrorMsg(err.data?.error || err.message || 'Ошибка при обновлении помещения');
       setUploading(false);
     }
@@ -297,7 +293,7 @@ export default function EditRoom() {
                   onChange={(value) => setFormData(prev => ({ ...prev, metro: value }))}
                   placeholder="Начните вводить название станции..."
                   required={true}
-                  label="🚇 Метро *"
+                  label="Метро *"
                 />
               </div>
               <div className="form-group">
@@ -311,7 +307,6 @@ export default function EditRoom() {
               </div>
             </div>
 
-            {/* ===== СУЩЕСТВУЮЩИЕ ИЗОБРАЖЕНИЯ ===== */}
             <div className="form-group">
               <label>Текущие изображения</label>
               {formData.existing_images.length === 0 ? (
@@ -370,7 +365,6 @@ export default function EditRoom() {
               </small>
             </div>
 
-            {/* ===== НОВЫЕ ИЗОБРАЖЕНИЯ ===== */}
             <div className="form-group">
               <label>Добавить новые изображения (макс. {MAX_FILES})</label>
               <div className="image-upload-area">

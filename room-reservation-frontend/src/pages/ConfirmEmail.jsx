@@ -1,13 +1,14 @@
-// src/pages/ConfirmEmail.jsx
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+
+const API_URL = 'https://team3.verstack.ru';
 
 export default function ConfirmEmail() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
   
-  const [status, setStatus] = useState('loading') // loading | success | error
+  const [status, setStatus] = useState('loading')
   const [message, setMessage] = useState('')
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function ConfirmEmail() {
 
     const confirmEmail = async () => {
       try {
-        const response = await fetch(`https://team3.verstack.ru/api/auth/confirm-email?token=${token}`, {
+        const response = await fetch(`${API_URL}/api/auth/confirm-email?token=${token}`, {
           method: 'GET',
           credentials: 'include'
         })

@@ -1,4 +1,3 @@
-// src/components/BookingModal.jsx
 import { useEffect } from 'react';
 
 const BookingModal = ({ isOpen, onClose, booking, onCancel, room }) => {

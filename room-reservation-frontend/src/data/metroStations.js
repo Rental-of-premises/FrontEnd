@@ -1,5 +1,3 @@
-// src/data/metroStations.js
-
 export const metroStations = [
   // Красная ветка (М1)
   'Девяткино',

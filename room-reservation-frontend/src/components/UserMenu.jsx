@@ -1,4 +1,3 @@
-// src/components/UserMenu.jsx
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -8,7 +7,6 @@ export default function UserMenu() {
   const menuRef = useRef(null);
   const { user } = useAuth();
 
-  // Закрытие меню при клике вне его
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {

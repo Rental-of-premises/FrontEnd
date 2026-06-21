@@ -1,4 +1,3 @@
-// src/pages/Reviews.jsx
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -28,17 +27,16 @@ export default function Reviews() {
   const [createReview, { isLoading: creatingReview }] = useCreateReviewMutation();
   const [deleteReview] = useDeleteReviewMutation();
 
-  // ===== СОСТОЯНИЯ =====
   const [showForm, setShowForm] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
   const [deletingId, setDeletingId] = useState(null);
   
-  // ===== СОСТОЯНИЕ ДЛЯ ИМЕН ПОЛЬЗОВАТЕЛЕЙ =====
   const [userNames, setUserNames] = useState({});
 
-  // ===== ЗАГРУЖАЕМ ИМЕНА ПОЛЬЗОВАТЕЛЕЙ ДЛЯ ВСЕХ ОТЗЫВОВ =====
+  const API_URL = 'https://team3.verstack.ru';
+
   useEffect(() => {
     if (reviews && reviews.length > 0) {
       const fetchUserNames = async () => {
@@ -46,7 +44,7 @@ export default function Reviews() {
         for (const review of reviews) {
           if (review.user_id && !names[review.user_id]) {
             try {
-              const response = await fetch(`https://team3.verstack.ru/api/users/${review.user_id}`, {
+              const response = await fetch(`${API_URL}/api/users/${review.user_id}`, {
                 credentials: 'include',
                 headers: {
                   'Content-Type': 'application/json'
@@ -70,7 +68,6 @@ export default function Reviews() {
     }
   }, [reviews]);
 
-  // ===== ОБРАБОТЧИКИ =====
   const handleRatingClick = (rating) => {
     setReviewData(prev => ({ ...prev, rating }));
   };
@@ -122,7 +119,6 @@ export default function Reviews() {
     }
   };
 
-  // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
   const renderStars = (rating, interactive = false) => {
     return (
       <div className="stars">
@@ -152,7 +148,6 @@ export default function Reviews() {
     return user && review.user_id && review.user_id === user.id;
   };
 
-  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИМЕНИ ПОЛЬЗОВАТЕЛЯ =====
   const getUserDisplayName = (review) => {
     if (!review || !review.user_id) return 'Неизвестный пользователь';
     return userNames[review.user_id] || `Пользователь #${review.user_id}`;
@@ -214,7 +209,6 @@ export default function Reviews() {
           </h1>
         </div>
 
-        {/* Информация о помещении */}
         <div className="reviews-room-info" style={{ display: 'flex', gap: '40px', background: '#f8fafc', padding: '24px', borderRadius: '20px', marginBottom: '32px' }}>
           <div>
             <div style={{ color: '#94a3b8', fontSize: '12px' }}>⭐ Рейтинг</div>
@@ -233,7 +227,6 @@ export default function Reviews() {
           </div>
         </div>
 
-        {/* Кнопка "Оставить отзыв" */}
         {user && !showForm && (
           <button 
             className="write-review-btn" 
@@ -244,7 +237,6 @@ export default function Reviews() {
           </button>
         )}
 
-        {/* Форма отзыва */}
         {showForm && (
           <div className="review-form-container" style={{ background: '#fff', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', marginBottom: '30px' }}>
             <h3 style={{ marginTop: 0, color: '#1e293b' }}>Ваш отзыв</h3>
@@ -294,7 +286,6 @@ export default function Reviews() {
           </div>
         )}
 
-        {/* Список отзывов */}
         <div className="reviews-list" style={{ marginTop: '20px' }}>
           <h2 className="reviews-section-title" style={{ fontSize: '20px', color: '#1e293b', marginBottom: '20px', paddingBottom: '12px', borderBottom: '2px solid #e2e8f0' }}>
             Отзывы ({reviews.length})

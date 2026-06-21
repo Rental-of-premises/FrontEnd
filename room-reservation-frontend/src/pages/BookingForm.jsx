@@ -1,10 +1,11 @@
-// src/pages/BookingForm.jsx
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useGetApartmentByIdQuery, useCreateBookingMutation } from '../store/api';
 import Navbar from '../components/Navbar';
 import '../styles/bookingform.css';
+
+const API_URL = 'https://team3.verstack.ru';
 
 export default function BookingForm() {
   const { id } = useParams();
@@ -22,13 +23,12 @@ export default function BookingForm() {
   const [existingBookings, setExistingBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
 
-  // Загрузка существующих бронирований
   const loadExistingBookings = async () => {
     if (!id) return;
     
     setLoadingBookings(true);
     try {
-      const response = await fetch(`https://team3.verstack.ru/api/apartments/${id}/calendar`, {
+      const response = await fetch(`${API_URL}/api/apartments/${id}/calendar`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
@@ -78,7 +78,6 @@ export default function BookingForm() {
     }
   }, [bookingSuccess]);
 
-  // ===== КАЛЕНДАРЬ =====
   const weekDays = useMemo(() => {
     const startDate = new Date(currentDate);
     const day = currentDate.getDay();
@@ -132,7 +131,6 @@ export default function BookingForm() {
     }
   };
 
-  // ===== РАСЧЕТ ИНТЕРВАЛОВ =====
   const getBookingIntervals = () => {
     const grouped = {};
     selectedSlots.forEach(slot => {
@@ -175,7 +173,6 @@ export default function BookingForm() {
     return intervals;
   };
 
-  // ===== РАСЧЕТ ОБЩЕЙ ЦЕНЫ =====
   const calculateTotalPrice = () => {
     if (!room) return 0;
     let totalHours = 0;
@@ -186,14 +183,12 @@ export default function BookingForm() {
     return totalHours * room.price_per_hour;
   };
 
-  // ===== ОТОБРАЖЕНИЕ ЦЕНЫ ЗА ИНТЕРВАЛ =====
   const getIntervalPrice = (interval) => {
     if (!room) return 0;
     const hours = interval.endHour - interval.startHour;
     return hours * room.price_per_hour;
   };
 
-  // ===== ПОДТВЕРЖДЕНИЕ БРОНИРОВАНИЯ =====
   const handleSubmitBooking = async () => {
     if (selectedSlots.length === 0) {
       setBookingError('Выберите хотя бы один час');
@@ -233,7 +228,7 @@ export default function BookingForm() {
         }).unwrap();
       }
       
-      setBookingSuccess(`✅ Бронирование создано! ${selectedSlots.length} час(ов). Ожидает подтверждения владельца.`);
+      setBookingSuccess(`Бронирование создано! ${selectedSlots.length} час(ов). Ожидает подтверждения владельца.`);
       setSelectedSlots([]);
       
       setTimeout(() => navigate('/my-bookings'), 3000);
@@ -311,7 +306,6 @@ export default function BookingForm() {
     );
   }
 
-  // ===== ВЫЧИСЛЯЕМ ОБЩУЮ ЦЕНУ ДЛЯ ОТОБРАЖЕНИЯ =====
   const totalPrice = calculateTotalPrice();
   const intervals = getBookingIntervals();
 
@@ -382,7 +376,6 @@ export default function BookingForm() {
         <div className="bookingform-selected">
           <h3>Выбранные часы: {selectedSlots.length}</h3>
           
-          {/* ===== ОТОБРАЖЕНИЕ ВЫБРАННЫХ ИНТЕРВАЛОВ С ЦЕНОЙ ===== */}
           {selectedSlots.length > 0 && (
             <div className="selected-list">
               {intervals.map((interval, idx) => {
@@ -403,7 +396,6 @@ export default function BookingForm() {
             </div>
           )}
           
-          {/* ===== ИТОГОВАЯ ЦЕНА ===== */}
           <div className="selected-total">
             <span>Итого:</span>
             <span>{totalPrice} ₽</span>
