@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { useGetCatalogQuery } from '../store/api';
 import Navbar from '../components/Navbar';
 import MetroAutocomplete from '../components/MetroAutocomplete';
-
-const API_URL = 'https://team3.verstack.ru';
+import { getFullImageUrl, getMainImage } from '../utils/imageUtils';
 
 export default function Catalog() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,18 +24,22 @@ export default function Catalog() {
   const rooms = data?.apartments || [];
   const imagesData = data?.images || [];
 
+  // Строим карту: apartment_id → главное изображение
   const imageMap = {};
   if (Array.isArray(imagesData)) {
     imagesData.forEach((imageList, index) => {
       if (Array.isArray(imageList) && imageList.length > 0) {
-        imageMap[rooms[index]?.id] = imageList[0]?.image_url;
+        const room = rooms[index];
+        if (room) {
+          imageMap[room.id] = getMainImage(imageList);
+        }
       }
     });
   }
 
   const getRoomImage = (room) => {
     if (imageMap[room.id]) {
-      return `${API_URL}${imageMap[room.id]}`;
+      return imageMap[room.id];
     }
     return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
   };

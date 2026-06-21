@@ -9,6 +9,7 @@ import {
   useRejectBookingMutation
 } from '../store/api';
 import Navbar from '../components/Navbar';
+import { getFullImageUrl, getMainImage } from '../utils/imageUtils';
 
 const API_URL = 'https://team3.verstack.ru';
 
@@ -75,26 +76,30 @@ export default function MyRooms() {
     fetchUserNames();
   }, [sellerBookings]);
 
+  // ===== КАРТА ИЗОБРАЖЕНИЙ =====
   const imageMap = {};
   if (Array.isArray(images)) {
     images.forEach((imageList, index) => {
       if (Array.isArray(imageList) && imageList.length > 0) {
-        imageMap[roomsData[index]?.id] = imageList[0]?.image_url;
+        const room = roomsData[index];
+        if (room) {
+          imageMap[room.id] = getMainImage(imageList);
+        }
       }
     });
   }
 
   const getRoomImage = (room, index) => {
     if (imageMap && imageMap[room.id]) {
-      return `${API_URL}${imageMap[room.id]}`;
+      return imageMap[room.id];
     }
     
     if (images && images[index] && images[index].length > 0) {
-      return `${API_URL}${images[index][0].image_url}`;
+      return getFullImageUrl(images[index][0].image_url);
     }
     
     if (room.image_url) {
-      return `${API_URL}${room.image_url}`;
+      return getFullImageUrl(room.image_url);
     }
     
     return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
