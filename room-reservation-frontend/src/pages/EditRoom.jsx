@@ -40,7 +40,7 @@ export default function EditRoom() {
   const [successMsg, setSuccessMsg] = useState('');
   const [imagesToDelete, setImagesToDelete] = useState([]);
 
-  const MAX_FILES = 5;
+  const MAX_FILES = 3;
 
   useEffect(() => {
     if (room) {
