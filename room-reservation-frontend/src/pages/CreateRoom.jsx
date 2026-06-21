@@ -51,7 +51,7 @@ export default function CreateRoom() {
       return false;
     }
     if (formData.price_per_hour < 0) {
-      setError('❌ Цена должна быть не менее 100 ₽/час');
+      setError('❌ Цена должна быть не менее 0 ₽/час');
       return false;
     }
     if (formData.capacity < 1) {
@@ -196,7 +196,7 @@ export default function CreateRoom() {
     formData.metro.trim() !== '' &&
     formData.address.trim() !== '' &&
     formData.image_files.length > 0 &&
-    formData.price_per_hour >= 100 &&
+    formData.price_per_hour >= 0 &&
     formData.capacity >= 1;
 
   return (
@@ -272,11 +272,11 @@ export default function CreateRoom() {
                   name="price_per_hour"
                   value={formData.price_per_hour}
                   onChange={handleChange}
-                  min="100"
-                  step="100"
+                  min="0"
+                  step="50"
                   required
                   style={{
-                    borderColor: formData.price_per_hour < 100 && error ? '#ef4444' : undefined
+                    borderColor: formData.price_per_hour < 0 && error ? '#ef4444' : undefined
                   }}
                 />
               </div>
@@ -494,8 +494,8 @@ export default function CreateRoom() {
                   color: formData.image_files.length > 0 ? '#10b981' : '#94a3b8'
                 }}>{formData.image_files.length > 0 ? '✅' : '⬜'} Изображения</span>
                 <span style={{ 
-                  color: formData.price_per_hour >= 100 ? '#10b981' : '#94a3b8'
-                }}>{formData.price_per_hour >= 100 ? '✅' : '⬜'} Цена ≥ 100₽</span>
+                  color: formData.price_per_hour >= 0 ? '#10b981' : '#94a3b8'
+                }}>{formData.price_per_hour >= 0 ? '✅' : '⬜'} Цена ≥ 0</span>
                 <span style={{ 
                   color: formData.capacity >= 1 ? '#10b981' : '#94a3b8'
                 }}>{formData.capacity >= 1 ? '✅' : '⬜'} Вместимость ≥ 1</span>

@@ -309,8 +309,8 @@ export default function EditRoom() {
                   name="price_per_hour"
                   value={formData.price_per_hour}
                   onChange={handleChange}
-                  min="100"
-                  step="100"
+                  min="0"
+                  step="50"
                 />
               </div>
             </div>
