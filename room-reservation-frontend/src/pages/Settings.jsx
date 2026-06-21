@@ -1,14 +1,81 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
 
+const API_URL = 'https://team3.verstack.ru';
+
 export default function Settings() {
-  const { user, logout, deleteAccount } = useAuth();
+  const { user, logout, deleteAccount, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
+  
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
+  const [avatarSuccess, setAvatarSuccess] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(null);
+
+  // Загружаем текущую аватарку
+  useEffect(() => {
+    if (user?.id) {
+      fetch(`${API_URL}/api/users/${user.id}`, {
+        credentials: 'include'
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.avatar) {
+            setAvatarUrl(data.avatar.image_data);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [user]);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Файл должен быть изображением');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setAvatarError('Файл не должен превышать 10MB');
+      return;
+    }
+    
+    setAvatarError('');
+    setAvatarSuccess('');
+    setAvatarLoading(true);
+    
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/account/settings/profile/change-avatar`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAvatarSuccess('Аватарка успешно обновлена!');
+        setAvatarUrl(data.image);
+        await refreshUser();
+      } else {
+        const errorData = await response.json();
+        setAvatarError(errorData.error || 'Ошибка загрузки аватарки');
+      }
+    } catch (err) {
+      setAvatarError('Ошибка соединения с сервером');
+    } finally {
+      setAvatarLoading(false);
+      e.target.value = '';
+    }
+  };
 
   const handleLogout = async () => {
     if (window.confirm('Вы уверены, что хотите выйти?')) {
@@ -73,31 +140,81 @@ export default function Settings() {
             ← Вернуться в личный кабинет
           </Link>
 
-          <div style={{ background: '#ffffff', borderRadius: '28px', padding: '32px', boxShadow: '0 12px 30px rgba(15,23,42,.06)', marginBottom: '24px' }}>
+          {/* ===== АВАТАРКА ===== */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '28px',
+            padding: '32px',
+            boxShadow: '0 12px 30px rgba(15,23,42,.06)',
+            marginBottom: '24px'
+          }}>
+            <h2 style={{ marginTop: 0, marginBottom: '24px', color: '#0f172a', fontSize: '24px' }}>
+              Фото профиля
+            </h2>
+            
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
               <div style={{
-                width: '80px',
-                height: '80px',
+                width: '120px',
+                height: '120px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #2850a7 0%, #3b82f6 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontSize: '30px',
-                fontWeight: '700',
+                overflow: 'hidden',
+                background: '#f1f5f9',
+                border: '2px solid #e2e8f0',
                 flexShrink: 0
               }}>
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                <img 
+                  src={avatarUrl || `https://ui-avatars.com/api/?name=${user?.name || 'U'}&background=2850a7&color=fff&size=120`}
+                  alt="Аватар"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.target.src = `https://ui-avatars.com/api/?name=${user?.name || 'U'}&background=2850a7&color=fff&size=120`;
+                  }}
+                />
               </div>
+              
               <div>
-                <h2 style={{ margin: 0, color: '#0f172a', fontSize: '28px', fontWeight: '700' }}>{user?.name || 'Пользователь'}</h2>
-                <p style={{ marginTop: '6px', marginBottom: 0, color: '#64748b', fontSize: '15px' }}>{user?.email || '—'}</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  style={{ display: 'none' }}
+                  id="avatar-upload"
+                />
+                <label 
+                  htmlFor="avatar-upload"
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 24px',
+                    background: '#2850a7',
+                    color: '#ffffff',
+                    borderRadius: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#1e3d82'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#2850a7'}
+                >
+                  Загрузить фото
+                </label>
+                {avatarLoading && <span style={{ marginLeft: '12px', color: '#64748b' }}>⏳ Загрузка...</span>}
+                {avatarError && <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>❌ {avatarError}</div>}
+                {avatarSuccess && <div style={{ color: '#16a34a', fontSize: '14px', marginTop: '8px' }}>✅ {avatarSuccess}</div>}
+                <p style={{ color: '#94a3b8', fontSize: '12px', marginTop: '8px' }}>
+                  Поддерживаются JPG, PNG, WEBP, GIF. Максимум 10MB.
+                </p>
               </div>
             </div>
           </div>
 
-          <div style={{ background: '#ffffff', borderRadius: '28px', padding: '32px', boxShadow: '0 12px 30px rgba(15,23,42,.06)', marginBottom: '24px' }}>
+          {/* ===== ИНФОРМАЦИЯ ОБ АККАУНТЕ ===== */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '28px',
+            padding: '32px',
+            boxShadow: '0 12px 30px rgba(15,23,42,.06)',
+            marginBottom: '24px'
+          }}>
             <h2 style={{ marginTop: 0, marginBottom: '24px', color: '#0f172a', fontSize: '24px' }}>Информация об аккаунте</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ paddingBottom: '20px', borderBottom: '1px solid #e2e8f0' }}>
@@ -111,7 +228,14 @@ export default function Settings() {
             </div>
           </div>
 
-          <div style={{ background: '#ffffff', borderRadius: '28px', padding: '32px', boxShadow: '0 12px 30px rgba(15,23,42,.06)', marginBottom: '24px' }}>
+          {/* ===== БЕЗОПАСНОСТЬ ===== */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '28px',
+            padding: '32px',
+            boxShadow: '0 12px 30px rgba(15,23,42,.06)',
+            marginBottom: '24px'
+          }}>
             <h2 style={{ marginTop: 0, marginBottom: '12px', color: '#0f172a', fontSize: '24px' }}>Безопасность</h2>
             <p style={{ color: '#64748b', lineHeight: '1.6', marginBottom: '28px' }}>Завершите текущую сессию и выйдите из аккаунта на этом устройстве.</p>
             <button onClick={handleLogout} style={{ border: 'none', background: 'linear-gradient(135deg, #2850a7 0%, #3b82f6 100%)', color: '#ffffff', padding: '16px 28px', borderRadius: '14px', fontWeight: '600', fontSize: '16px', cursor: 'pointer', transition: 'all .2s ease' }}>
@@ -119,7 +243,14 @@ export default function Settings() {
             </button>
           </div>
 
-          <div style={{ background: '#ffffff', borderRadius: '28px', padding: '32px', boxShadow: '0 12px 30px rgba(15,23,42,.06)', border: '1px solid #fee2e2' }}>
+          {/* ===== УДАЛЕНИЕ АККАУНТА ===== */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '28px',
+            padding: '32px',
+            boxShadow: '0 12px 30px rgba(15,23,42,.06)',
+            border: '1px solid #fee2e2'
+          }}>
             <h2 style={{ marginTop: 0, marginBottom: '12px', color: '#dc2626', fontSize: '24px' }}>Удаление аккаунта</h2>
             <p style={{ color: '#64748b', lineHeight: '1.6', marginBottom: '28px' }}>Удаление аккаунта приведёт к безвозвратной потере всех данных: ваших помещений, бронирований и истории.</p>
             
