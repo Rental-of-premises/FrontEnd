@@ -29,7 +29,7 @@ export default function CreateRoom() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const MAX_FILES = 5;
+  const MAX_FILES = 3;
 
   //ВАЛИДАЦИЯ
   const validateForm = () => {
