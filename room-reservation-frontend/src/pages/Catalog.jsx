@@ -41,6 +41,9 @@ export default function Catalog() {
     if (imageMap[room.id]) {
       return imageMap[room.id];
     }
+    if (room.image_data) {
+      return getFullImageUrl(room.image_data);
+    }
     return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
   };
 
