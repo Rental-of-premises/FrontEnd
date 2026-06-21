@@ -86,11 +86,11 @@ export default function UserMenu() {
       {isOpen && (
         <div className="user-menu-dropdown">
           <Link to="/dashboard" className="user-menu-item" onClick={() => setIsOpen(false)}>
-            <span className="menu-icon">📊</span>
+            <span className="menu-icon"></span>
             <span>Личный кабинет</span>
           </Link>
           <Link to="/settings" className="user-menu-item" onClick={() => setIsOpen(false)}>
-            <span className="menu-icon">⚙️</span>
+            <span className="menu-icon"></span>
             <span>Настройки профиля</span>
           </Link>
           <hr className="user-menu-divider" />
@@ -99,7 +99,7 @@ export default function UserMenu() {
             onClick={handleLogout}
             style={{ color: '#ef4444' }}
           >
-            <span className="menu-icon">🚪</span>
+            <span className="menu-icon"></span>
             <span>Выйти</span>
           </button>
         </div>
