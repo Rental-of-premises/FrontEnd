@@ -127,7 +127,11 @@ export default function EditRoom() {
 
   const markExistingImageForDeletion = (index) => {
     const urlToDelete = formData.existing_images[index];
-    setImagesToDelete(prev => [...prev, urlToDelete]);
+    // Находим ID изображения для удаления
+    const imgToDelete = existingImages.find(img => img.image_data === urlToDelete);
+    if (imgToDelete) {
+      setImagesToDelete(prev => [...prev, imgToDelete.id]);
+    }
     setFormData(prev => ({
       ...prev,
       existing_images: prev.existing_images.filter((_, i) => i !== index)
@@ -145,6 +149,7 @@ export default function EditRoom() {
     }
 
     try {
+      // 1. Обновляем данные помещения
       const updates = {};
       if (formData.name !== room.name) updates.name = String(formData.name).trim();
       if (formData.description !== room.description) updates.description = String(formData.description || '').trim() || null;
@@ -166,24 +171,30 @@ export default function EditRoom() {
         }).unwrap();
       }
 
-      for (const url of imagesToDelete) {
-        const imgToDelete = existingImages.find(img => img.image_data === url);
-        if (imgToDelete) {
-          try {
-            const response = await fetch(`${API_URL}/api/account/delete-image/${imgToDelete.id}`, {
-              method: 'DELETE',
-              credentials: 'include'
-            });
-            if (!response.ok) {
-              console.warn(`Не удалось удалить изображение ${imgToDelete.id}: ${response.status}`);
-            }
-          } catch (e) {
-            console.warn('Ошибка при удалении изображения:', e);
-          }
+      // 2. Удаляем отмеченные изображения через update-images с параметром delete_images
+      if (imagesToDelete.length > 0) {
+        const formDataUpdate = new FormData();
+        formDataUpdate.append('delete_images', imagesToDelete.join(','));
+        
+        // Добавляем новые файлы, если есть
+        for (const file of formData.new_image_files) {
+          formDataUpdate.append('images', file);
         }
-      }
 
-      if (formData.new_image_files.length > 0) {
+        setUploading(true);
+        const response = await fetch(`${API_URL}/api/account/apartments/${id}/update-images`, {
+          method: 'PATCH',
+          credentials: 'include',
+          body: formDataUpdate
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Ошибка обновления изображений: ${response.status} ${errorText}`);
+        }
+        setUploading(false);
+      } else if (formData.new_image_files.length > 0) {
+        // 3. Если только добавляем новые изображения (без удаления)
         const formDataUpload = new FormData();
         for (const file of formData.new_image_files) {
           formDataUpload.append('images', file);
@@ -203,6 +214,7 @@ export default function EditRoom() {
       }
 
       setSuccessMsg('Помещение успешно обновлено!');
+      setImagesToDelete([]);
       refetch();
       setTimeout(() => navigate('/my-rooms'), 1500);
       
