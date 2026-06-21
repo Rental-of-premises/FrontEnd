@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-const API_URL = 'https://team3.verstack.ru';
+import { getFullImageUrl } from '../utils/imageUtils';
 
 export default function ImageCarousel({ images, alt = 'Изображение' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,16 +30,6 @@ export default function ImageCarousel({ images, alt = 'Изображение' }
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
-  const getImageUrl = (image) => {
-    if (image.startsWith('data:')) {
-      return image;
-    }
-    if (image.startsWith('http')) {
-      return image;
-    }
-    return `${API_URL}${image}`;
-  };
-
   return (
     <div style={{ 
       position: 'relative', 
@@ -56,7 +45,7 @@ export default function ImageCarousel({ images, alt = 'Изображение' }
         background: '#f1f5f9' 
       }}>
         <img
-          src={getImageUrl(images[currentIndex])}
+          src={getFullImageUrl(images[currentIndex])}
           alt={`${alt} ${currentIndex + 1}`}
           style={{
             width: '100%',
