@@ -291,7 +291,7 @@ export default function Settings() {
                 {avatarError && <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>❌ {avatarError}</div>}
                 {avatarSuccess && <div style={{ color: '#16a34a', fontSize: '14px', marginTop: '8px' }}>✅ {avatarSuccess}</div>}
                 <p style={{ color: '#94a3b8', fontSize: '12px', marginTop: '8px' }}>
-                  Поддерживаются JPG, PNG, WEBP, GIF. Максимум 10MB.
+                  Поддерживаются JPG, PNG. Максимум 10MB.
                 </p>
               </div>
             </div>
