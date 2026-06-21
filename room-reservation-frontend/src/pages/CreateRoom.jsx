@@ -4,6 +4,7 @@ import { useAddApartmentMutation } from '../store/api';
 import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
 import MetroAutocomplete from '../components/MetroAutocomplete';
+import AmenitiesSelector from '../components/AmenitiesSelector';
 
 const API_URL = 'https://team3.verstack.ru';
 
@@ -21,6 +22,7 @@ export default function CreateRoom() {
     image_previews: [],
     metro: '',
     address: '',
+    amenities: [], // ← добавляем массив ID удобств
   });
   
   const [uploading, setUploading] = useState(false);
@@ -32,6 +34,10 @@ export default function CreateRoom() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAmenitiesChange = (selectedIds) => {
+    setFormData(prev => ({ ...prev, amenities: selectedIds }));
   };
 
   const handleFileChange = (e) => {
@@ -125,7 +131,7 @@ export default function CreateRoom() {
         metro: formData.metro,
         address: formData.address,
         is_active: true,
-        amenities: []
+        amenities: formData.amenities // ← отправляем массив ID удобств
       };
       
       const result = await addApartment(payload).unwrap();
@@ -237,6 +243,13 @@ export default function CreateRoom() {
                 />
               </div>
             </div>
+
+            {/* ===== УДОБСТВА ===== */}
+            <AmenitiesSelector
+              selectedIds={formData.amenities}
+              onChange={handleAmenitiesChange}
+              label="Удобства (выберите из списка)"
+            />
 
             <div className="form-group">
               <label>Изображения помещения * (макс. {MAX_FILES})</label>

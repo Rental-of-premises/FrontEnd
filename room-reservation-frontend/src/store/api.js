@@ -30,7 +30,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Apartments', 'Bookings', 'User', 'Reviews'],
+  tagTypes: ['Apartments', 'Bookings', 'User', 'Reviews', 'Amenities'],
   endpoints: (builder) => ({
     // ===== ПОЛЬЗОВАТЕЛИ =====
     getUserById: builder.query({
@@ -140,6 +140,12 @@ export const api = createApi({
       invalidatesTags: ['Apartments']
     }),
     
+    // ===== УДОБСТВА (FIXED LIST FROM BACKEND) =====
+    getAmenities: builder.query({
+      query: () => '/api/amenities',
+      providesTags: ['Amenities']
+    }),
+    
     // ===== БРОНИРОВАНИЯ =====
     getBookingById: builder.query({
       query: (id) => `/api/bookings/${id}`,
@@ -239,6 +245,7 @@ export const {
   useAddApartmentMutation,
   useUpdateApartmentMutation,
   useDeleteApartmentMutation,
+  useGetAmenitiesQuery,
   useGetBookingByIdQuery,
   useGetMyBookingsQuery,
   useCreateBookingMutation,

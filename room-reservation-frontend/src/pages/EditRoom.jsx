@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useGetApartmentByIdQuery, useUpdateApartmentMutation } from '../store/api';
 import Navbar from '../components/Navbar';
 import MetroAutocomplete from '../components/MetroAutocomplete';
+import AmenitiesSelector from '../components/AmenitiesSelector';
 import '../styles/editroom.css';
 
 const API_URL = 'https://team3.verstack.ru';
@@ -30,6 +31,7 @@ export default function EditRoom() {
     existing_images: [],
     metro: '',
     address: '',
+    amenities: [], // ← массив ID удобств
   });
   
   const [uploading, setUploading] = useState(false);
@@ -42,6 +44,9 @@ export default function EditRoom() {
 
   useEffect(() => {
     if (room) {
+      // Получаем ID удобств из объекта
+      const amenityIds = room.amenities?.map(a => a.id) || [];
+      
       setFormData({
         name: room.name || '',
         description: room.description || '',
@@ -53,6 +58,7 @@ export default function EditRoom() {
         existing_images: existingImages.map(img => img.image_url) || [],
         metro: room.metro || '',
         address: room.address || '',
+        amenities: amenityIds,
       });
     }
   }, [room, existingImages]);
@@ -63,6 +69,10 @@ export default function EditRoom() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleAmenitiesChange = (selectedIds) => {
+    setFormData(prev => ({ ...prev, amenities: selectedIds }));
   };
 
   const handleFileChange = (e) => {
@@ -144,6 +154,12 @@ export default function EditRoom() {
       if (Boolean(formData.is_active) !== Boolean(room.is_active)) updates.is_active = Boolean(formData.is_active);
       if (formData.metro !== room.metro) updates.metro = String(formData.metro || '').trim() || null;
       if (formData.address !== room.address) updates.address = String(formData.address || '').trim() || null;
+      
+      // Обновляем удобства (отправляем массив ID)
+      const currentAmenityIds = room.amenities?.map(a => a.id) || [];
+      if (JSON.stringify(formData.amenities) !== JSON.stringify(currentAmenityIds)) {
+        updates.amenities = formData.amenities;
+      }
 
       if (Object.keys(updates).length > 0) {
         await updateApartment({
@@ -307,6 +323,13 @@ export default function EditRoom() {
                 />
               </div>
             </div>
+
+            {/* ===== УДОБСТВА ===== */}
+            <AmenitiesSelector
+              selectedIds={formData.amenities}
+              onChange={handleAmenitiesChange}
+              label="Удобства (выберите из списка)"
+            />
 
             <div className="form-group">
               <label>Текущие изображения</label>
