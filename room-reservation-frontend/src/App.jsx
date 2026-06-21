@@ -1,5 +1,6 @@
-// src/App.jsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuth } from './hooks/useAuth';
 import Catalog from './pages/Catalog';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -15,6 +16,37 @@ import Reviews from './pages/Reviews';
 import ConfirmEmail from './pages/ConfirmEmail';
 
 function App() {
+  const { user, logout } = useAuth();
+
+  //ПРОВЕРКА ТОКЕНА
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (localStorage.getItem('user')) {
+        try {
+          const response = await fetch('https://team3.verstack.ru/api/account/my-apartments', {
+            credentials: 'include',
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.status === 401) {
+            localStorage.removeItem('user');
+            if (!window.location.pathname.includes('/login') && 
+                !window.location.pathname.includes('/register')) {
+              window.location.href = '/login';
+            }
+          }
+        } catch (error) {
+          console.error('Ошибка проверки авторизации:', error);
+        }
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

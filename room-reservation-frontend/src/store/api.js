@@ -1,21 +1,37 @@
-// src/store/api.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const BASE_URL = 'https://team3.verstack.ru';
 
+//ПРОВЕРКА ТОКЕНА
+const baseQuery = fetchBaseQuery({
+  baseUrl: BASE_URL,
+  credentials: 'include',
+  prepareHeaders: (headers) => {
+    headers.set('Content-Type', 'application/json');
+    return headers;
+  },
+});
+
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+  const result = await baseQuery(args, api, extraOptions);
+    if (result.error && result.error.status === 401) {
+    localStorage.removeItem('user');
+    
+    if (!window.location.pathname.includes('/login') && 
+        !window.location.pathname.includes('/register')) {
+      window.location.href = '/login';
+    }
+  }
+  
+  return result;
+};
+
 export const api = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({ 
-    baseUrl: BASE_URL,
-    credentials: 'include',
-    prepareHeaders: (headers) => {
-      headers.set('Content-Type', 'application/json');
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Apartments', 'Bookings', 'User', 'Reviews'],
   endpoints: (builder) => ({
-    // ========== ПОЛЬЗОВАТЕЛИ ==========
+    //ПОЛЬЗОВАТЕЛИ
     getUserById: builder.query({
       query: (id) => `/api/users/${id}`,
       providesTags: ['User']
@@ -58,14 +74,14 @@ export const api = createApi({
       }),
     }),
     
-    // ========== ПОМЕЩЕНИЯ ==========
+    //ПОМЕЩЕНИЯ
     getCatalog: builder.query({
       query: (filters = {}) => ({
         url: '/api/apartments',
         method: 'GET',
         params: {
           is_active: true,
-          limit: 50,  // ← УВЕЛИЧЕНО С 100 ДО 50
+          limit: 100,
           offset: 0,
           ...(filters.min_price !== undefined && { min_price: filters.min_price }),
           ...(filters.max_price !== undefined && { max_price: filters.max_price }),
@@ -123,7 +139,7 @@ export const api = createApi({
       invalidatesTags: ['Apartments']
     }),
     
-    // ========== БРОНИРОВАНИЯ ==========
+    //БРОНИРОВАНИЯ
     getBookingById: builder.query({
       query: (id) => `/api/bookings/${id}`,
       providesTags: (result, error, id) => [{ type: 'Bookings', id }]
@@ -176,7 +192,7 @@ export const api = createApi({
       providesTags: ['Bookings']
     }),
     
-    // ========== ОТЗЫВЫ ==========
+    //ОТЗЫВЫ
     getReviewsByApartment: builder.query({
       query: (apartmentId) => `/api/apartments/${apartmentId}/reviews?limit=100&offset=0`,
       providesTags: (result, error, apartmentId) => [
