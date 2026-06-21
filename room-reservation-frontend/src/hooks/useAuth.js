@@ -1,4 +1,3 @@
-// src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bcrypt from 'bcryptjs';
@@ -65,7 +64,6 @@ export function useAuth() {
       let errorMessage = 'Ошибка входа';
       
       if (error.status === 401) {
-        // Показываем точное сообщение от бэкенда
         if (error.data?.error) {
           errorMessage = error.data.error;
         } else {
@@ -149,18 +147,37 @@ export function useAuth() {
   const refreshUser = async () => {
     const savedUser = localStorage.getItem('user');
     
-    if (savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
-        return { success: true, user: parsedUser };
-      } catch (e) {
-        console.error('Failed to refresh user:', e);
-        return { success: false, error: 'Invalid user data' };
-      }
+    if (!savedUser) {
+      setUser(null);
+      return { success: false, error: 'No user data found' };
     }
-    
-    return { success: false, error: 'No user data found' };
+
+    try {
+      const response = await fetch('https://team3.verstack.ru/api/account/my-apartments', {
+        credentials: 'include',
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('user');
+        setUser(null);
+        if (!window.location.pathname.includes('/login') && 
+            !window.location.pathname.includes('/register')) {
+          navigate('/login');
+        }
+        return { success: false, error: 'Token expired' };
+      }
+
+      const parsedUser = JSON.parse(savedUser);
+      setUser(parsedUser);
+      return { success: true, user: parsedUser };
+    } catch (e) {
+      console.error('Failed to refresh user:', e);
+      return { success: false, error: 'Invalid user data' };
+    }
   };
 
   return { 
