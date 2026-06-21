@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useGetCatalogQuery } from '../store/api';
+import { useGetCatalogQuery, useGetAmenitiesQuery } from '../store/api';
 import Navbar from '../components/Navbar';
 import MetroAutocomplete from '../components/MetroAutocomplete';
 import { getFullImageUrl, getMainImage } from '../utils/imageUtils';
@@ -12,6 +12,7 @@ export default function Catalog() {
   const [priceMax, setPriceMax] = useState(10000);
   const [priceValue, setPriceValue] = useState(10000);
   const [metroStation, setMetroStation] = useState('');
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
   
   const [filters, setFilters] = useState({
     is_active: true,
@@ -20,6 +21,7 @@ export default function Catalog() {
   });
   
   const { data, isLoading, isError, error, refetch } = useGetCatalogQuery(filters);
+  const { data: amenities = [], isLoading: amenitiesLoading } = useGetAmenitiesQuery();
   
   const rooms = data?.apartments || [];
   const imagesData = data?.images || [];
@@ -58,8 +60,12 @@ export default function Catalog() {
       newFilters.max_price = priceMax;
     }
     
+    if (selectedAmenities.length > 0) {
+      newFilters.amenities = selectedAmenities;
+    }
+    
     setFilters(newFilters);
-  }, [priceMax, capacityMin]);
+  }, [priceMax, capacityMin, selectedAmenities]);
 
   const resetFilters = () => {
     setSearchTerm('');
@@ -67,8 +73,19 @@ export default function Catalog() {
     setPriceMax(10000);
     setPriceValue(10000);
     setMetroStation('');
+    setSelectedAmenities([]);
     setFilters({ is_active: true, limit: 100, offset: 0 });
     refetch();
+  };
+
+  const handleAmenityToggle = (amenityId) => {
+    setSelectedAmenities(prev => {
+      if (prev.includes(amenityId)) {
+        return prev.filter(id => id !== amenityId);
+      } else {
+        return [...prev, amenityId];
+      }
+    });
   };
 
   const filteredRooms = rooms.filter(room => {
@@ -81,11 +98,18 @@ export default function Catalog() {
     const matchesCapacity = capacityMin === '' || (room.capacity || 0) >= parseInt(capacityMin);
     const matchesPrice = (room.price_per_hour || 0) <= priceMax;
     const matchesMetro = metroStation === '' || room.metro?.toLowerCase().includes(metroStation.toLowerCase());
+    
+    // Фильтрация по удобствам
+    let matchesAmenities = true;
+    if (selectedAmenities.length > 0) {
+      const roomAmenityIds = room.amenities?.map(a => a.id) || [];
+      matchesAmenities = selectedAmenities.every(id => roomAmenityIds.includes(id));
+    }
 
-    return matchesSearch && matchesCapacity && matchesPrice && matchesMetro;
+    return matchesSearch && matchesCapacity && matchesPrice && matchesMetro && matchesAmenities;
   });
 
-  if (isLoading) {
+  if (isLoading || amenitiesLoading) {
     return (
       <>
         <Navbar />
@@ -216,9 +240,79 @@ export default function Catalog() {
                 />
               </div>
 
+              <div className="filter-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Удобства</label>
+                <div style={{ 
+                  display: 'flex', 
+                  flexWrap: 'wrap', 
+                  gap: '8px',
+                  marginTop: '4px'
+                }}>
+                  {amenities.map((amenity) => {
+                    const isSelected = selectedAmenities.includes(amenity.id);
+                    return (
+                      <button
+                        key={amenity.id}
+                        type="button"
+                        onClick={() => handleAmenityToggle(amenity.id)}
+                        style={{
+                          padding: '6px 16px',
+                          borderRadius: '20px',
+                          border: isSelected ? '2px solid #2850a7' : '1px solid #e2e8f0',
+                          background: isSelected ? '#eef2ff' : '#ffffff',
+                          color: isSelected ? '#2850a7' : '#475569',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          fontWeight: isSelected ? '600' : '400',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = '#2850a7';
+                            e.currentTarget.style.background = '#f8fafc';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = '#e2e8f0';
+                            e.currentTarget.style.background = '#ffffff';
+                          }
+                        }}
+                      >
+                        <span style={{ fontSize: '16px' }}>
+                          {amenity.icon || '✓'}
+                        </span>
+                        {amenity.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedAmenities.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAmenities([])}
+                    style={{
+                      marginTop: '8px',
+                      padding: '4px 12px',
+                      background: '#f1f5f9',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      color: '#64748b',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Сбросить удобства
+                  </button>
+                )}
+              </div>
+
               <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
                 <button className="reset-filters-btn" onClick={resetFilters}>
-                  Сбросить фильтры
+                  Сбросить все фильтры
                 </button>
               </div>
             </div>
