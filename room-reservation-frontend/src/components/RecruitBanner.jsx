@@ -1,23 +1,37 @@
 import { useState, useEffect } from 'react';
 
-// Замените ссылку на ваш YouTube-ролик для рекрутинга
 const RECRUIT_URL = 'https://www.youtube.com/watch?v=ваше_видео';
+const BANNER_HIDE_KEY = 'recruit_banner_hidden_until';
 
 export default function RecruitBanner() {
   const [isVisible, setIsVisible] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
 
   useEffect(() => {
-    const hasClicked = localStorage.getItem('recruit_banner_clicked');
-    if (hasClicked) {
-      setIsVisible(false);
+    // Проверяем, скрыт ли баннер
+    const hiddenUntil = localStorage.getItem(BANNER_HIDE_KEY);
+    if (hiddenUntil) {
+      const hideTime = parseInt(hiddenUntil, 10);
+      if (Date.now() < hideTime) {
+        setIsVisible(false);
+        // Проверяем каждую минуту, не прошёл ли час
+        const interval = setInterval(() => {
+          const current = localStorage.getItem(BANNER_HIDE_KEY);
+          if (current && Date.now() > parseInt(current, 10)) {
+            localStorage.removeItem(BANNER_HIDE_KEY);
+            setIsVisible(true);
+            clearInterval(interval);
+          }
+        }, 60000); // проверка раз в минуту
+        return () => clearInterval(interval);
+      } else {
+        localStorage.removeItem(BANNER_HIDE_KEY);
+      }
     }
   }, []);
 
   const handleClick = () => {
-    localStorage.setItem('recruit_banner_clicked', 'true');
     window.open(RECRUIT_URL, '_blank');
-    setIsVisible(false);
   };
 
   const handleMinimize = (e) => {
@@ -27,8 +41,10 @@ export default function RecruitBanner() {
 
   const handleClose = (e) => {
     e.stopPropagation();
+    // Скрываем на 1 час
+    const oneHourLater = Date.now() + 60 * 60 * 1000;
+    localStorage.setItem(BANNER_HIDE_KEY, String(oneHourLater));
     setIsVisible(false);
-    localStorage.setItem('recruit_banner_closed', 'true');
   };
 
   if (!isVisible) return null;
@@ -56,20 +72,8 @@ export default function RecruitBanner() {
       })
     }}
     onClick={isMinimized ? handleClick : undefined}
-    onMouseEnter={(e) => {
-      if (isMinimized) {
-        e.currentTarget.style.transform = 'scale(1.1)';
-        e.currentTarget.style.boxShadow = '0 12px 40px rgba(40, 80, 167, 0.4)';
-      }
-    }}
-    onMouseLeave={(e) => {
-      if (isMinimized) {
-        e.currentTarget.style.transform = 'scale(1)';
-        e.currentTarget.style.boxShadow = '0 8px 30px rgba(40, 80, 167, 0.3)';
-      }
-    }}
     >
-      {/* Кнопка закрытия */}
+      {/* Кнопка закрытия — скрывает на час */}
       <button
         onClick={handleClose}
         style={{
@@ -94,7 +98,7 @@ export default function RecruitBanner() {
         ×
       </button>
 
-      {/* Кнопка сворачивания/разворачивания */}
+      {/* Кнопка сворачивания */}
       <button
         onClick={handleMinimize}
         style={{
@@ -120,7 +124,6 @@ export default function RecruitBanner() {
       </button>
 
       {isMinimized ? (
-        // Свёрнутый вид — только гифка
         <img
           src="https://giffun.ru/wp-content/uploads/2022/08/milaya-animatsiya-1.gif"
           alt="Милая гифка с котом"
@@ -131,7 +134,6 @@ export default function RecruitBanner() {
           }}
         />
       ) : (
-        // Развёрнутый вид
         <div style={{ padding: '12px', textAlign: 'center' }}>
           <div style={{
             width: '100%',
@@ -173,7 +175,7 @@ export default function RecruitBanner() {
               e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 71, 87, 0.3)';
             }}
           >
-            Нажми меня!
+            🎯 Нажми меня!
           </div>
           <p style={{
             fontSize: '10px',
