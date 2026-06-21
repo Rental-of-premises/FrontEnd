@@ -10,6 +10,8 @@ import {
 import Navbar from '../components/Navbar';
 import '../styles/reviews.css';
 
+const API_URL = 'https://team3.verstack.ru';
+
 export default function Reviews() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -34,8 +36,6 @@ export default function Reviews() {
   const [deletingId, setDeletingId] = useState(null);
   
   const [userNames, setUserNames] = useState({});
-
-  const API_URL = 'https://team3.verstack.ru';
 
   useEffect(() => {
     if (reviews && reviews.length > 0) {

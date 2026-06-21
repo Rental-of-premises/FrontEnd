@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
 import MetroAutocomplete from '../components/MetroAutocomplete';
 
+const API_URL = 'https://team3.verstack.ru';
+
 export default function CreateRoom() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -26,7 +28,6 @@ export default function CreateRoom() {
   const [loading, setLoading] = useState(false);
 
   const MAX_FILES = 10;
-  const API_URL = 'https://team3.verstack.ru';
 
   const handleChange = (e) => {
     const { name, value } = e.target;

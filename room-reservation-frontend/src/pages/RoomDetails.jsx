@@ -11,6 +11,8 @@ import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
 import ImageCarousel from '../components/ImageCarousel';
 
+const API_URL = 'https://team3.verstack.ru';
+
 export default function RoomDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -44,8 +46,6 @@ export default function RoomDetails() {
   const [userNames, setUserNames] = useState({});
   const [sellerData, setSellerData] = useState(null);
   const [loadingSeller, setLoadingSeller] = useState(false);
-
-  const API_URL = 'https://team3.verstack.ru';
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

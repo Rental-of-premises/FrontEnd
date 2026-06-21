@@ -13,13 +13,17 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   const result = await baseQuery(args, api, extraOptions);
+  
   if (result.error && result.error.status === 401) {
     localStorage.removeItem('user');
+    
     if (!window.location.pathname.includes('/login') && 
-        !window.location.pathname.includes('/register')) {
+        !window.location.pathname.includes('/register') &&
+        !window.location.pathname.includes('/confirm-email')) {
       window.location.href = '/login';
     }
   }
+  
   return result;
 };
 
@@ -28,7 +32,7 @@ export const api = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Apartments', 'Bookings', 'User', 'Reviews'],
   endpoints: (builder) => ({
-    //ПОЛЬЗОВАТЕЛИ
+    // ===== ПОЛЬЗОВАТЕЛИ =====
     getUserById: builder.query({
       query: (id) => `/api/users/${id}`,
       providesTags: ['User']
@@ -71,7 +75,7 @@ export const api = createApi({
       }),
     }),
     
-    //ПОМЕЩЕНИЯ
+    // ===== ПОМЕЩЕНИЯ =====
     getCatalog: builder.query({
       query: (filters = {}) => ({
         url: '/api/apartments',
@@ -189,7 +193,7 @@ export const api = createApi({
       providesTags: ['Bookings']
     }),
     
-    //ОТЗЫВЫ
+    // ===== ОТЗЫВЫ =====
     getReviewsByApartment: builder.query({
       query: (apartmentId) => `/api/apartments/${apartmentId}/reviews?limit=100&offset=0`,
       providesTags: (result, error, apartmentId) => [
@@ -201,7 +205,11 @@ export const api = createApi({
       query: ({ apartment_id, comment, stars }) => ({
         url: `/api/apartments/${apartment_id}/new-review`,
         method: 'POST',
-        body: { comment, stars },
+        body: { 
+          apartment_id: apartment_id,
+          comment, 
+          stars
+        },
       }),
       invalidatesTags: (result, error, { apartment_id }) => [
         { type: 'Reviews', id: `apartment-${apartment_id}` },

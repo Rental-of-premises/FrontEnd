@@ -6,6 +6,8 @@ import Navbar from '../components/Navbar';
 import MetroAutocomplete from '../components/MetroAutocomplete';
 import '../styles/editroom.css';
 
+const API_URL = 'https://team3.verstack.ru';
+
 export default function EditRoom() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -37,7 +39,6 @@ export default function EditRoom() {
   const [imagesToDelete, setImagesToDelete] = useState([]);
 
   const MAX_FILES = 10;
-  const API_URL = 'https://team3.verstack.ru';
 
   useEffect(() => {
     if (room) {
