@@ -14,6 +14,7 @@ const baseQuery = fetchBaseQuery({
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   const result = await baseQuery(args, api, extraOptions);
   
+  // НЕ разлогиниваем при 400, 422 и других ошибках валидации
   if (result.error && result.error.status === 401) {
     localStorage.removeItem('user');
     
