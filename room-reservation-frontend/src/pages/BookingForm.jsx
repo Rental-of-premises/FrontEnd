@@ -40,7 +40,12 @@ export default function BookingForm() {
         const bookings = data.map(b => {
           const startDate = new Date(b.time_from);
           const endDate = new Date(b.time_to);
-          const dateStr = startDate.toISOString().split('T')[0];
+          
+          // ✅ Используем локальную дату
+          const year = startDate.getFullYear();
+          const month = String(startDate.getMonth() + 1).padStart(2, '0');
+          const day = String(startDate.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
           const startHour = startDate.getHours();
           const endHour = endDate.getHours();
           
@@ -95,26 +100,40 @@ export default function BookingForm() {
 
   const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
+  // ✅ Функция для получения локальной даты в формате YYYY-MM-DD
+  const getLocalDateStr = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const isHourBooked = (date, hour) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = getLocalDateStr(date);
     return existingBookings.some(b => b.date === dateStr && b.hour === hour);
   };
 
   const isHourSelected = (date, hour) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = getLocalDateStr(date);
     return selectedSlots.some(s => s.date === dateStr && s.hour === hour);
   };
 
   const handleSlotClick = (date, hour) => {
-    const dateStr = date.toISOString().split('T')[0];
-    const now = new Date();
+    const dateStr = getLocalDateStr(date);
     
+    const now = new Date();
     const selectedDate = new Date(date);
     selectedDate.setHours(hour, 0, 0, 0);
     
-    if (selectedDate < now) {
-      setBookingError('Нельзя забронировать прошедшее время');
-      setTimeout(() => setBookingError(''), 2000);
+    const nowRounded = new Date(now);
+    nowRounded.setMilliseconds(0);
+    nowRounded.setSeconds(0);
+    
+    // ✅ Проверка только для сегодняшнего дня
+    const isToday = date.toDateString() === now.toDateString();
+    if (isToday && selectedDate.getTime() < nowRounded.getTime()) {
+      setBookingError(`Нельзя забронировать прошедшее время (${hour}:00 уже прошло)`);
+      setTimeout(() => setBookingError(''), 3000);
       return;
     }
     
@@ -131,6 +150,7 @@ export default function BookingForm() {
     }
   };
 
+  // ✅ Исправленная функция формирования интервалов
   const getBookingIntervals = () => {
     const grouped = {};
     selectedSlots.forEach(slot => {
@@ -139,30 +159,35 @@ export default function BookingForm() {
     });
     
     const intervals = [];
-    for (const [date, hoursList] of Object.entries(grouped)) {
+    for (const [dateStr, hoursList] of Object.entries(grouped)) {
       hoursList.sort((a, b) => a - b);
       let start = hoursList[0];
       let end = hoursList[0];
+      
       for (let i = 1; i <= hoursList.length; i++) {
         if (i < hoursList.length && hoursList[i] === end + 1) {
           end = hoursList[i];
         } else {
-          const dateObj = new Date(date);
-          const year = dateObj.getFullYear();
-          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-          const day = String(dateObj.getDate()).padStart(2, '0');
-          const formattedDate = `${year}-${month}-${day}`;
+          // ✅ Парсим дату правильно (без UTC)
+          const [year, month, day] = dateStr.split('-').map(Number);
+          const dateObj = new Date(year, month - 1, day);
           
           const startHourStr = String(start).padStart(2, '0');
           const endHourStr = String(end + 1).padStart(2, '0');
           
           intervals.push({
-            date: formattedDate,
+            date: dateStr,
             startHour: start,
             endHour: end + 1,
             startTime: `${startHourStr}:00`,
-            endTime: `${endHourStr}:00`
+            endTime: `${endHourStr}:00`,
+            displayDate: dateObj.toLocaleDateString('ru-RU', { 
+              day: 'numeric', 
+              month: 'short',
+              year: 'numeric'
+            })
           });
+          
           if (i < hoursList.length) {
             start = hoursList[i];
             end = start;
@@ -208,19 +233,29 @@ export default function BookingForm() {
       const now = new Date();
       
       for (const interval of intervals) {
-        const startDateTime = new Date(`${interval.date}T${interval.startTime}:00`);
-        const endDateTime = new Date(`${interval.date}T${interval.endTime}:00`);
+        // ✅ Создаём дату в локальном времени (без UTC)
+        const [year, month, day] = interval.date.split('-').map(Number);
+        const [startHour, startMinute] = interval.startTime.split(':').map(Number);
+        const [endHour, endMinute] = interval.endTime.split(':').map(Number);
+        
+        const startDateTime = new Date(year, month - 1, day, startHour, startMinute, 0);
+        const endDateTime = new Date(year, month - 1, day, endHour, endMinute, 0);
         
         if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
           setBookingError('Ошибка: неверный формат даты');
           return;
         }
         
-        if (startDateTime < now) {
+        const nowRounded = new Date(now);
+        nowRounded.setMilliseconds(0);
+        nowRounded.setSeconds(0);
+        
+        if (startDateTime.getTime() < nowRounded.getTime()) {
           setBookingError(`Время ${interval.startTime} уже прошло. Выберите будущее время.`);
           return;
         }
         
+        // ✅ Отправляем на сервер в ISO формате (он сам сконвертирует в UTC)
         await createBooking({
           apartment_id: parseInt(id),
           time_from: startDateTime.toISOString(),
@@ -341,10 +376,15 @@ export default function BookingForm() {
                 {weekDays.map((day, dayIdx) => {
                   const booked = isHourBooked(day, hour);
                   const selected = isHourSelected(day, hour);
+                  
                   const now = new Date();
+                  const nowRounded = new Date(now);
+                  nowRounded.setMilliseconds(0);
+                  nowRounded.setSeconds(0);
+                  
                   const selectedDate = new Date(day);
                   selectedDate.setHours(hour, 0, 0, 0);
-                  const isPast = selectedDate < now;
+                  const isPast = selectedDate.getTime() < nowRounded.getTime() && isToday(day);
                   
                   let cellClass = 'calendar-cell';
                   if (booked || isPast) cellClass += ' booked';
@@ -383,11 +423,7 @@ export default function BookingForm() {
                 const price = getIntervalPrice(interval);
                 return (
                   <div key={idx} className="selected-interval">
-                    <span>{new Date(interval.date).toLocaleDateString('ru-RU', { 
-                      day: 'numeric', 
-                      month: 'short',
-                      year: 'numeric'
-                    })}</span>
+                    <span>{interval.displayDate}</span>
                     <span>{interval.startTime} - {interval.endTime}</span>
                     <span>{hoursCount} ч × {room.price_per_hour} ₽ = <strong>{price} ₽</strong></span>
                   </div>
