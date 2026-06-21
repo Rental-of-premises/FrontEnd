@@ -142,6 +142,7 @@ export function useAuth() {
     }
   };
 
+  // ✅ НОВАЯ ФУНКЦИЯ: обновление данных пользователя
   const refreshUser = async () => {
     const savedUser = localStorage.getItem('user');
     
@@ -151,9 +152,11 @@ export function useAuth() {
     }
 
     try {
-      const response = await fetch('https://team3.verstack.ru/api/account/my-apartments', {
+      const parsedUser = JSON.parse(savedUser);
+      
+      // Запрашиваем актуальные данные пользователя с бэкенда
+      const response = await fetch(`https://team3.verstack.ru/api/users/${parsedUser.id}`, {
         credentials: 'include',
-        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -169,9 +172,16 @@ export function useAuth() {
         return { success: false, error: 'Token expired' };
       }
 
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      return { success: true, user: parsedUser };
+      if (response.ok) {
+        const data = await response.json();
+        // Берем user из вложенного объекта или сам объект
+        const userData = data.user || data;
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        return { success: true, user: userData };
+      }
+      
+      return { success: false, error: 'Failed to refresh user' };
     } catch (e) {
       console.error('Failed to refresh user:', e);
       return { success: false, error: 'Invalid user data' };
@@ -185,7 +195,7 @@ export function useAuth() {
     register, 
     logout, 
     deleteAccount,
-    refreshUser,
+    refreshUser, // ✅ Добавляем в возврат
     isAuth: !!user 
   };
 }
