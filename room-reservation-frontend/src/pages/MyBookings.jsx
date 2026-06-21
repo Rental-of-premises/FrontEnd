@@ -1,10 +1,11 @@
-// src/pages/MyBookings.jsx
 import { useState, useMemo } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { Link } from 'react-router-dom'
 import { useGetMyBookingsQuery, useCancelBookingMutation, useGetCatalogQuery } from '../store/api'
 import Navbar from '../components/Navbar'
 import '../styles/mybookings.css'
+
+const API_URL = 'https://team3.verstack.ru';
 
 export default function MyBookings() {
   const { user } = useAuth()
@@ -13,19 +14,15 @@ export default function MyBookings() {
   const [modalOpen, setModalOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState('active')
   
-  // ===== МОИ БРОНИРОВАНИЯ (ПРАВИЛЬНЫЙ ЗАПРОС) =====
   const { data: allBookings = [], isLoading: bookingsLoading, error, refetch } = useGetMyBookingsQuery(undefined, {
     skip: !user,
   })
   
-  // Запрос каталога (для получения названий помещений)
   const { data: catalogResponse = {}, isLoading: roomsLoading } = useGetCatalogQuery({ limit: 1000, offset: 0 })
   const [cancelBooking] = useCancelBookingMutation()
 
-  // Извлекаем массив помещений из объекта ответа
   const allRooms = catalogResponse?.apartments || []
 
-  // Безопасное создание карты комнат
   const roomsMap = useMemo(() => {
     const map = {}
     const safeRooms = Array.isArray(allRooms) ? allRooms : []
@@ -35,7 +32,6 @@ export default function MyBookings() {
     return map
   }, [allRooms])
 
-  // Безопасное обогащение бронирований данными о помещениях
   const enrichedBookings = useMemo(() => {
     const now = new Date()
     const safeBookings = Array.isArray(allBookings) ? allBookings : []
@@ -60,7 +56,6 @@ export default function MyBookings() {
     })
   }, [allBookings, roomsMap])
 
-  // Сортировка от новых к старым
   const sortedByDate = useMemo(() => {
     const safeBookings = Array.isArray(enrichedBookings) ? enrichedBookings : []
     return [...safeBookings].sort((a, b) => {
@@ -70,7 +65,6 @@ export default function MyBookings() {
     })
   }, [enrichedBookings])
 
-  // Статистика
   const stats = useMemo(() => {
     const all = Array.isArray(sortedByDate) ? sortedByDate : []
     return {
@@ -82,7 +76,6 @@ export default function MyBookings() {
     }
   }, [sortedByDate])
 
-  // Фильтрация
   const filteredBookings = useMemo(() => {
     const all = Array.isArray(sortedByDate) ? sortedByDate : []
     if (statusFilter === 'active') {
@@ -97,7 +90,6 @@ export default function MyBookings() {
     return all
   }, [sortedByDate, statusFilter])
 
-  // Почасовые слоты для календаря
   const hourlySlots = useMemo(() => {
     const all = Array.isArray(sortedByDate) ? sortedByDate : []
     const activeBookings = all.filter(b => b.displayStatus === 'confirmed')
@@ -138,7 +130,6 @@ export default function MyBookings() {
     return slots
   }, [sortedByDate])
 
-  // ===== КАЛЕНДАРЬ =====
   const weekDays = useMemo(() => {
     const startDate = new Date(currentDate)
     const day = currentDate.getDay()
@@ -260,7 +251,6 @@ export default function MyBookings() {
     return { ...base, background: '#ffeeee', color: '#bc2222' }
   }
 
-  // ===== ЕСЛИ ПОЛЬЗОВАТЕЛЬ НЕ АВТОРИЗОВАН =====
   if (!user) {
     return (
       <>
@@ -441,7 +431,6 @@ export default function MyBookings() {
               })}
             </div>
 
-            {/* ========== АКТИВНЫЕ (Календарь) ========== */}
             {statusFilter === 'active' && (
               <>
                 <div className="nav-buttons" style={{ marginBottom: '24px' }}>
@@ -495,7 +484,6 @@ export default function MyBookings() {
               </>
             )}
 
-            {/* ========== ОЖИДАЮТ ========== */}
             {statusFilter === 'waiting' && (
               <div className="history-list">
                 {filteredBookings.length === 0 ? (
@@ -555,7 +543,6 @@ export default function MyBookings() {
               </div>
             )}
 
-            {/* ========== ИСТОРИЯ ========== */}
             {statusFilter === 'history' && (
               <div className="history-list">
                 {filteredBookings.length === 0 ? (
@@ -620,7 +607,6 @@ export default function MyBookings() {
         )}
       </div>
 
-      {/* ========== МОДАЛЬНОЕ ОКНО ========== */}
       {modalOpen && selectedBooking && (
         <div onClick={() => setModalOpen(false)} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', boxSizing: 'border-box' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff', width: '100%', maxWidth: '520px', borderRadius: '24px', padding: '36px', boxShadow: '0 24px 48px rgba(0,0,0,0.15)', boxSizing: 'border-box' }}>

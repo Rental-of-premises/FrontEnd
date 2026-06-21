@@ -2,7 +2,6 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const BASE_URL = 'https://team3.verstack.ru';
 
-//ПРОВЕРКА ТОКЕНА
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
   credentials: 'include',
@@ -14,15 +13,13 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   const result = await baseQuery(args, api, extraOptions);
-    if (result.error && result.error.status === 401) {
+  if (result.error && result.error.status === 401) {
     localStorage.removeItem('user');
-    
     if (!window.location.pathname.includes('/login') && 
         !window.location.pathname.includes('/register')) {
       window.location.href = '/login';
     }
   }
-  
   return result;
 };
 
@@ -109,14 +106,14 @@ export const api = createApi({
         url: '/api/account/new-apartment',
         method: 'POST',
         body: {
-          name: apartmentData.title,
-          description: apartmentData.description,
+          name: apartmentData.name,
+          description: apartmentData.description || '',
           capacity: apartmentData.capacity,
           price_per_hour: apartmentData.price_per_hour,
-          image_url: apartmentData.image_url,
-          metro: apartmentData.metro,
-          address: apartmentData.address,
-          is_active: true
+          metro: apartmentData.metro || '',
+          address: apartmentData.address || '',
+          is_active: true,
+          amenities: apartmentData.amenities || []
         },
       }),
       invalidatesTags: ['Apartments']
@@ -139,7 +136,7 @@ export const api = createApi({
       invalidatesTags: ['Apartments']
     }),
     
-    //БРОНИРОВАНИЯ
+    // ===== БРОНИРОВАНИЯ =====
     getBookingById: builder.query({
       query: (id) => `/api/bookings/${id}`,
       providesTags: (result, error, id) => [{ type: 'Bookings', id }]
@@ -223,20 +220,17 @@ export const api = createApi({
 });
 
 export const {
-  // Users
   useGetUserByIdQuery,
   useSignUpMutation,
   useSignInMutation,
   useLogoutMutation,
   useDeleteAccountMutation,
-  // Apartments
   useGetCatalogQuery,
   useGetApartmentByIdQuery,
   useGetMyApartmentsQuery,
   useAddApartmentMutation,
   useUpdateApartmentMutation,
   useDeleteApartmentMutation,
-  // Bookings
   useGetBookingByIdQuery,
   useGetMyBookingsQuery,
   useCreateBookingMutation,
@@ -244,7 +238,6 @@ export const {
   useConfirmBookingMutation,
   useRejectBookingMutation,
   useGetSellerBookingsQuery,
-  // Reviews
   useGetReviewsByApartmentQuery,
   useCreateReviewMutation,
   useDeleteReviewMutation,

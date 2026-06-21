@@ -1,4 +1,3 @@
-// src/components/MetroAutocomplete.jsx
 import { useState, useRef, useEffect } from 'react';
 import { sortedMetroStations } from '../data/metroStations';
 
@@ -17,14 +16,12 @@ export default function MetroAutocomplete({
   const inputRef = useRef(null);
   const wrapperRef = useRef(null);
 
-  // Обновляем инпут при изменении value извне
   useEffect(() => {
     if (value !== inputValue) {
       setInputValue(value || '');
     }
   }, [value]);
 
-  // Закрываем список при клике вне компонента
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
@@ -35,7 +32,6 @@ export default function MetroAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Фильтрация станций
   const filterStations = (query) => {
     if (!query || query.trim() === '') {
       return [];
@@ -43,10 +39,9 @@ export default function MetroAutocomplete({
     const lowerQuery = query.toLowerCase().trim();
     return sortedMetroStations
       .filter(station => station.toLowerCase().includes(lowerQuery))
-      .slice(0, 10); // Показываем максимум 10 вариантов
+      .slice(0, 20);
   };
 
-  // Обработчик ввода
   const handleInputChange = (e) => {
     const newValue = e.target.value;
     setInputValue(newValue);
@@ -56,11 +51,9 @@ export default function MetroAutocomplete({
     setSuggestions(filtered);
     setShowSuggestions(filtered.length > 0);
     
-    // Передаем значение в родитель (если пусто — передаем null)
     onChange(newValue || '');
   };
 
-  // Обработчик выбора станции
   const handleSelectStation = (station) => {
     setInputValue(station);
     setSuggestions([]);
@@ -69,35 +62,29 @@ export default function MetroAutocomplete({
     onChange(station);
   };
 
-  // Обработка клавиш навигации
   const handleKeyDown = (e) => {
     if (!showSuggestions) return;
 
-    // Стрелка вниз
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex((prev) => 
         prev < suggestions.length - 1 ? prev + 1 : prev
       );
     }
-    // Стрелка вверх
     else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
     }
-    // Enter — выбор
     else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
       handleSelectStation(suggestions[selectedIndex]);
     }
-    // Escape — закрыть список
     else if (e.key === 'Escape') {
       setShowSuggestions(false);
       setSelectedIndex(-1);
     }
   };
 
-  // Подсветка совпадения
   const highlightMatch = (text, query) => {
     if (!query || !query.trim()) return text;
     const lowerText = text.toLowerCase();

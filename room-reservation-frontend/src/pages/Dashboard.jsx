@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx
 import { useAuth } from '../hooks/useAuth'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'

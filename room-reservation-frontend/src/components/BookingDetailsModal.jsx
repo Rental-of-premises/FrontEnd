@@ -1,4 +1,3 @@
-// src/components/BookingDetailsModal.jsx
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 

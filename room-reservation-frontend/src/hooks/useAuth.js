@@ -33,7 +33,6 @@ export function useAuth() {
       }
       setLoading(false);
     };
-    
     loadUser();
   }, []);
 
@@ -97,7 +96,7 @@ export function useAuth() {
       if (error.status === 409) {
         errorMessage = 'Пользователь с таким email уже существует';
       } else if (error.status === 400) {
-        errorMessage = 'Неверный JSON или валидация не пройдена (email, пароль ≥6 символов, имя)';
+        errorMessage = 'Неверный JSON или валидация не пройдена';
       } else if (error.data?.error) {
         errorMessage = error.data.error;
       }
@@ -109,7 +108,6 @@ export function useAuth() {
   const logout = async () => {
     try {
       await logoutMutation().unwrap();
-      console.log('Server logout successful');
     } catch (error) {
       console.warn('Server logout failed, but clearing local data:', error);
     } finally {

@@ -1,4 +1,3 @@
-// src/pages/MyRooms.jsx
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -11,18 +10,18 @@ import {
 } from '../store/api';
 import Navbar from '../components/Navbar';
 
+const API_URL = 'https://team3.verstack.ru';
+
 export default function MyRooms() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('rooms');
   const [userNames, setUserNames] = useState({});
   const [apartmentNames, setApartmentNames] = useState({});
   
-  // ===== МОИ ПОМЕЩЕНИЯ =====
   const { data: response = {}, isLoading: roomsLoading, error: roomsError, refetch: refetchRooms } = useGetMyApartmentsQuery(undefined, {
     skip: !user,
   });
   
-  // ===== БРОНИ МОИХ ПОМЕЩЕНИЙ =====
   const { data: sellerBookings = [], isLoading: bookingsLoading, error: bookingsError, refetch: refetchBookings } = useGetSellerBookingsQuery(undefined, {
     skip: !user,
   });
@@ -33,11 +32,9 @@ export default function MyRooms() {
   const [deletingId, setDeletingId] = useState(null);
   const [processingBookingId, setProcessingBookingId] = useState(null);
 
-  // ===== ИЗВЛЕКАЕМ ДАННЫЕ =====
   const roomsData = response?.apartments || [];
   const images = response?.images || [];
 
-  // ===== КАРТА НАЗВАНИЙ ПОМЕЩЕНИЙ =====
   useEffect(() => {
     if (roomsData && roomsData.length > 0) {
       const names = {};
@@ -48,7 +45,6 @@ export default function MyRooms() {
     }
   }, [roomsData]);
 
-  // ===== ЗАГРУЗКА ИМЕН ПОЛЬЗОВАТЕЛЕЙ =====
   useEffect(() => {
     const fetchUserNames = async () => {
       if (!sellerBookings || sellerBookings.length === 0) return;
@@ -58,7 +54,7 @@ export default function MyRooms() {
       
       for (const userId of uniqueUserIds) {
         try {
-          const response = await fetch(`https://team3.verstack.ru/api/users/${userId}`, {
+          const response = await fetch(`${API_URL}/api/users/${userId}`, {
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' }
           });
@@ -79,7 +75,6 @@ export default function MyRooms() {
     fetchUserNames();
   }, [sellerBookings]);
 
-  // ===== КАРТА ИЗОБРАЖЕНИЙ =====
   const imageMap = {};
   if (Array.isArray(images)) {
     images.forEach((imageList, index) => {
@@ -89,28 +84,22 @@ export default function MyRooms() {
     });
   }
 
-  // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИЗОБРАЖЕНИЯ (ПЕРВОЕ ИЗОБРАЖЕНИЕ) =====
   const getRoomImage = (room, index) => {
-    // 1. Проверяем imageMap
     if (imageMap && imageMap[room.id]) {
       return imageMap[room.id];
     }
     
-    // 2. Проверяем images напрямую по индексу
     if (images && images[index] && images[index].length > 0) {
       return images[index][0].image_url;
     }
     
-    // 3. Проверяем напрямую в room
     if (room.image_url) {
       return room.image_url;
     }
     
-    // 4. Заглушка
     return 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
   };
 
-  // ===== СОРТИРОВКА ПОМЕЩЕНИЙ =====
   const rooms = useMemo(() => {
     const data = Array.isArray(roomsData) ? roomsData : [];
     return [...data].sort((a, b) => {
@@ -120,7 +109,6 @@ export default function MyRooms() {
     });
   }, [roomsData]);
 
-  // ===== СОРТИРОВКА БРОНИРОВАНИЙ: ожидающие сверху =====
   const sortedBookings = useMemo(() => {
     const all = Array.isArray(sellerBookings) ? sellerBookings : [];
     return [...all].sort((a, b) => {
@@ -132,7 +120,6 @@ export default function MyRooms() {
 
   const waitingBookings = sortedBookings.filter(b => b.status === 'waiting');
 
-  // ===== УДАЛЕНИЕ ПОМЕЩЕНИЯ =====
   const handleDelete = async (id) => {
     if (!window.confirm('Вы уверены, что хотите удалить это помещение?')) return;
     
@@ -147,33 +134,31 @@ export default function MyRooms() {
     }
   };
 
-  // ===== ПОДТВЕРЖДЕНИЕ БРОНИРОВАНИЯ =====
   const handleConfirmBooking = async (bookingId) => {
     if (!window.confirm('Подтвердить бронирование?')) return;
     
     setProcessingBookingId(bookingId);
     try {
       await confirmBooking(bookingId).unwrap();
-      alert('✅ Бронирование подтверждено!');
+      alert('Бронирование подтверждено!');
       refetchBookings();
     } catch (err) {
-      alert('❌ Ошибка при подтверждении: ' + (err.data?.error || 'Неизвестная ошибка'));
+      alert('Ошибка при подтверждении: ' + (err.data?.error || 'Неизвестная ошибка'));
     } finally {
       setProcessingBookingId(null);
     }
   };
 
-  // ===== ОТКЛОНЕНИЕ БРОНИРОВАНИЯ =====
   const handleRejectBooking = async (bookingId) => {
     if (!window.confirm('Отклонить бронирование?')) return;
     
     setProcessingBookingId(bookingId);
     try {
       await rejectBooking(bookingId).unwrap();
-      alert('❌ Бронирование отклонено');
+      alert('Бронирование отклонено');
       refetchBookings();
     } catch (err) {
-      alert('❌ Ошибка при отклонении: ' + (err.data?.error || 'Неизвестная ошибка'));
+      alert('Ошибка при отклонении: ' + (err.data?.error || 'Неизвестная ошибка'));
     } finally {
       setProcessingBookingId(null);
     }
@@ -200,11 +185,11 @@ export default function MyRooms() {
 
   const getStatusText = (status) => {
     switch(status) {
-      case 'confirmed': return '✅ Подтверждено';
-      case 'waiting': return '⏳ Ожидает подтверждения';
-      case 'completed': return '📌 Завершено';
-      case 'cancelled': return '❌ Отменено';
-      case 'rejected': return '🚫 Отклонено';
+      case 'confirmed': return 'Подтверждено';
+      case 'waiting': return 'Ожидает подтверждения';
+      case 'completed': return 'Завершено';
+      case 'cancelled': return 'Отменено';
+      case 'rejected': return 'Отклонено';
       default: return status;
     }
   };
@@ -220,7 +205,6 @@ export default function MyRooms() {
     }
   };
 
-  // ===== ЗАГРУЗКА =====
   if (roomsLoading || bookingsLoading) {
     return (
       <>
@@ -278,7 +262,6 @@ export default function MyRooms() {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' 
       }}>
         
-        {/* Шапка */}
         <div style={{ 
           background: '#2850a7', 
           padding: '44px 48px', 
@@ -314,7 +297,6 @@ export default function MyRooms() {
           </Link>
         </div>
 
-        {/* ===== ВКЛАДКИ ===== */}
         <div style={{ 
           display: 'flex', 
           gap: '12px', 
@@ -372,7 +354,6 @@ export default function MyRooms() {
           </button>
         </div>
 
-        {/* ===== ВКЛАДКА: МОИ ПОМЕЩЕНИЯ ===== */}
         {activeTab === 'rooms' && (
           <div className="rooms-grid" style={{ 
             display: 'grid', 
@@ -618,7 +599,6 @@ export default function MyRooms() {
           </div>
         )}
 
-        {/* ===== ВКЛАДКА: БРОНИ МОИХ ПОМЕЩЕНИЙ ===== */}
         {activeTab === 'bookings' && (
           <div className="bookings-list">
             {sortedBookings.length === 0 ? (
@@ -701,7 +681,7 @@ export default function MyRooms() {
                             if (!processingBookingId) e.currentTarget.style.background = '#10b981';
                           }}
                         >
-                          ✅ Подтвердить
+                          Подтвердить
                         </button>
                         <button
                           onClick={() => handleRejectBooking(booking.id)}
@@ -724,7 +704,7 @@ export default function MyRooms() {
                             if (!processingBookingId) e.currentTarget.style.background = '#ef4444';
                           }}
                         >
-                          ❌ Отклонить
+                          Отклонить
                         </button>
                       </div>
                     )}
