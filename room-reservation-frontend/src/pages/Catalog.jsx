@@ -26,7 +26,6 @@ export default function Catalog() {
   const rooms = data?.apartments || [];
   const imagesData = data?.images || [];
 
-  // Строим карту: apartment_id → главное изображение
   const imageMap = {};
   if (Array.isArray(imagesData)) {
     imagesData.forEach((imageList, index) => {
@@ -146,13 +145,31 @@ export default function Catalog() {
         </div>
 
         <div className="search-section">
-          <div className="search-bar">
+          <div className="search-bar" style={{
+            background: 'rgba(230, 245, 240, 0.8)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
             <span className="search-icon"></span>
             <input
               type="text"
               placeholder="Поиск по названию, адресу или метро..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                flex: 1,
+                fontSize: '15px',
+                color: '#1e293b'
+              }}
             />
           </div>
 
@@ -170,10 +187,11 @@ export default function Catalog() {
               onClick={() => setShowFilters(!showFilters)}
               style={{
                 padding: '10px 24px',
-                background: showFilters ? '#1e3d7c' : '#2850a7',
+                background: showFilters ? 'rgba(30, 61, 124, 0.9)' : 'rgba(40, 80, 167, 0.9)',
+                backdropFilter: 'blur(10px)',
                 color: 'white',
-                border: 'none',
-                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '10px',
                 fontSize: '14px',
                 fontWeight: '500',
                 cursor: 'pointer',
@@ -186,16 +204,28 @@ export default function Catalog() {
             
             <div className="spaces-count" style={{ 
               fontSize: '14px', 
-              color: '#64748b',
+              color: '#ffffff',
               fontWeight: '500',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(8px)',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
             }}>
               Найдено пространств: {filteredRooms.length}
             </div>
           </div>
 
           {showFilters && (
-            <div className="filters-panel">
+           <div className="filters-panel" style={{
+            background: 'rgba(225, 245, 240, 0.85)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+          }}>
               <div className="filter-group">
                 <label>Минимальная вместимость (чел.)</label>
                 <input
@@ -204,6 +234,14 @@ export default function Catalog() {
                   placeholder="Например, 10"
                   value={capacityMin}
                   onChange={(e) => setCapacityMin(e.target.value)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    fontSize: '14px'
+                  }}
                 />
               </div>
 
@@ -257,8 +295,8 @@ export default function Catalog() {
                         style={{
                           padding: '6px 16px',
                           borderRadius: '20px',
-                          border: isSelected ? '2px solid #2850a7' : '1px solid #e2e8f0',
-                          background: isSelected ? '#eef2ff' : '#ffffff',
+                          border: isSelected ? '2px solid #2850a7' : '1px solid rgba(255, 255, 255, 0.4)',
+                          background: isSelected ? 'rgba(238, 242, 255, 0.9)' : 'rgba(255, 255, 255, 0.75)',
                           color: isSelected ? '#2850a7' : '#475569',
                           cursor: 'pointer',
                           fontSize: '13px',
@@ -266,18 +304,19 @@ export default function Catalog() {
                           transition: 'all 0.2s ease',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px'
+                          gap: '6px',
+                          backdropFilter: 'blur(8px)'
                         }}
                         onMouseEnter={(e) => {
                           if (!isSelected) {
                             e.currentTarget.style.borderColor = '#2850a7';
-                            e.currentTarget.style.background = '#f8fafc';
+                            e.currentTarget.style.background = 'rgba(248, 250, 252, 0.9)';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isSelected) {
-                            e.currentTarget.style.borderColor = '#e2e8f0';
-                            e.currentTarget.style.background = '#ffffff';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.75)';
                           }
                         }}
                       >
@@ -296,8 +335,9 @@ export default function Catalog() {
                     style={{
                       marginTop: '8px',
                       padding: '4px 12px',
-                      background: '#f1f5f9',
-                      border: 'none',
+                      background: 'rgba(241, 245, 249, 0.8)',
+                      backdropFilter: 'blur(8px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
                       borderRadius: '6px',
                       fontSize: '12px',
                       color: '#64748b',
@@ -310,7 +350,29 @@ export default function Catalog() {
               </div>
 
               <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
-                <button className="reset-filters-btn" onClick={resetFilters}>
+                <button 
+                  className="reset-filters-btn" 
+                  onClick={resetFilters}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    borderRadius: '8px',
+                    padding: '10px 20px',
+                    fontSize: '14px',
+                    color: '#475569',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
                   Сбросить все фильтры
                 </button>
               </div>
@@ -325,12 +387,20 @@ export default function Catalog() {
             const hasMoreAmenities = (room.amenities?.length || 0) > 4;
 
             return (
-              <div key={room.id} className="room-card">
+              <div key={room.id} className="room-card" style={{
+                background: 'rgba(235, 248, 245, 0.75)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                transition: 'all 0.3s ease'
+              }}>
                 <div className="room-image-wrapper" style={{
                   width: '100%',
                   height: '200px',
                   overflow: 'hidden',
-                  background: '#f1f5f9',
+                  background: 'rgba(241, 245, 249, 0.5)',
                   position: 'relative'
                 }}>
                   {imageUrl ? (
@@ -363,7 +433,7 @@ export default function Catalog() {
                   )}
                 </div>
                 
-                <div className="room-content">
+                <div className="room-content" style={{ padding: '20px' }}>
                   <h3 className="room-title">{room.name}</h3>
                   
                   <div className="room-location" style={{ 
@@ -393,7 +463,7 @@ export default function Catalog() {
                   </p>
                   
                   <div className="room-info" style={{ 
-                    borderTop: '1px dashed #e2e8f0', 
+                    borderTop: '1px dashed rgba(255, 255, 255, 0.4)', 
                     paddingTop: '12px', 
                     marginBottom: '12px' 
                   }}>
@@ -419,7 +489,9 @@ export default function Catalog() {
                           fontSize: '11px', 
                           fontWeight: '500', 
                           color: '#4a5568', 
-                          background: '#f1f3f5', 
+                          background: 'rgba(241, 243, 245, 0.8)',
+                          backdropFilter: 'blur(8px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
                           borderRadius: '6px',
                           whiteSpace: 'nowrap',
                           display: 'inline-block'
@@ -434,7 +506,9 @@ export default function Catalog() {
                         fontSize: '11px', 
                         fontWeight: '500', 
                         color: '#4a5568', 
-                        background: '#e2e8f0', 
+                        background: 'rgba(226, 232, 240, 0.8)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
                         borderRadius: '6px',
                         whiteSpace: 'nowrap',
                         display: 'inline-block'
@@ -449,7 +523,7 @@ export default function Catalog() {
                     display: 'flex', 
                     flexDirection: 'column', 
                     gap: '14px', 
-                    borderTop: '1px solid #f1f5f9', 
+                    borderTop: '1px solid rgba(255, 255, 255, 0.3)', 
                     paddingTop: '14px' 
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -472,7 +546,10 @@ export default function Catalog() {
                             background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
                             boxShadow: '0 4px 10px rgba(40, 80, 167, 0.2)',
                             borderRadius: '10px',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.2s ease',
+                            border: 'none',
+                            color: 'white',
+                            cursor: 'pointer'
                           }}
                         >
                           Подробнее о пространстве →
@@ -487,7 +564,16 @@ export default function Catalog() {
         </div>
         
         {filteredRooms.length === 0 && (
-          <div className="no-results">
+          <div className="no-results" style={{
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '12px',
+            padding: '40px',
+            textAlign: 'center',
+            color: '#475569',
+            fontSize: '16px'
+          }}>
             Ничего не найдено. Попробуйте изменить параметры поиска.
           </div>
         )}
