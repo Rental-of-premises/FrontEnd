@@ -193,11 +193,28 @@ export default function Reviews() {
       <>
         <Navbar />
         <div className="container">
-          <div className="error-message">
-            <h2>Помещение не найдено</h2>
-            <p>Помещение с ID {id} не существует или было удалено.</p>
+          <div className="error-message" style={{
+            background: 'rgba(254, 242, 242, 0.9)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(254, 226, 226, 0.5)',
+            borderRadius: '16px',
+            padding: '32px',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ color: '#0f172a', marginBottom: '12px' }}>Помещение не найдено</h2>
+            <p style={{ color: '#475569' }}>Помещение с ID {id} не существует или было удалено.</p>
             <Link to="/catalog">
-              <button className="auth-btn" style={{ marginTop: '20px' }}>
+              <button className="auth-btn" style={{ 
+                marginTop: '20px',
+                background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '10px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(40, 80, 167, 0.25)'
+              }}>
                 Вернуться к каталогу
               </button>
             </Link>
@@ -210,32 +227,73 @@ export default function Reviews() {
   return (
     <>
       <Navbar />
-      <div className="reviews-page" style={{ maxWidth: '900px', margin: '0 auto', padding: '50px 24px', fontFamily: '-apple-system, sans-serif' }}>
+      <div className="reviews-page" style={{ 
+        maxWidth: '900px', 
+        margin: '0 auto', 
+        padding: '50px 24px', 
+        fontFamily: '-apple-system, sans-serif' 
+      }}>
         
         <div className="reviews-header" style={{ marginBottom: '40px' }}>
-          <Link to={`/catalog/${id}`} className="reviews-back" style={{ color: '#2850a7', textDecoration: 'none', fontWeight: '600' }}>
+          <Link to={`/catalog/${id}`} className="reviews-back" style={{ 
+            display: 'inline-block',
+            color: '#e0f2f1',
+            background: 'rgba(38, 166, 154, 0.2)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(38, 166, 154, 0.5)',
+            padding: '8px 20px',
+            borderRadius: '20px',
+            fontSize: '14px',
+            fontWeight: '600',
+            textDecoration: 'none',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(38, 166, 154, 0.3)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(38, 166, 154, 0.2)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}>
             ← Назад к помещению
           </Link>
-          <h1 className="reviews-title" style={{ fontSize: '32px', color: '#0f172a', margin: '16px 0 0 0' }}>
+          <h1 className="reviews-title" style={{ 
+            fontSize: '32px', 
+            color: '#0f172a', 
+            margin: '16px 0 0 0',
+            fontWeight: '800',
+            textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+          }}>
             Отзывы о «{room.name}»
           </h1>
         </div>
 
-        <div className="reviews-room-info" style={{ display: 'flex', gap: '40px', background: '#f8fafc', padding: '24px', borderRadius: '20px', marginBottom: '32px' }}>
+        <div className="reviews-room-info" style={{ 
+          display: 'flex', 
+          gap: '40px', 
+          background: 'rgba(235, 248, 245, 0.85)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          padding: '24px', 
+          borderRadius: '20px', 
+          marginBottom: '32px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+        }}>
           <div>
-            <div style={{ color: '#94a3b8', fontSize: '12px' }}>⭐ Рейтинг</div>
-            <div style={{ fontSize: '20px', fontWeight: '700' }}>
+            <div style={{ color: '#64748b', fontSize: '12px', fontWeight: '600' }}>⭐ Рейтинг</div>
+            <div style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>
               {reviews.length > 0 ? getAverageRating() : 'Нет отзывов'}
               {reviews.length > 0 && ` (${reviews.length})`}
             </div>
           </div>
           <div>
-            <div style={{ color: '#94a3b8', fontSize: '12px' }}>Цена</div>
-            <div style={{ fontSize: '20px', fontWeight: '700' }}>{room.price_per_hour} ₽/час</div>
+            <div style={{ color: '#64748b', fontSize: '12px', fontWeight: '600' }}>Цена</div>
+            <div style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>{room.price_per_hour} ₽/час</div>
           </div>
           <div>
-            <div style={{ color: '#94a3b8', fontSize: '12px' }}>Вместимость</div>
-            <div style={{ fontSize: '20px', fontWeight: '700' }}>{room.capacity} чел.</div>
+            <div style={{ color: '#64748b', fontSize: '12px', fontWeight: '600' }}>Вместимость</div>
+            <div style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>{room.capacity} чел.</div>
           </div>
         </div>
 
@@ -243,15 +301,42 @@ export default function Reviews() {
           <button 
             className="write-review-btn" 
             onClick={() => setShowForm(true)} 
-            style={{ background: '#2850a7', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', marginBottom: '30px' }}
+            style={{ 
+              background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
+              color: '#fff', 
+              border: 'none', 
+              padding: '12px 24px', 
+              borderRadius: '12px', 
+              fontWeight: '600', 
+              cursor: 'pointer', 
+              marginBottom: '30px',
+              boxShadow: '0 4px 12px rgba(40, 80, 167, 0.25)',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(40, 80, 167, 0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(40, 80, 167, 0.25)';
+            }}
           >
             Оставить отзыв
           </button>
         )}
 
         {showForm && (
-          <div className="review-form-container" style={{ background: '#fff', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', marginBottom: '30px' }}>
-            <h3 style={{ marginTop: 0, color: '#1e293b' }}>Ваш отзыв</h3>
+          <div className="review-form-container" style={{ 
+            background: 'rgba(235, 248, 245, 0.85)',
+            backdropFilter: 'blur(12px)',
+            padding: '24px', 
+            borderRadius: '20px', 
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            marginBottom: '30px' 
+          }}>
+            <h3 style={{ marginTop: 0, color: '#0f172a', fontWeight: '700', fontSize: '20px' }}>Ваш отзыв</h3>
             <form onSubmit={handleSubmitReview} className="review-form">
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontWeight: '600', color: '#334155', marginBottom: '8px', fontSize: '14px' }}>Оценка</label>
@@ -265,20 +350,78 @@ export default function Reviews() {
                   onChange={(e) => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
                   placeholder="Расскажите о своих впечатлениях..."
                   rows="4"
-                  style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontFamily: 'inherit', fontSize: '14px', resize: 'vertical' }}
+                  style={{ 
+                    width: '100%', 
+                    padding: '12px 16px', 
+                    borderRadius: '10px', 
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(8px)',
+                    fontFamily: 'inherit', 
+                    fontSize: '14px', 
+                    resize: 'vertical',
+                    color: '#1e293b',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#2850a7'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'}
                   required
                 />
               </div>
 
-              {reviewError && <div className="error-message" style={{ background: '#fef2f2', color: '#ef4444', padding: '12px 16px', borderRadius: '12px', marginBottom: '16px', fontSize: '14px', border: '1px solid #fee2e2' }}>{reviewError}</div>}
-              {reviewSuccess && <div className="success-message" style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px 16px', borderRadius: '12px', marginBottom: '16px', fontSize: '14px', border: '1px solid #dcfce7' }}>{reviewSuccess}</div>}
+              {reviewError && <div className="error-message" style={{ 
+                background: 'rgba(254, 242, 242, 0.9)',
+                backdropFilter: 'blur(8px)',
+                color: '#dc2626', 
+                padding: '12px 16px', 
+                borderRadius: '12px', 
+                marginBottom: '16px', 
+                fontSize: '14px',
+                fontWeight: '600',
+                border: '1px solid rgba(254, 226, 226, 0.5)' 
+              }}>{reviewError}</div>}
+              {reviewSuccess && <div className="success-message" style={{ 
+                background: 'rgba(220, 252, 231, 0.9)',
+                backdropFilter: 'blur(8px)',
+                color: '#166534', 
+                padding: '12px 16px', 
+                borderRadius: '12px', 
+                marginBottom: '16px', 
+                fontSize: '14px',
+                fontWeight: '600',
+                border: '1px solid rgba(220, 252, 231, 0.5)' 
+              }}>{reviewSuccess}</div>}
 
               <div className="form-actions" style={{ display: 'flex', gap: '12px' }}>
                 <button 
                   type="submit" 
                   className="submit-review-btn"
                   disabled={creatingReview}
-                  style={{ flex: 1, background: '#2850a7', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '600', fontSize: '16px', cursor: creatingReview ? 'not-allowed' : 'pointer', opacity: creatingReview ? 0.6 : 1 }}
+                  style={{ 
+                    flex: 1, 
+                    background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
+                    color: '#fff', 
+                    border: 'none', 
+                    padding: '12px', 
+                    borderRadius: '10px', 
+                    fontWeight: '600', 
+                    fontSize: '16px', 
+                    cursor: creatingReview ? 'not-allowed' : 'pointer', 
+                    opacity: creatingReview ? 0.6 : 1,
+                    boxShadow: '0 4px 12px rgba(40, 80, 167, 0.25)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!creatingReview) {
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(40, 80, 167, 0.35)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(40, 80, 167, 0.25)';
+                  }}
                 >
                   {creatingReview ? 'Отправка...' : 'Опубликовать отзыв'}
                 </button>
@@ -289,7 +432,27 @@ export default function Reviews() {
                     setShowForm(false);
                     setReviewError('');
                   }}
-                  style={{ flex: 1, background: '#f1f5f9', color: '#475569', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '600', fontSize: '16px', cursor: 'pointer' }}
+                  style={{ 
+                    flex: 1, 
+                    background: 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(8px)',
+                    color: '#475569', 
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    padding: '12px', 
+                    borderRadius: '10px', 
+                    fontWeight: '600', 
+                    fontSize: '16px', 
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.7)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
                 >
                   Отмена
                 </button>
@@ -299,21 +462,44 @@ export default function Reviews() {
         )}
 
         <div className="reviews-list" style={{ marginTop: '20px' }}>
-          <h2 className="reviews-section-title" style={{ fontSize: '20px', color: '#1e293b', marginBottom: '20px', paddingBottom: '12px', borderBottom: '2px solid #e2e8f0' }}>
+          <h2 className="reviews-section-title" style={{ 
+            fontSize: '20px', 
+            color: '#0f172a', 
+            marginBottom: '20px', 
+            paddingBottom: '12px', 
+            borderBottom: '2px solid rgba(255, 255, 255, 0.3)',
+            fontWeight: '700'
+          }}>
             Отзывы ({reviews.length})
           </h2>
           
           {reviews.length === 0 ? (
-            <div className="empty-state" style={{ textAlign: 'center', padding: '60px', background: 'white', borderRadius: '16px' }}>
+            <div className="empty-state" style={{ 
+              textAlign: 'center', 
+              padding: '60px', 
+              background: 'rgba(235, 248, 245, 0.85)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '20px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+            }}>
               <div className="empty-icon" style={{ fontSize: '64px', marginBottom: '20px' }}>💬</div>
-              <h3 style={{ color: '#1e293b', marginBottom: '8px' }}>Пока нет отзывов</h3>
-              <p style={{ color: '#64748b', marginBottom: '24px' }}>Будьте первым, кто оставит отзыв об этом помещении!</p>
+              <h3 style={{ color: '#0f172a', marginBottom: '8px', fontWeight: '700' }}>Пока нет отзывов</h3>
+              <p style={{ color: '#475569', marginBottom: '24px', fontWeight: '500' }}>Будьте первым, кто оставит отзыв об этом помещении!</p>
             </div>
           ) : (
             reviews.map(review => {
               const avatar = getUserAvatar(review);
               return (
-                <div key={review.id} className="review-card" style={{ background: 'white', borderRadius: '16px', padding: '20px', marginBottom: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                <div key={review.id} className="review-card" style={{ 
+                  background: 'rgba(235, 248, 245, 0.85)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '20px', 
+                  padding: '20px', 
+                  marginBottom: '16px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                }}>
                   <div className="review-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                     <div className="review-user" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       {avatar ? (
@@ -325,15 +511,27 @@ export default function Reviews() {
                             height: '36px',
                             borderRadius: '50%',
                             objectFit: 'cover',
-                            border: '1px solid #e2e8f0'
+                            border: '2px solid rgba(255, 255, 255, 0.4)'
                           }}
                         />
                       ) : (
-                        <span className="user-avatar" style={{ width: '36px', height: '36px', background: '#2850a7', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
+                        <span className="user-avatar" style={{ 
+                          width: '36px', 
+                          height: '36px', 
+                          background: '#2850a7', 
+                          color: 'white', 
+                          borderRadius: '50%', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          fontWeight: '700', 
+                          fontSize: '16px',
+                          border: '2px solid rgba(255, 255, 255, 0.4)'
+                        }}>
                           {getAvatarLetter(review)}
                         </span>
                       )}
-                      <span className="user-name" style={{ fontWeight: '600', color: '#1e293b' }}>
+                      <span className="user-name" style={{ fontWeight: '600', color: '#0f172a' }}>
                         {getUserDisplayName(review)}
                       </span>
                     </div>
@@ -346,25 +544,27 @@ export default function Reviews() {
                           onClick={() => handleDeleteReview(review)}
                           disabled={deletingId === review.id}
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#ef4444',
+                            background: 'rgba(254, 242, 242, 0.7)',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(254, 226, 226, 0.5)',
+                            color: '#dc2626',
                             cursor: 'pointer',
                             fontSize: '14px',
                             padding: '4px 8px',
-                            borderRadius: '4px',
-                            transition: 'background 0.2s'
+                            borderRadius: '6px',
+                            fontWeight: '600',
+                            transition: 'all 0.2s'
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(254, 226, 226, 0.9)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(254, 242, 242, 0.7)'}
                         >
                           {deletingId === review.id ? '...' : '✕ Удалить'}
                         </button>
                       )}
                     </div>
                   </div>
-                  <p className="review-comment" style={{ color: '#334155', lineHeight: '1.6', marginBottom: '12px', fontSize: '15px' }}>{review.comment}</p>
-                  <div className="review-date" style={{ color: '#94a3b8', fontSize: '12px' }}>
+                  <p className="review-comment" style={{ color: '#334155', lineHeight: '1.6', marginBottom: '12px', fontSize: '15px', fontWeight: '500' }}>{review.comment}</p>
+                  <div className="review-date" style={{ color: '#64748b', fontSize: '12px', fontWeight: '500' }}>
                     {formatDate(review.created_at)}
                   </div>
                 </div>

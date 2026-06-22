@@ -258,473 +258,546 @@ export default function MyRooms() {
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="myrooms-container" style={{ 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: '50px 24px', 
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' 
+  <>
+    <Navbar />
+    <div className="myrooms-container" style={{ 
+      maxWidth: '1200px', 
+      margin: '0 auto', 
+      padding: '50px 24px', 
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' 
+    }}>
+      
+      <div style={{ 
+        background: 'rgba(235, 248, 245, 0.85)',
+        backdropFilter: 'blur(12px)',
+        padding: '44px 48px', 
+        borderRadius: '24px', 
+        marginBottom: '40px',
+        color: '#0f172a',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '24px'
       }}>
-        
-        <div style={{ 
-          background: '#2850a7', 
-          padding: '44px 48px', 
-          borderRadius: '24px', 
-          marginBottom: '40px',
-          color: '#ffffff',
-          boxShadow: '0 20px 40px -15px rgba(40, 80, 167, 0.25)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '24px'
-        }}>
-          <div>
-            <h1 style={{ fontSize: '36px', fontWeight: '700', margin: '0 0 10px 0', letterSpacing: '-0.03em' }}>Мои помещения</h1>
-            <p style={{ color: '#f0f4ff', fontSize: '16px', margin: 0, opacity: 0.9 }}>Управляйте своими помещениями и бронированиями</p>
-          </div>
-          <Link to="/create-room" style={{ textDecoration: 'none' }}>
-            <button style={{
-              background: '#ffffff',
-              color: '#2850a7',
-              border: 'none',
-              padding: '14px 28px',
-              borderRadius: '14px',
-              fontWeight: '600',
-              fontSize: '15px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              transition: 'all 0.2s ease'
-            }}>
-              + Добавить помещение
-            </button>
-          </Link>
+        <div>
+          <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-0.03em', color: '#0f172a' }}>Мои помещения</h1>
+          <p style={{ color: '#475569', fontSize: '16px', margin: 0, fontWeight: '500' }}>Управляйте своими помещениями и бронированиями</p>
         </div>
-
-        <div style={{ 
-          display: 'flex', 
-          gap: '12px', 
-          marginBottom: '32px',
-          borderBottom: '1px solid #e2e8f0',
-          paddingBottom: '16px'
-        }}>
-          <button
-            onClick={() => setActiveTab('rooms')}
-            style={{
-              padding: '10px 24px',
-              background: activeTab === 'rooms' ? '#2850a7' : 'transparent',
-              color: activeTab === 'rooms' ? '#ffffff' : '#64748b',
-              border: 'none',
-              borderRadius: '10px',
-              fontWeight: '600',
-              fontSize: '15px',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Мои помещения ({rooms.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('bookings')}
-            style={{
-              padding: '10px 24px',
-              background: activeTab === 'bookings' ? '#2850a7' : 'transparent',
-              color: activeTab === 'bookings' ? '#ffffff' : '#64748b',
-              border: 'none',
-              borderRadius: '10px',
-              fontWeight: '600',
-              fontSize: '15px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              position: 'relative'
-            }}
-          >
-            Брони моих помещений
-            {waitingBookings.length > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-6px',
-                right: '-6px',
-                background: '#ef4444',
-                color: 'white',
-                borderRadius: '50%',
-                padding: '2px 8px',
-                fontSize: '12px',
-                fontWeight: '700'
-              }}>
-                {waitingBookings.length}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {activeTab === 'rooms' && (
-          <div className="rooms-grid" style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
-            gap: '32px',
-            width: '100%'
+        <Link to="/create-room" style={{ textDecoration: 'none' }}>
+          <button style={{
+            background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
+            color: '#ffffff',
+            border: 'none',
+            padding: '14px 28px',
+            borderRadius: '14px',
+            fontWeight: '600',
+            fontSize: '15px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(40, 80, 167, 0.25)',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(40, 80, 167, 0.35)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(40, 80, 167, 0.25)';
           }}>
-            {rooms.length === 0 ? (
-              <div style={{ 
-                gridColumn: '1/-1', 
-                textAlign: 'center', 
-                padding: '60px 20px', 
-                background: '#ffffff', 
-                borderRadius: '24px', 
-                border: '1px solid #e2e8f0' 
-              }}>
-                <h3 style={{ fontSize: '20px', color: '#1e293b', margin: '0 0 8px 0', fontWeight: '700' }}>У вас пока нет добавленных помещений</h3>
-                <p style={{ color: '#64748b', fontSize: '15px', margin: '0 0 24px 0' }}>Создайте свое первое объявление.</p>
-                <Link to="/create-room" style={{ textDecoration: 'none' }}>
-                  <button style={{ background: '#2850a7', color: '#ffffff', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}>Добавить помещение</button>
-                </Link>
-              </div>
-            ) : (
-              rooms.map((room, index) => (
-                <div 
-                  key={room.id} 
-                  style={{
-                    background: '#ffffff',
-                    borderRadius: '24px',
-                    border: '1px solid #e2e8f0',
-                    boxShadow: '0 4px 20px -2px rgba(148, 163, 184, 0.06)',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                    boxSizing: 'border-box',
-                    height: '100%'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-6px)';
-                    e.currentTarget.style.boxShadow = '0 30px 40px -10px rgba(40, 80, 167, 0.08)';
-                    e.currentTarget.style.borderColor = '#2850a7';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 20px -2px rgba(148, 163, 184, 0.06)';
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                  }}
-                >
-                  <div style={{ 
-                    position: 'relative', 
-                    height: '200px', 
-                    width: '100%', 
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: '#f1f5f9'
+            + Добавить помещение
+          </button>
+        </Link>
+      </div>
+
+      <div style={{ 
+        display: 'flex', 
+        gap: '12px', 
+        marginBottom: '32px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
+        paddingBottom: '16px'
+      }}>
+        <button
+          onClick={() => setActiveTab('rooms')}
+          style={{
+            padding: '10px 24px',
+            background: activeTab === 'rooms' ? 'rgba(235, 248, 245, 0.95)' : 'rgba(255, 255, 255, 0.5)',
+            backdropFilter: 'blur(8px)',
+            color: activeTab === 'rooms' ? '#0f172a' : '#475569',
+            border: activeTab === 'rooms' ? '2px solid #2850a7' : '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '10px',
+            fontWeight: '600',
+            fontSize: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: activeTab === 'rooms' ? '0 4px 12px rgba(40, 80, 167, 0.15)' : 'none'
+          }}
+        >
+          Мои помещения ({rooms.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('bookings')}
+          style={{
+            padding: '10px 24px',
+            background: activeTab === 'bookings' ? 'rgba(235, 248, 245, 0.95)' : 'rgba(255, 255, 255, 0.5)',
+            backdropFilter: 'blur(8px)',
+            color: activeTab === 'bookings' ? '#0f172a' : '#475569',
+            border: activeTab === 'bookings' ? '2px solid #2850a7' : '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '10px',
+            fontWeight: '600',
+            fontSize: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            position: 'relative',
+            boxShadow: activeTab === 'bookings' ? '0 4px 12px rgba(40, 80, 167, 0.15)' : 'none'
+          }}
+        >
+          Брони моих помещений
+          {waitingBookings.length > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '-6px',
+              right: '-6px',
+              background: '#ef4444',
+              color: 'white',
+              borderRadius: '50%',
+              padding: '2px 8px',
+              fontSize: '12px',
+              fontWeight: '700',
+              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
+            }}>
+              {waitingBookings.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'rooms' && (
+        <div className="rooms-grid" style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
+          gap: '32px',
+          width: '100%'
+        }}>
+          {rooms.length === 0 ? (
+            <div style={{ 
+              gridColumn: '1/-1', 
+              textAlign: 'center', 
+              padding: '60px 20px', 
+              background: 'rgba(235, 248, 245, 0.85)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '24px', 
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h3 style={{ fontSize: '20px', color: '#0f172a', margin: '0 0 8px 0', fontWeight: '700' }}>У вас пока нет добавленных помещений</h3>
+              <p style={{ color: '#475569', fontSize: '15px', margin: '0 0 24px 0', fontWeight: '500' }}>Создайте свое первое объявление.</p>
+              <Link to="/create-room" style={{ textDecoration: 'none' }}>
+                <button style={{ 
+                  background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
+                  color: '#ffffff', 
+                  border: 'none', 
+                  padding: '12px 24px', 
+                  borderRadius: '10px', 
+                  fontWeight: '600', 
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(40, 80, 167, 0.25)'
+                }}>Добавить помещение</button>
+              </Link>
+            </div>
+          ) : (
+            rooms.map((room, index) => (
+              <div 
+                key={room.id} 
+                style={{
+                  background: 'rgba(235, 248, 245, 0.85)',
+                  backdropFilter: 'blur(12px)',
+                  borderRadius: '24px',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                  boxSizing: 'border-box',
+                  height: '100%'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-6px)';
+                  e.currentTarget.style.boxShadow = '0 30px 40px -10px rgba(40, 80, 167, 0.15)';
+                  e.currentTarget.style.borderColor = '#2850a7';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                }}
+              >
+                <div style={{ 
+                  position: 'relative', 
+                  height: '200px', 
+                  width: '100%', 
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(241, 245, 249, 0.5)'
+                }}>
+                  <img 
+                    src={getRoomImage(room, index)}
+                    alt={room.name} 
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'contain',
+                      maxWidth: '100%',
+                      maxHeight: '100%'
+                    }} 
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
+                    }}
+                  />
+                  <span style={{ 
+                    position: 'absolute', 
+                    top: '12px', 
+                    right: '12px', 
+                    padding: '4px 14px', 
+                    borderRadius: '20px', 
+                    fontSize: '12px', 
+                    fontWeight: '600',
+                    background: room.is_active !== false ? 'rgba(220, 252, 231, 0.9)' : 'rgba(254, 226, 226, 0.9)',
+                    backdropFilter: 'blur(8px)',
+                    color: room.is_active !== false ? '#16a34a' : '#dc2626',
+                    border: '1px solid rgba(255, 255, 255, 0.3)'
                   }}>
-                    <img 
-                      src={getRoomImage(room, index)}
-                      alt={room.name} 
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        objectFit: 'contain',
-                        maxWidth: '100%',
-                        maxHeight: '100%'
-                      }} 
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80';
-                      }}
-                    />
-                    <span style={{ 
-                      position: 'absolute', 
-                      top: '12px', 
-                      right: '12px', 
-                      padding: '4px 14px', 
-                      borderRadius: '20px', 
-                      fontSize: '12px', 
-                      fontWeight: '600',
-                      background: room.is_active !== false ? '#dcfce7' : '#fee2e2',
-                      color: room.is_active !== false ? '#16a34a' : '#dc2626'
-                    }}>
-                      {room.is_active !== false ? 'Активно' : 'Неактивно'}
-                    </span>
-                  </div>
+                    {room.is_active !== false ? 'Активно' : 'Неактивно'}
+                  </span>
+                </div>
 
-                  <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '12px' }}>
-                      <h3 style={{ 
-                        fontSize: '18px', 
-                        fontWeight: '700', 
-                        color: '#0f172a', 
-                        margin: 0, 
-                        letterSpacing: '-0.02em',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }}>
-                        {room.name}
-                      </h3>
-                      <div style={{ 
-                        fontSize: '20px', 
-                        fontWeight: '700', 
-                        color: '#2850a7', 
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0
-                      }}>
-                        {room.price_per_hour} ₽ <span style={{ fontSize: '14px', color: '#64748b', fontWeight: '400' }}>/час</span>
-                      </div>
-                    </div>
-
-                    <p style={{ 
-                      color: '#475569', 
-                      fontSize: '14px', 
-                      lineHeight: '1.5', 
-                      margin: '0 0 16px 0',
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '12px' }}>
+                    <h3 style={{ 
+                      fontSize: '18px', 
+                      fontWeight: '700', 
+                      color: '#0f172a', 
+                      margin: 0, 
+                      letterSpacing: '-0.02em',
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden'
                     }}>
-                      {room.description?.substring(0, 100) || 'Нет описания'}...
-                    </p>
-
+                      {room.name}
+                    </h3>
                     <div style={{ 
-                      display: 'flex', 
-                      flexWrap: 'wrap', 
-                      gap: '8px',
-                      marginBottom: '16px'
+                      fontSize: '20px', 
+                      fontWeight: '700', 
+                      color: '#2850a7', 
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
                     }}>
-                      <span style={{ 
-                        padding: '4px 12px', 
-                        background: '#f1f5f9', 
-                        borderRadius: '20px', 
-                        fontSize: '13px', 
-                        color: '#475569'
-                      }}>
-                        {room.capacity} чел.
-                      </span>
-                      {room.metro && (
-                        <span style={{ 
-                          padding: '4px 12px', 
-                          background: '#eef2ff', 
-                          borderRadius: '20px', 
-                          fontSize: '13px', 
-                          color: '#2850a7'
-                        }}>
-                          {room.metro}
-                        </span>
-                      )}
-                      <span style={{ 
-                        padding: '4px 12px', 
-                        background: '#f1f5f9', 
-                        borderRadius: '20px', 
-                        fontSize: '13px', 
-                        color: '#475569'
-                      }}>
-                        {formatDate(room.created_at)}
-                      </span>
-                    </div>
-
-                    <div style={{ 
-                      display: 'flex', 
-                      flexWrap: 'wrap', 
-                      gap: '6px', 
-                      marginBottom: '20px' 
-                    }}>
-                      {room.amenities && room.amenities.length > 0 ? (
-                        room.amenities.slice(0, 4).map((item, idx) => {
-                          const amenityName = typeof item === 'string' ? item : item?.name || 'Неизвестно';
-                          return (
-                            <span key={idx} style={{ 
-                              padding: '4px 10px', 
-                              fontSize: '11px', 
-                              fontWeight: '500', 
-                              color: '#4a5568', 
-                              background: '#f1f3f5', 
-                              borderRadius: '6px' 
-                            }}>
-                              {amenityName}
-                            </span>
-                          );
-                        })
-                      ) : (
-                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>Нет удобств</span>
-                      )}
-                      {room.amenities?.length > 4 && (
-                        <span style={{ 
-                          padding: '4px 10px', 
-                          fontSize: '11px', 
-                          fontWeight: '500', 
-                          color: '#4a5568', 
-                          background: '#f1f3f5', 
-                          borderRadius: '6px' 
-                        }}>
-                          +{room.amenities.length - 4}
-                        </span>
-                      )}
-                    </div>
-
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: '12px', 
-                      borderTop: '1px solid #f1f5f9', 
-                      paddingTop: '16px',
-                      marginTop: 'auto'
-                    }}>
-                      <Link to={`/edit-room/${room.id}`} style={{
-                        flex: 1,
-                        textDecoration: 'none',
-                        background: '#2850a7',
-                        color: '#ffffff',
-                        fontWeight: '600',
-                        fontSize: '14px',
-                        padding: '12px',
-                        borderRadius: '10px',
-                        textAlign: 'center',
-                        boxShadow: '0 4px 12px rgba(40, 80, 167, 0.15)',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onMouseEnter={(e) => { 
-                        e.currentTarget.style.background = '#1e3d82';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }}
-                      onMouseLeave={(e) => { 
-                        e.currentTarget.style.background = '#2850a7';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}>
-                        Редактировать
-                      </Link>
-                      <button 
-                        onClick={() => handleDelete(room.id)}
-                        disabled={deletingId === room.id}
-                        style={{
-                          padding: '12px 20px',
-                          background: '#fef2f2',
-                          color: '#ef4444',
-                          border: 'none',
-                          borderRadius: '10px',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                          cursor: deletingId === room.id ? 'not-allowed' : 'pointer',
-                          opacity: deletingId === room.id ? 0.6 : 1,
-                          transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => { if (!deletingId) e.currentTarget.style.background = '#fee2e2'; }}
-                        onMouseLeave={(e) => { if (!deletingId) e.currentTarget.style.background = '#fef2f2'; }}
-                      >
-                        {deletingId === room.id ? '...' : 'Удалить'}
-                      </button>
+                      {room.price_per_hour} ₽ <span style={{ fontSize: '14px', color: '#475569', fontWeight: '400' }}>/час</span>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
 
-        {activeTab === 'bookings' && (
-          <div className="bookings-list">
-            {sortedBookings.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '60px 20px', 
-                background: '#ffffff', 
-                borderRadius: '24px', 
-                border: '1px solid #e2e8f0' 
-              }}>
-                <h3 style={{ fontSize: '20px', color: '#1e293b', margin: '0 0 8px 0', fontWeight: '700' }}>Нет бронирований</h3>
-                <p style={{ color: '#64748b', fontSize: '15px', margin: 0 }}>Пока никто не бронировал ваши помещения</p>
-              </div>
-            ) : (
-              sortedBookings.map(booking => {
-                const hoursDiff = (new Date(booking.time_to) - new Date(booking.time_from)) / 3600000;
-                const totalPrice = hoursDiff * (booking.price_per_hour || 0);
-                const isWaiting = booking.status === 'waiting';
-                const userName = userNames[booking.user_id] || `Пользователь #${booking.user_id}`;
-                const roomName = apartmentNames[booking.apartment_id] || `Помещение #${booking.apartment_id}`;
+                  <p style={{ 
+                    color: '#334155', 
+                    fontSize: '14px', 
+                    lineHeight: '1.5', 
+                    margin: '0 0 16px 0',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}>
+                    {room.description?.substring(0, 100) || 'Нет описания'}...
+                  </p>
 
-                return (
-                  <div 
-                    key={booking.id}
-                    style={{
-                      background: '#ffffff',
-                      borderRadius: '20px',
-                      padding: '24px',
-                      marginBottom: '16px',
-                      border: '1px solid #e2e8f0',
-                      borderLeft: isWaiting ? '4px solid #f59e0b' : '4px solid #10b981',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                      <div>
-                        <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', margin: '0 0 4px 0' }}>
-                          {roomName}
-                        </h3>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#64748b', fontSize: '14px' }}>
-                          <span>👤 <strong>{userName}</strong></span>
-                          <span>📅 {formatFullDate(booking.time_from)}</span>
-                          <span>⏱️ {hoursDiff.toFixed(1)} ч.</span>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className={getStatusBadgeClass(booking.status)}>
-                          {getStatusText(booking.status)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {isWaiting && (
-                      <div style={{ 
-                        display: 'flex', 
-                        gap: '12px', 
-                        marginTop: '16px', 
-                        paddingTop: '16px', 
-                        borderTop: '1px solid #f1f5f9' 
+                  <div style={{ 
+                    display: 'flex', 
+                    flexWrap: 'wrap', 
+                    gap: '8px',
+                    marginBottom: '16px'
+                  }}>
+                    <span style={{ 
+                      padding: '4px 12px', 
+                      background: 'rgba(255, 255, 255, 0.75)',
+                      backdropFilter: 'blur(8px)',
+                      borderRadius: '20px', 
+                      fontSize: '13px', 
+                      color: '#334155',
+                      border: '1px solid rgba(255, 255, 255, 0.4)',
+                      fontWeight: '500'
+                    }}>
+                      {room.capacity} чел.
+                    </span>
+                    {room.metro && (
+                      <span style={{ 
+                        padding: '4px 12px', 
+                        background: 'rgba(238, 242, 255, 0.75)',
+                        backdropFilter: 'blur(8px)',
+                        borderRadius: '20px', 
+                        fontSize: '13px', 
+                        color: '#2850a7',
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                        fontWeight: '600'
                       }}>
-                        <button
-                          onClick={() => handleConfirmBooking(booking.id)}
-                          disabled={processingBookingId === booking.id}
-                          style={{
-                            padding: '10px 24px',
-                            background: '#10b981',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '10px',
-                            fontWeight: '600',
-                            cursor: processingBookingId === booking.id ? 'not-allowed' : 'pointer',
-                            opacity: processingBookingId === booking.id ? 0.6 : 1,
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!processingBookingId) e.currentTarget.style.background = '#059669';
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!processingBookingId) e.currentTarget.style.background = '#10b981';
-                          }}
-                        >
-                          Подтвердить
-                        </button>
-                        <button
-                          onClick={() => handleRejectBooking(booking.id)}
-                          disabled={processingBookingId === booking.id}
-                          style={{
-                            padding: '10px 24px',
-                            background: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '10px',
-                            fontWeight: '600',
-                            cursor: processingBookingId === booking.id ? 'not-allowed' : 'pointer',
-                            opacity: processingBookingId === booking.id ? 0.6 : 1,
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!processingBookingId) e.currentTarget.style.background = '#dc2626';
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!processingBookingId) e.currentTarget.style.background = '#ef4444';
-                          }}
-                        >
+                        {room.metro}
+                      </span>
+                    )}
+                    <span style={{ 
+                      padding: '4px 12px', 
+                      background: 'rgba(255, 255, 255, 0.75)',
+                      backdropFilter: 'blur(8px)',
+                      borderRadius: '20px', 
+                      fontSize: '13px', 
+                      color: '#334155',
+                      border: '1px solid rgba(255, 255, 255, 0.4)',
+                      fontWeight: '500'
+                    }}>
+                      {formatDate(room.created_at)}
+                    </span>
+                  </div>
+
+                  <div style={{ 
+                    display: 'flex', 
+                    flexWrap: 'wrap', 
+                    gap: '6px', 
+                    marginBottom: '20px' 
+                  }}>
+                    {room.amenities && room.amenities.length > 0 ? (
+                      room.amenities.slice(0, 4).map((item, idx) => {
+                        const amenityName = typeof item === 'string' ? item : item?.name || 'Неизвестно';
+                        return (
+                          <span key={idx} style={{ 
+                            padding: '4px 10px', 
+                            fontSize: '11px', 
+                            fontWeight: '500', 
+                            color: '#334155', 
+                            background: 'rgba(241, 243, 245, 0.75)',
+                            backdropFilter: 'blur(8px)',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(255, 255, 255, 0.3)'
+                          }}>
+                            {amenityName}
+                          </span>
+                        );
+                      })
+                    ) : (
+                      <span style={{ color: '#475569', fontSize: '12px', fontWeight: '500' }}>Нет удобств</span>
+                    )}
+                    {room.amenities?.length > 4 && (
+                      <span style={{ 
+                        padding: '4px 10px', 
+                        fontSize: '11px', 
+                        fontWeight: '500', 
+                        color: '#334155', 
+                        background: 'rgba(241, 243, 245, 0.75)',
+                        backdropFilter: 'blur(8px)',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(255, 255, 255, 0.3)'
+                      }}>
+                        +{room.amenities.length - 4}
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '12px', 
+                    borderTop: '1px solid rgba(255, 255, 255, 0.3)', 
+                    paddingTop: '16px',
+                    marginTop: 'auto'
+                  }}>
+                    <Link to={`/edit-room/${room.id}`} style={{
+                      flex: 1,
+                      textDecoration: 'none',
+                      background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
+                      color: '#ffffff',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      padding: '12px',
+                      borderRadius: '10px',
+                      textAlign: 'center',
+                      boxShadow: '0 4px 12px rgba(40, 80, 167, 0.15)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => { 
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(40, 80, 167, 0.25)';
+                    }}
+                    onMouseLeave={(e) => { 
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(40, 80, 167, 0.15)';
+                    }}>
+                      Редактировать
+                    </Link>
+                    <button 
+                      onClick={() => handleDelete(room.id)}
+                      disabled={deletingId === room.id}
+                      style={{
+                        padding: '12px 20px',
+                        background: 'rgba(254, 242, 242, 0.75)',
+                        backdropFilter: 'blur(8px)',
+                        color: '#ef4444',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '10px',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        cursor: deletingId === room.id ? 'not-allowed' : 'pointer',
+                        opacity: deletingId === room.id ? 0.6 : 1,
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => { if (!deletingId) e.currentTarget.style.background = 'rgba(254, 226, 226, 0.9)'; }}
+                      onMouseLeave={(e) => { if (!deletingId) e.currentTarget.style.background = 'rgba(254, 242, 242, 0.75)'; }}
+                    >
+                      {deletingId === room.id ? '...' : 'Удалить'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      
+        {activeTab === 'bookings' && (
+  <div className="bookings-list">
+    {sortedBookings.length === 0 ? (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '60px 20px', 
+        background: 'rgba(235, 248, 245, 0.85)',
+        backdropFilter: 'blur(12px)',
+        borderRadius: '24px', 
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+      }}>
+        <h3 style={{ fontSize: '20px', color: '#0f172a', margin: '0 0 8px 0', fontWeight: '700' }}>Нет бронирований</h3>
+        <p style={{ color: '#475569', fontSize: '15px', margin: 0, fontWeight: '500' }}>Пока никто не бронировал ваши помещения</p>
+      </div>
+    ) : (
+      sortedBookings.map(booking => {
+        const hoursDiff = (new Date(booking.time_to) - new Date(booking.time_from)) / 3600000;
+        const totalPrice = hoursDiff * (booking.price_per_hour || 0);
+        const isWaiting = booking.status === 'waiting';
+        const userName = userNames[booking.user_id] || `Пользователь #${booking.user_id}`;
+        const roomName = apartmentNames[booking.apartment_id] || `Помещение #${booking.apartment_id}`;
+
+        return (
+          <div 
+            key={booking.id}
+            style={{
+              background: 'rgba(235, 248, 245, 0.85)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '20px',
+              padding: '24px',
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderLeft: isWaiting ? '4px solid #f59e0b' : '4px solid #10b981',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px 0' }}>
+                  {roomName}
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#475569', fontSize: '14px', fontWeight: '500' }}>
+                  <span>👤 <strong style={{ color: '#334155' }}>{userName}</strong></span>
+                  <span>📅 {formatFullDate(booking.time_from)}</span>
+                  <span>⏱️ {hoursDiff.toFixed(1)} ч.</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className={getStatusBadgeClass(booking.status)} style={{
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  background: isWaiting ? 'rgba(254, 243, 199, 0.9)' : 'rgba(220, 252, 231, 0.9)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  color: isWaiting ? '#92400e' : '#166534'
+                }}>
+                  {getStatusText(booking.status)}
+                </span>
+              </div>
+            </div>
+
+            {isWaiting && (
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px', 
+                marginTop: '16px', 
+                paddingTop: '16px', 
+                borderTop: '1px solid rgba(255, 255, 255, 0.3)' 
+              }}>
+                <button
+                  onClick={() => handleConfirmBooking(booking.id)}
+                  disabled={processingBookingId === booking.id}
+                  style={{
+                    padding: '10px 24px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    cursor: processingBookingId === booking.id ? 'not-allowed' : 'pointer',
+                    opacity: processingBookingId === booking.id ? 0.6 : 1,
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!processingBookingId) {
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.3)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!processingBookingId) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.2)';
+                    }
+                  }}
+                >
+                  Подтвердить
+                </button>
+                <button
+                  onClick={() => handleRejectBooking(booking.id)}
+                  disabled={processingBookingId === booking.id}
+                  style={{
+                    padding: '10px 24px',
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    cursor: processingBookingId === booking.id ? 'not-allowed' : 'pointer',
+                    opacity: processingBookingId === booking.id ? 0.6 : 1,
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!processingBookingId) {
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.3)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!processingBookingId) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.2)';
+                    }
+                  }}
+                >
+               
                           Отклонить
                         </button>
                       </div>

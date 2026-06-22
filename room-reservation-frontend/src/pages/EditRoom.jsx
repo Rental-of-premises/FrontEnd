@@ -251,137 +251,380 @@ export default function EditRoom() {
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="editroom-page">
-        <div className="editroom-container">
-          <Link to="/my-rooms" className="editroom-back">
-            ← Назад к моим помещениям
-          </Link>
+  <>
+    <Navbar />
+    <div className="editroom-page" style={{ 
+      maxWidth: '1200px', 
+      margin: '0 auto', 
+      padding: '50px 24px',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      background: 'transparent'  // Вместо белого фона
+    }}>
+      <div className="editroom-container">
+        <Link to="/my-rooms" className="editroom-back" style={{
+          display: 'inline-block',
+          color: '#ffffff',
+          background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          padding: '10px 24px',
+          borderRadius: '20px',
+          fontSize: '14px',
+          fontWeight: '600',
+          textDecoration: 'none',
+          marginBottom: '24px',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 12px rgba(40, 80, 167, 0.3)'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 6px 16px rgba(40, 80, 167, 0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(40, 80, 167, 0.3)';
+        }}>
+          ← Назад к моим помещениям
+        </Link>
 
-          <div style={{ marginBottom: '32px' }}>
-            <h1 className="editroom-title">Редактировать помещение</h1>
-            <p className="editroom-subtitle">
-              Измените параметры или описание вашего рабочего пространства
-            </p>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 className="editroom-title" style={{ 
+            fontSize: '32px', 
+            fontWeight: '800', 
+            color: '#0f172a',
+            textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+            marginBottom: '8px'
+          }}>
+            Редактировать помещение
+          </h1>
+          <p className="editroom-subtitle" style={{ 
+            color: '#f1f5f9',  // Светло-серый, почти белый
+            fontSize: '15px',
+            fontWeight: '500',
+            textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)'  // Тень для контраста
+          }}>
+            Измените параметры или описание вашего рабочего пространства
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="editroom-form" style={{
+          background: 'rgba(235, 248, 245, 0.85)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: '24px',
+          padding: '32px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          maxWidth: '800px'
+        }}>
+          {errorMsg && <div className="error-message" style={{
+            background: 'rgba(254, 242, 242, 0.9)',
+            backdropFilter: 'blur(8px)',
+            color: '#dc2626',
+            padding: '16px 20px',
+            borderRadius: '12px',
+            border: '1px solid rgba(254, 226, 226, 0.5)',
+            marginBottom: '20px',
+            fontSize: '14px',
+            fontWeight: '600'
+          }}>{errorMsg}</div>}
+          {successMsg && <div className="success-message" style={{
+            background: 'rgba(220, 252, 231, 0.9)',
+            backdropFilter: 'blur(8px)',
+            color: '#166534',
+            padding: '16px 20px',
+            borderRadius: '12px',
+            border: '1px solid rgba(220, 252, 231, 0.5)',
+            marginBottom: '20px',
+            fontSize: '14px',
+            fontWeight: '600'
+          }}>{successMsg}</div>}
+
+          <div className="form-group">
+            <label style={{ color: '#334155', fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '8px' }}>Название помещения</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.4)',
+                borderRadius: '10px',
+                fontSize: '15px',
+                color: '#1e293b',
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'all 0.2s'
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#2850a7'}
+              onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'}
+            />
           </div>
 
-          <form onSubmit={handleSubmit} className="editroom-form">
-            {errorMsg && <div className="error-message">{errorMsg}</div>}
-            {successMsg && <div className="success-message">{successMsg}</div>}
+          <div className="form-group">
+            <label style={{ color: '#334155', fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '8px' }}>Описание</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows="4"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.4)',
+                borderRadius: '10px',
+                fontSize: '15px',
+                color: '#1e293b',
+                outline: 'none',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#2850a7'}
+              onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'}
+            />
+          </div>
 
+          <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div className="form-group">
-              <label>Название помещения</label>
+              <label style={{ color: '#334155', fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '8px' }}>Вместимость (чел.)</label>
+              <input
+                type="number"
+                name="capacity"
+                value={formData.capacity}
+                onChange={handleChange}
+                min="1"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  borderRadius: '10px',
+                  fontSize: '15px',
+                  color: '#1e293b',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#2850a7'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'}
+              />
+            </div>
+            <div className="form-group">
+              <label style={{ color: '#334155', fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '8px' }}>₽ Цена за час</label>
+              <input
+                type="number"
+                name="price_per_hour"
+                value={formData.price_per_hour}
+                onChange={handleChange}
+                min="50"
+                step="50"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  borderRadius: '10px',
+                  fontSize: '15px',
+                  color: '#1e293b',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#2850a7'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'}
+              />
+            </div>
+          </div>
+
+          <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="form-group">
+              <MetroAutocomplete
+                value={formData.metro || ''}
+                onChange={(value) => setFormData(prev => ({ ...prev, metro: value }))}
+                placeholder="Начните вводить название станции..."
+                required={true}
+                label="Метро *"
+              />
+            </div>
+            <div className="form-group">
+              <label style={{ color: '#334155', fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '8px' }}>Адрес</label>
               <input
                 type="text"
-                name="name"
-                value={formData.name}
+                name="address"
+                value={formData.address}
                 onChange={handleChange}
-                required
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  borderRadius: '10px',
+                  fontSize: '15px',
+                  color: '#1e293b',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#2850a7'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'}
               />
             </div>
+          </div>
 
-            <div className="form-group">
-              <label>Описание</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows="4"
+          <AmenitiesSelector
+            selectedIds={formData.amenities}
+            onChange={handleAmenitiesChange}
+            label="Удобства (выберите из списка)"
+          />
+
+          <div className="form-group">
+            <label style={{ color: '#334155', fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '8px' }}>Текущие изображения</label>
+            {formData.existing_images.length === 0 ? (
+              <p style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Нет изображений</p>
+            ) : (
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
+                gap: '10px',
+                marginTop: '8px'
+              }}>
+                {formData.existing_images.map((url, index) => (
+                  <div key={index} style={{ position: 'relative' }}>
+                    <img 
+                      src={url}
+                      alt={`Изображение ${index + 1}`} 
+                      style={{ 
+                        width: '100%', 
+                        height: '100px', 
+                        objectFit: 'contain',
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                        background: 'rgba(241, 245, 249, 0.7)',
+                        backdropFilter: 'blur(8px)'
+                      }} 
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/120x100?text=Ошибка';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => markExistingImageForDeletion(index)}
+                      style={{
+                        position: 'absolute',
+                        top: '4px',
+                        right: '4px',
+                        width: '24px',
+                        height: '24px',
+                        background: 'rgba(239,68,68,0.9)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 2px 6px rgba(239, 68, 68, 0.3)'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.9)'}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <small className="form-hint" style={{ color: '#64748b', fontSize: '13px', marginTop: '8px', display: 'block' }}>
+              Нажмите × чтобы удалить изображение (изменения сохранятся после нажатия "Сохранить")
+            </small>
+          </div>
+
+          <div className="form-group">
+            <label style={{ color: '#334155', fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '8px' }}>
+              Добавить новые изображения (макс. {MAX_FILES})
+            </label>
+            <div className="image-upload-area">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="file-input"
+                id="image-upload"
+                multiple
+                style={{ display: 'none' }}
               />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Вместимость (чел.)</label>
-                <input
-                  type="number"
-                  name="capacity"
-                  value={formData.capacity}
-                  onChange={handleChange}
-                  min="1"
-                />
-              </div>
-              <div className="form-group">
-                <label>₽ Цена за час</label>
-                <input
-                  type="number"
-                  name="price_per_hour"
-                  value={formData.price_per_hour}
-                  onChange={handleChange}
-                  min="50"
-                  step="50"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <MetroAutocomplete
-                  value={formData.metro || ''}
-                  onChange={(value) => setFormData(prev => ({ ...prev, metro: value }))}
-                  placeholder="Начните вводить название станции..."
-                  required={true}
-                  label="Метро *"
-                />
-              </div>
-              <div className="form-group">
-                <label>Адрес</label>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <AmenitiesSelector
-              selectedIds={formData.amenities}
-              onChange={handleAmenitiesChange}
-              label="Удобства (выберите из списка)"
-            />
-
-            <div className="form-group">
-              <label>Текущие изображения</label>
-              {formData.existing_images.length === 0 ? (
-                <p style={{ color: '#94a3b8', fontSize: '14px' }}>Нет изображений</p>
-              ) : (
+              <label htmlFor="image-upload" className="file-input-label" style={{
+                display: 'inline-block',
+                padding: '12px 24px',
+                background: formData.new_image_files.length > 0 
+                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' 
+                  : 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
+                color: '#ffffff',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px',
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(40, 80, 167, 0.25)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(40, 80, 167, 0.35)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(40, 80, 167, 0.25)';
+              }}>
+                {formData.new_image_files.length > 0 
+                  ? `Выбрано ${formData.new_image_files.length} файлов` 
+                  : 'Выберите изображения'}
+              </label>
+              
+              {formData.new_image_previews.length > 0 && (
                 <div style={{ 
                   display: 'grid', 
                   gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
                   gap: '10px',
-                  marginTop: '8px'
+                  marginTop: '12px'
                 }}>
-                  {formData.existing_images.map((url, index) => (
+                  {formData.new_image_previews.map((preview, index) => (
                     <div key={index} style={{ position: 'relative' }}>
                       <img 
-                        src={url}
-                        alt={`Изображение ${index + 1}`} 
+                        src={preview} 
+                        alt={`Новое ${index + 1}`} 
                         style={{ 
                           width: '100%', 
                           height: '100px', 
                           objectFit: 'contain',
                           maxWidth: '100%',
                           maxHeight: '100%',
-                          borderRadius: '8px',
-                          border: '1px solid #e2e8f0',
-                          background: '#f1f5f9'
+                          borderRadius: '10px',
+                          border: '1px solid rgba(255, 255, 255, 0.4)',
+                          background: 'rgba(241, 245, 249, 0.7)',
+                          backdropFilter: 'blur(8px)'
                         }} 
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/120x100?text=Ошибка';
-                        }}
                       />
                       <button
                         type="button"
-                        onClick={() => markExistingImageForDeletion(index)}
+                        onClick={() => removeNewImage(index)}
                         style={{
                           position: 'absolute',
                           top: '4px',
                           right: '4px',
                           width: '24px',
                           height: '24px',
-                          background: 'rgba(239,68,68,0.8)',
+                          background: 'rgba(0,0,0,0.7)',
                           color: 'white',
                           border: 'none',
                           borderRadius: '50%',
@@ -389,8 +632,11 @@ export default function EditRoom() {
                           fontSize: '14px',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          transition: 'all 0.2s'
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.85)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.7)'}
                       >
                         ×
                       </button>
@@ -398,111 +644,116 @@ export default function EditRoom() {
                   ))}
                 </div>
               )}
-              <small className="form-hint">
-                Нажмите × чтобы удалить изображение (изменения сохранятся после нажатия "Сохранить")
-              </small>
             </div>
+            <small className="form-hint" style={{ color: '#64748b', fontSize: '13px', marginTop: '8px', display: 'block' }}>
+              Максимум {MAX_FILES} файлов, каждый до 10MB
+            </small>
+          </div>
 
-            <div className="form-group">
-              <label>Добавить новые изображения (макс. {MAX_FILES})</label>
-              <div className="image-upload-area">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="file-input"
-                  id="image-upload"
-                  multiple
-                />
-                <label htmlFor="image-upload" className="file-input-label">
-                  {formData.new_image_files.length > 0 
-                    ? `Выбрано ${formData.new_image_files.length} файлов` 
-                    : 'Выберите изображения'}
-                </label>
-                
-                {formData.new_image_previews.length > 0 && (
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
-                    gap: '10px',
-                    marginTop: '12px'
-                  }}>
-                    {formData.new_image_previews.map((preview, index) => (
-                      <div key={index} style={{ position: 'relative' }}>
-                        <img 
-                          src={preview} 
-                          alt={`Новое ${index + 1}`} 
-                          style={{ 
-                            width: '100%', 
-                            height: '100px', 
-                            objectFit: 'contain',
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0',
-                            background: '#f1f5f9'
-                          }} 
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeNewImage(index)}
-                          style={{
-                            position: 'absolute',
-                            top: '4px',
-                            right: '4px',
-                            width: '24px',
-                            height: '24px',
-                            background: 'rgba(0,0,0,0.6)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '50%',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <small className="form-hint">
-                Максимум {MAX_FILES} файлов, каждый до 10MB
-              </small>
-            </div>
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px',
+              color: '#334155',
+              fontWeight: '500',
+              cursor: 'pointer',
+              padding: '12px',
+              background: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(8px)',
+              borderRadius: '10px',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}>
+              <input
+                type="checkbox"
+                name="is_active"
+                checked={formData.is_active}
+                onChange={handleChange}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  cursor: 'pointer',
+                  accentColor: '#2850a7'
+                }}
+              />
+              Помещение активно и доступно для общего бронирования
+            </label>
+          </div>
 
-            <div className="form-group checkbox-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="is_active"
-                  checked={formData.is_active}
-                  onChange={handleChange}
-                />
-                Помещение активно и доступно для общего бронирования
-              </label>
-            </div>
-
-            <div className="form-actions">
-              <Link to="/my-rooms" className="cancel-btn-form">
-                Отмена
-              </Link>
-              <button 
-                type="submit" 
-                className="submit-btn" 
-                disabled={updating || uploading}
-              >
-                {uploading ? `Загрузка ${uploadProgress}%` : 
-                 updating ? 'Сохранение...' : 'Сохранить изменения'}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className="form-actions" style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+            <Link to="/my-rooms" className="cancel-btn-form" style={{
+              flex: 1,
+              padding: '14px',
+              background: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              borderRadius: '10px',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: '#475569',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              textAlign: 'center',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.7)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}>
+              Отмена
+            </Link>
+            <button 
+              type="submit" 
+              className="submit-btn" 
+              disabled={updating || uploading}
+              style={{
+                flex: 2,
+                padding: '14px',
+                background: (updating || uploading) 
+                  ? '#94a3b8' 
+                  : 'linear-gradient(135deg, #2850a7 0%, #1e3d82 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '16px',
+                fontWeight: '700',
+                cursor: (updating || uploading) 
+                  ? 'not-allowed' 
+                  : 'pointer',
+                transition: 'all 0.2s',
+                opacity: (updating || uploading) ? 0.7 : 1,
+                boxShadow: !updating && !uploading 
+                  ? '0 6px 16px rgba(40, 80, 167, 0.35)' 
+                  : 'none',
+                letterSpacing: '0.3px'
+              }}
+              onMouseEnter={(e) => {
+                if (!updating && !uploading) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(40, 80, 167, 0.45)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!updating && !uploading) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(40, 80, 167, 0.35)';
+                }
+              }}
+            >
+              {uploading ? `Загрузка ${uploadProgress}%` : 
+               updating ? 'Сохранение...' : 'Сохранить изменения'}
+            </button>
+          </div>
+        </form>
       </div>
-    </>
-  );
+    </div>
+  </>
+);
 }

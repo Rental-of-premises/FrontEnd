@@ -49,36 +49,50 @@ export default function Register() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#f8fafc',
+        background: 'transparent',
         padding: '40px 24px',
         boxSizing: 'border-box',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}>
         <div className="auth-card" style={{
-          background: '#ffffff',
+          background: 'rgba(235, 248, 245, 0.95)',
+          backdropFilter: 'blur(16px)',
           width: '100%',
           maxWidth: '440px',
-          borderRadius: '24px',
-          padding: '40px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 20px 40px -15px rgba(148, 163, 184, 0.12)',
+          borderRadius: '28px',
+          padding: '48px 40px',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
           boxSizing: 'border-box'
         }}>
           <div className="auth-header" style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h1 className="auth-title" style={{ fontSize: '30px', fontWeight: '700', color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>Создать аккаунт</h1>
-            <p className="auth-subtitle" style={{ color: '#64748b', fontSize: '15px', margin: 0 }}>Присоединяйтесь к нашей платформе</p>
+            <h1 className="auth-title" style={{ 
+              fontSize: '32px', 
+              fontWeight: '800', 
+              color: '#0f172a', 
+              margin: '0 0 8px 0', 
+              letterSpacing: '-0.02em',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+            }}>Создать аккаунт</h1>
+            <p className="auth-subtitle" style={{ 
+              color: '#475569', 
+              fontSize: '15px', 
+              margin: 0,
+              fontWeight: '500'
+            }}>Присоединяйтесь к нашей платформе</p>
           </div>
           
           {error && (
             <div className="error-message" style={{
-              background: '#fef2f2',
-              color: '#ef4444',
+              background: 'rgba(254, 242, 242, 0.9)',
+              backdropFilter: 'blur(8px)',
+              color: '#dc2626',
               padding: '12px 16px',
               borderRadius: '12px',
               fontSize: '14px',
-              fontWeight: '500',
+              fontWeight: '600',
               marginBottom: '24px',
-              border: '1px solid #fee2e2',
+              border: '1px solid rgba(254, 226, 226, 0.5)',
               textAlign: 'center'
             }}>
               {error}
@@ -87,7 +101,7 @@ export default function Register() {
           
           <form onSubmit={handleSubmit} className="auth-form" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#475569' }}>Имя</label>
+              <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Имя</label>
               <input
                 type="text"
                 value={name}
@@ -95,9 +109,11 @@ export default function Register() {
                 placeholder="Как вас зовут?"
                 required
                 style={{
-                  padding: '14px 16px',
+                  padding: '14px 18px',
                   borderRadius: '12px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(8px)',
                   fontSize: '15px',
                   color: '#1e293b',
                   outline: 'none',
@@ -106,17 +122,19 @@ export default function Register() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = '#2850a7';
-                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.15)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
                 }}
               />
             </div>
             
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#475569' }}>Email</label>
+              <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Email</label>
               <input
                 type="email"
                 value={email}
@@ -124,9 +142,11 @@ export default function Register() {
                 placeholder="example@example.com"
                 required
                 style={{
-                  padding: '14px 16px',
+                  padding: '14px 18px',
                   borderRadius: '12px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(8px)',
                   fontSize: '15px',
                   color: '#1e293b',
                   outline: 'none',
@@ -135,17 +155,19 @@ export default function Register() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = '#2850a7';
-                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.15)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
                 }}
               />
             </div>
             
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#475569' }}>Пароль</label>
+              <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Пароль</label>
               <input
                 type="password"
                 value={password}
@@ -153,9 +175,11 @@ export default function Register() {
                 placeholder="Не менее 6 символов"
                 required
                 style={{
-                  padding: '14px 16px',
+                  padding: '14px 18px',
                   borderRadius: '12px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(8px)',
                   fontSize: '15px',
                   color: '#1e293b',
                   outline: 'none',
@@ -164,17 +188,19 @@ export default function Register() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = '#2850a7';
-                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.15)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
                 }}
               />
             </div>
             
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#475569' }}>Подтвердите пароль</label>
+              <label style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>Подтвердите пароль</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -182,9 +208,11 @@ export default function Register() {
                 placeholder="Повторите пароль"
                 required
                 style={{
-                  padding: '14px 16px',
+                  padding: '14px 18px',
                   borderRadius: '12px',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(8px)',
                   fontSize: '15px',
                   color: '#1e293b',
                   outline: 'none',
@@ -193,11 +221,13 @@ export default function Register() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = '#2850a7';
-                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.1)';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(40, 80, 167, 0.15)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
                 }}
               />
             </div>
@@ -207,30 +237,29 @@ export default function Register() {
               className="auth-btn" 
               disabled={loading}
               style={{
-                background: '#2850a7',
+                background: 'linear-gradient(135deg, #2850a7 0%, #1e3d7c 100%)',
                 color: '#ffffff',
                 border: 'none',
                 padding: '14px',
                 borderRadius: '12px',
-                fontWeight: '600',
+                fontWeight: '700',
                 fontSize: '16px',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.7 : 1,
-                boxShadow: '0 4px 12px rgba(40, 80, 167, 0.15)',
+                boxShadow: '0 6px 16px rgba(40, 80, 167, 0.35)',
                 transition: 'all 0.2s ease',
-                marginTop: '10px'
+                marginTop: '10px',
+                letterSpacing: '0.3px'
               }}
               onMouseEnter={(e) => {
                 if (!loading) {
-                  e.currentTarget.style.background = '#1e3d82';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(40, 80, 167, 0.45)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.background = '#2850a7';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(40, 80, 167, 0.35)';
               }}
             >
               {loading ? 'Регистрация...' : 'Зарегистрироваться'}
@@ -241,15 +270,26 @@ export default function Register() {
             textAlign: 'center', 
             marginTop: '28px', 
             fontSize: '14px', 
-            color: '#64748b',
-            margin: '28px 0 0 0'
+            color: '#475569',
+            margin: '28px 0 0 0',
+            fontWeight: '500'
           }}>
             Уже есть аккаунт?{' '}
             <Link to="/login" style={{ 
               color: '#2850a7', 
-              fontWeight: '600', 
+              fontWeight: '700', 
               textDecoration: 'none',
-              transition: 'color 0.2s ease'
+              transition: 'all 0.2s ease',
+              borderBottom: '2px solid rgba(40, 80, 167, 0.3)',
+              paddingBottom: '2px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#1e3d7c';
+              e.currentTarget.style.borderBottomColor = '#2850a7';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#2850a7';
+              e.currentTarget.style.borderBottomColor = 'rgba(40, 80, 167, 0.3)';
             }}>
               Войти
             </Link>
