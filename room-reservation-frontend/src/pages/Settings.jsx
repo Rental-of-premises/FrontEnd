@@ -491,11 +491,11 @@ export default function Settings() {
 
         {/* ===== УДАЛЕНИЕ АККАУНТА ===== */}
         <div style={{
-          background: 'rgba(254, 242, 242, 0.85)',
+          background: 'rgba(235, 248, 245, 0.85)',
           backdropFilter: 'blur(12px)',
           borderRadius: '28px',
           padding: '32px',
-          border: '1px solid rgba(254, 226, 226, 0.5)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
         }}>
           <h2 style={{ 
